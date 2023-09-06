@@ -1,16 +1,17 @@
 package com.omar.musica
 
 import android.content.ComponentName
-import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,14 +22,15 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
@@ -37,40 +39,42 @@ import androidx.media3.common.Player.COMMAND_PLAY_PAUSE
 import androidx.media3.common.Player.COMMAND_PREPARE
 import androidx.media3.common.Player.COMMAND_SET_MEDIA_ITEM
 import androidx.media3.common.Timeline
-import androidx.media3.common.Tracks
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
 import com.omar.musica.model.Song
 import com.omar.musica.playback.PlaybackService
-import com.omar.musica.playback.PlaybackService.Companion.EXTRA_URI
 import com.omar.musica.store.MediaRepository
 import com.omar.musica.ui.theme.MusicaTheme
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlin.math.pow
 
 class MainActivity : ComponentActivity() {
 
-    lateinit var controller: MediaController
+    private lateinit var controller: MediaController
 
 
+    @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
 
 
         val musicRepository = MediaRepository(applicationContext)
 
         var songs by mutableStateOf(listOf<Song>())
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            songs = musicRepository.getAllSongs()
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                musicRepository.songsFlow
+                    .onEach {
+                        songs = it
+                    }
+                    .collect()
+            }
         }
-
-
-
-
-
 
 
         setContent {
@@ -88,7 +92,25 @@ class MainActivity : ComponentActivity() {
                             Column(
                                 Modifier
                                     .fillMaxWidth()
-                                    .clickable {
+                                    .combinedClickable(onLongClick = {
+
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                            Log.d("MainActivity", "Deleintg file")
+                                            val intent = MediaStore.createDeleteRequest(
+                                                contentResolver,
+                                                mutableListOf(it.uriString.toUri())
+                                            )
+
+                                            startIntentSenderForResult(
+                                                intent.intentSender,
+                                                0,
+                                                null,
+                                                0,
+                                                0,
+                                                0
+                                            )
+                                        }
+                                    }) {
                                         playMusic(it.uriString)
                                         Toast
                                             .makeText(
@@ -153,6 +175,8 @@ class MainActivity : ComponentActivity() {
                 prepare()
             }
         }
+
+
     }
 
     private fun initController() {

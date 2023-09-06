@@ -2,14 +2,86 @@ package com.omar.musica.store
 
 import android.content.ContentUris
 import android.content.Context
+import android.database.ContentObserver
+import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import com.omar.musica.model.Song
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
-class MediaRepository(private val context: Context) {
+private const val TAG = "MediaRepository"
+
+class MediaRepository(
+    private val context: Context,
+    scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
+) {
 
 
-    fun getAllSongs(): List<Song> {
+    private var mediaSyncJob: Job? = null
+
+    /** A state flow that contains all the songs in the user's device
+    Automatically updates when the MediaStore changes
+     */
+    val songsFlow =
+        callbackFlow {
+
+            Log.d(TAG, "Initializing callback flow to get all songs")
+            var lastChangedUri: Uri? = null
+            val observer = object : ContentObserver(null) {
+                override fun onChange(selfChange: Boolean, uri: Uri?) {
+                    // Sometimes Android sends duplicate callbacks when media changes for the same URI
+                    // this ensures that we don't sync twice
+                    if (uri == lastChangedUri) return
+                    lastChangedUri = uri
+
+                    if (mediaSyncJob?.isActive == true) {
+                        // we are already syncing, no need to complicate things more
+                        return
+                    } else {
+                        mediaSyncJob = launch {
+                            send(getAllSongs())
+                            mediaSyncJob = null
+                        }
+                    }
+                }
+            }
+
+            context.contentResolver.registerContentObserver(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                true,
+                observer
+            )
+            delay(4000) // TODO remove this delay
+
+            // Initial Sync
+            mediaSyncJob = launch {
+                send(getAllSongs())
+            }
+
+            awaitClose {
+                context.contentResolver.unregisterContentObserver(observer)
+            }
+
+        }.flowOn(Dispatchers.IO).stateIn(
+            scope = scope,
+            started = SharingStarted.WhileSubscribed(5000, 5000),
+            initialValue = listOf()
+        )
+
+
+    suspend fun getAllSongs(): List<Song> = withContext(Dispatchers.IO) {
 
         val projection =
             arrayOf(
@@ -23,7 +95,7 @@ class MediaRepository(private val context: Context) {
                 MediaStore.Audio.Media.ALBUM
             )
 
-        return with(context) {
+        with(context) {
 
             val cursor = contentResolver.query(
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -34,7 +106,7 @@ class MediaRepository(private val context: Context) {
 
             val results = mutableListOf<Song>()
             cursor.use { c ->
-                while (c.moveToNext()) {
+                while (c.moveToNext() && isActive) {
                     val idColumn = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
                     val fileNameColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME)
                     val titleColumn = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
@@ -43,7 +115,7 @@ class MediaRepository(private val context: Context) {
                     val sizeColumn = cursor.getColumnIndex(MediaStore.Audio.Media.SIZE)
                     val pathColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
                     val albumColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
-                    val song = Song(
+                    Song(
                         title = c.getString(titleColumn),
                         artist = c.getString(artistColumn),
                         album = c.getString(albumColumn),
@@ -62,6 +134,5 @@ class MediaRepository(private val context: Context) {
             results
         }
     }
-
 
 }
