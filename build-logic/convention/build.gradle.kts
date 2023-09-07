@@ -30,5 +30,21 @@ gradlePlugin {
             id = "com.omar.android.hilt"
             implementationClass = "HiltConventionPlugin"
         }
+        register("AndroidFeature") {
+            id = "com.omar.android.feature"
+            implementationClass = "AndroidFeatureConventionPlugin"
+        }
+        register("AndroidCompose") {
+            id = "com.omar.android.compose"
+            implementationClass = "AndroidLibraryComposeConventionPlugin"
+        }
+        register("AndroidApplication") {
+            id = "com.omar.android.application"
+            implementationClass = "AndroidApplicationConventionPlugin"
+        }
+        register("AndroidApplicationCompose") {
+            id = "com.omar.android.application.compose"
+            implementationClass = "AndroidApplicationComposeConventionPlugin"
+        }
     }
 }

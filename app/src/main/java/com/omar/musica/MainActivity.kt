@@ -32,7 +32,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.media3.session.MediaController
 import com.omar.musica.model.Song
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.MediaRepository
@@ -51,7 +50,6 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
 
         val musicRepository = MediaRepository(applicationContext)
 
