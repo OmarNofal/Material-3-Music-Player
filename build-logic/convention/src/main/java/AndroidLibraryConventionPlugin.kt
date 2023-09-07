@@ -1,6 +1,7 @@
 
 import com.android.build.gradle.LibraryExtension
 import com.omar.musica.convention.configureKotlinAndroid
+import com.omar.musica.convention.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
@@ -20,6 +21,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 defaultConfig.targetSdk = 34
             }
             dependencies {
+                add("implementation", libs.findLibrary("timber").get())
                 add("androidTestImplementation", kotlin("test"))
                 add("testImplementation", kotlin("test"))
             }

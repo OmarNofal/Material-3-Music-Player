@@ -63,7 +63,6 @@ class MediaRepository(
                 true,
                 observer
             )
-            delay(4000) // TODO remove this delay
 
             // Initial Sync
             mediaSyncJob = launch {

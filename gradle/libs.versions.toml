@@ -15,6 +15,7 @@ ksp = "1.9.0-1.0.13"
 appcompat = "1.6.1"
 material = "1.9.0"
 media3 = "1.1.1"
+timber = "5.0.1"
 
 [libraries]
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
@@ -39,6 +40,7 @@ appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "a
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 media3-session = {group = "androidx.media3", name = "media3-session", version.ref = "media3"}
 media3-exoplayer = {group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3"}
+timber = {group = "com.jakewharton.timber", name = "timber", version.ref = "timber"}
 
 [plugins]
 com-android-application = { id = "com.android.application", version.ref = "agp" }

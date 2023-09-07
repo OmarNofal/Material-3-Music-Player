@@ -6,6 +6,7 @@ import androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC
 import androidx.media3.common.C.USAGE_MEDIA
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 
@@ -16,6 +17,7 @@ class PlaybackService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
+
         player = ExoPlayer.Builder(applicationContext)
             .setAudioAttributes(
                 AudioAttributes.Builder().setContentType(AUDIO_CONTENT_TYPE_MUSIC).setUsage(USAGE_MEDIA).build(),
@@ -26,12 +28,12 @@ class PlaybackService : MediaSessionService() {
         mediaSession = MediaSession
             .Builder(applicationContext, player)
             .build()
+
     }
 
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
         Log.i(TAG, "Controller request: ${controllerInfo.packageName}")
-        if (controllerInfo.packageName == "android.media.session.MediaController") return null
         return mediaSession
     }
 
