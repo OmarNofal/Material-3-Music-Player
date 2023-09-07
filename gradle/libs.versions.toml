@@ -16,6 +16,7 @@ appcompat = "1.6.1"
 material = "1.9.0"
 media3 = "1.1.1"
 timber = "5.0.1"
+hilt = "2.47"
 
 [libraries]
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
@@ -38,9 +39,13 @@ kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-pl
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-media3-session = {group = "androidx.media3", name = "media3-session", version.ref = "media3"}
-media3-exoplayer = {group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3"}
-timber = {group = "com.jakewharton.timber", name = "timber", version.ref = "timber"}
+media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
+media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
+
 
 [plugins]
 com-android-application = { id = "com.android.application", version.ref = "agp" }
@@ -49,6 +54,7 @@ org-jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "org
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 com-android-library = { id = "com.android.library", version.ref = "agp" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 
 [bundles]
 

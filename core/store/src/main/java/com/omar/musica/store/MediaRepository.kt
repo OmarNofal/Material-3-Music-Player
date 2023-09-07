@@ -19,10 +19,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Singleton
 
 
 private const val TAG = "MediaRepository"
 
+
+@Singleton
 class MediaRepository(
     private val context: Context,
     scope: CoroutineScope = CoroutineScope(Dispatchers.Default),

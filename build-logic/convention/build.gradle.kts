@@ -26,5 +26,9 @@ gradlePlugin {
             id = "com.omar.kotlin.library"
             implementationClass = "JvmLibraryConventionPlugin"
         }
+        register("Hilt") {
+            id = "com.omar.android.hilt"
+            implementationClass = "HiltConventionPlugin"
+        }
     }
 }
