@@ -5,13 +5,13 @@ androidxLifecycle = "2.6.1"
 androidxHiltNavigationCompose = "1.0.0"
 androidxComposeCompiler = "1.5.0"
 org-jetbrains-kotlin-android = "1.9.0"
-core-ktx = "1.9.0"
+core-ktx = "1.10.1"
 junit = "4.13.2"
 androidx-test-ext-junit = "1.1.5"
 espresso-core = "3.5.1"
 lifecycle-runtime-ktx = "2.6.1"
 activity-compose = "1.7.2"
-androidxComposeBom = "2023.03.00"
+androidxComposeBom = "2023.08.00"
 org-jetbrains-kotlin-jvm = "1.8.10"
 kotlin = "1.9.0"
 ksp = "1.9.0-1.0.13"
@@ -22,6 +22,7 @@ timber = "5.0.1"
 hilt = "2.47"
 androidxNavigation = "2.7.1"
 kotlinxCoroutines = "1.7.1"
+coilCompose = "2.4.0"
 
 [libraries]
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
@@ -55,7 +56,7 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 androidx-lifecycle-runtimeCompose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
 androidx-lifecycle-viewModelCompose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidxHiltNavigationCompose" }
-
+coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coilCompose"}
 
 [plugins]
 com-android-application = { id = "com.android.application", version.ref = "agp" }

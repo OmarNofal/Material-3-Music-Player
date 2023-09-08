@@ -54,7 +54,7 @@ internal fun Project.configureAndroidCompose(
 
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
-            freeCompilerArgs = freeCompilerArgs + buildComposeMetricsParameters()
+            //freeCompilerArgs = freeCompilerArgs + buildComposeMetricsParameters()
         }
     }
 }

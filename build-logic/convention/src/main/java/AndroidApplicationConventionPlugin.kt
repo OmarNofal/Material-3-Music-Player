@@ -16,9 +16,11 @@
 
 import com.android.build.api.dsl.ApplicationExtension
 import com.omar.musica.convention.configureKotlinAndroid
+import com.omar.musica.convention.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.dependencies
 
 class AndroidApplicationConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -26,6 +28,11 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             with(pluginManager) {
                 apply("com.android.application")
                 apply("org.jetbrains.kotlin.android")
+                apply("com.omar.android.hilt")
+            }
+
+            dependencies {
+                "implementation"(libs.findLibrary("timber").get())
             }
 
             extensions.configure<ApplicationExtension> {

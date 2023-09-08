@@ -7,5 +7,5 @@ sealed interface SongsScreenUiState {
 
     data class Success(
         val songs: List<Song>
-    )
+    ): SongsScreenUiState
 }

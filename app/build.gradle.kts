@@ -9,11 +9,11 @@ plugins {
 
 android {
     namespace = "com.omar.musica"
-    compileSdk = 33
+    //compileSdk = 33
 
     defaultConfig {
         applicationId = "com.omar.musica"
-        
+
         versionCode = 1
         versionName = "1.0"
 
@@ -44,14 +44,17 @@ android {
 
 dependencies {
 
+    implementation(project(mapOf("path" to ":feature:songs")))
     implementation(libs.core.ktx)
     implementation(libs.media3.session)
     implementation(libs.media3.exoplayer)
     implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.timber)
     implementation(project(mapOf("path" to ":core:ui")))
     implementation(project(mapOf("path" to ":core:store")))
     implementation(project(mapOf("path" to ":core:model")))
     implementation(project(mapOf("path" to ":core:playback")))
+    implementation(project(mapOf("path" to ":feature:playlists")))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)

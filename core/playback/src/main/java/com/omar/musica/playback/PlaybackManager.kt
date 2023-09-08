@@ -13,7 +13,10 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
 import com.omar.musica.model.Song
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import javax.inject.Inject
+import javax.inject.Singleton
 
 
 private const val TAG = "PlaybackManager"
@@ -24,7 +27,8 @@ private const val TAG = "PlaybackManager"
  * It exposes the current state of the MediaSessionService as state flows so UI can update accordingly
  * It provides methods to manipulate the service, like changing the queue, pausing, rewinding, etc...
  */
-class PlaybackManager(context: Context) {
+@Singleton
+class PlaybackManager @Inject constructor(@ApplicationContext context: Context) {
 
 
     private var mediaController: MediaController? = null
@@ -80,6 +84,12 @@ class PlaybackManager(context: Context) {
         mediaController?.playWhenReady = true
     }
 
+    fun playNext(songs: List<Song>) {
+        val mediaItems = songs.toMediaItems()
+        val currentIndex = mediaController?.currentMediaItemIndex ?: 0
+        mediaController?.addMediaItems(currentIndex + 1, mediaItems)
+    }
+
     private fun setSong(song: Song) {
         val mediaItem = MediaItem.Builder()
             .setUri(song.uriString.toUri())
@@ -130,7 +140,11 @@ class PlaybackManager(context: Context) {
             .setUri(uriString)
             .setMediaMetadata(
                 MediaMetadata.Builder()
-                    .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).build()
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                    .setArtist(this.artist)
+                    .setAlbumTitle(this.album)
+                    .setTitle(this.title)
+                    .build()
             )
             .build()
 
