@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.omar.musica.model.Song
+import com.omar.musica.ui.albumart.LocalThumbnailImageLoader
 import timber.log.Timber
 
 
@@ -61,7 +62,8 @@ fun SongItem(
             modifier = Modifier
                 .size(54.dp)
                 .clip(RoundedCornerShape(6.dp)),
-            model = song.albumArtUri,
+            model = song,
+            imageLoader = LocalThumbnailImageLoader.current,
             contentDescription = "Cover Photo",
             contentScale = ContentScale.Crop,
             fallback = rememberVectorPainter(image = Icons.Rounded.MusicNote),
