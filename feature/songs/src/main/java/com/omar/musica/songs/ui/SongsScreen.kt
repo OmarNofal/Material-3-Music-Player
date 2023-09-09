@@ -5,12 +5,13 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,6 +47,7 @@ import com.omar.musica.ui.common.share
 import com.omar.musica.ui.common.shareSongs
 
 
+@ChecksSdkIntAtLeast(30)
 private val api30AndUp = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
 
 @Composable
@@ -63,12 +65,13 @@ fun SongsScreen(
         viewModel::onPlayNext,
         { shareSongs(context, it) },
         viewModel::onDelete,
-        onSearchClicked
+        onSearchClicked,
+        viewModel::onSortOptionChanged,
     )
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 internal fun SongsScreen(
     modifier: Modifier,
@@ -77,7 +80,8 @@ internal fun SongsScreen(
     onPlayNext: (List<Song>) -> Unit,
     onShare: (List<Song>) -> Unit,
     onDelete: (List<Song>) -> Unit,
-    onSearchClicked: () -> Unit
+    onSearchClicked: () -> Unit,
+    onSortOptionChanged: (SortOption, isAscending: Boolean) -> Unit
 ) {
 
     val context = LocalContext.current
@@ -111,7 +115,17 @@ internal fun SongsScreen(
                 Divider(Modifier.fillMaxSize())
             }
 
-            itemsIndexed(songs) { index, song ->
+            item {
+                SortChip(
+                    modifier = Modifier.padding(top = 8.dp, start = 12.dp, bottom = 4.dp),
+                    sortOptions = SortOption.entries,
+                    onSortOptionSelected = onSortOptionChanged,
+                    currentSortOption = uiState.sortOption,
+                    isAscending = uiState.isSortedAscendingly
+                )
+            }
+
+            itemsIndexed(songs, key = { _, song -> song.uriString }) { index, song ->
 
                 val menuActions = remember {
                     mutableListOf<MenuActionItem>()
@@ -136,6 +150,7 @@ internal fun SongsScreen(
 
                 SongItem(
                     modifier = Modifier
+                        .animateItemPlacement()
                         .fillMaxWidth()
                         .clickable { onSongClicked(song, index) },
                     song = song,
@@ -155,12 +170,6 @@ internal fun SongsScreen(
     }
 
 }
-
-@RequiresApi(30)
-private fun ComponentActivity.deleteRequestLauncher() =
-    registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) {
-        Toast.makeText(this, "Song deleted", Toast.LENGTH_SHORT).show()
-    }
 
 @Composable
 private fun deleteRequestLauncher(): ActivityResultLauncher<IntentSenderRequest> {
