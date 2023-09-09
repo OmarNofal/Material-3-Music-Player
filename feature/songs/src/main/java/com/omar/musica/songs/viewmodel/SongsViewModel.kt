@@ -1,13 +1,10 @@
-package com.omar.musica.songs
+package com.omar.musica.songs.viewmodel
 
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.omar.musica.model.Song
 import com.omar.musica.playback.PlaybackManager
+import com.omar.musica.songs.SongsScreenUiState
 import com.omar.musica.store.MediaRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted

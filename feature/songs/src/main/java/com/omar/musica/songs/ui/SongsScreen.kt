@@ -35,7 +35,7 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.model.Song
 import com.omar.musica.songs.SongsScreenUiState
-import com.omar.musica.songs.SongsViewModel
+import com.omar.musica.songs.viewmodel.SongsViewModel
 import com.omar.musica.ui.common.MenuActionItem
 import com.omar.musica.ui.common.SongItem
 import com.omar.musica.ui.common.SongsSummary
@@ -44,16 +44,15 @@ import com.omar.musica.ui.common.deleteAction
 import com.omar.musica.ui.common.playNext
 import com.omar.musica.ui.common.share
 import com.omar.musica.ui.common.shareSongs
-import com.omar.musica.ui.common.songDeleteAndroid10
 
 
 private val api30AndUp = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-private val api29 = Build.VERSION.SDK_INT == Build.VERSION_CODES.Q
 
 @Composable
 fun SongsScreen(
     modifier: Modifier = Modifier,
-    viewModel: SongsViewModel = hiltViewModel()
+    viewModel: SongsViewModel = hiltViewModel(),
+    onSearchClicked: () -> Unit
 ) {
     val songsUiState by viewModel.state.collectAsState()
     val context = LocalContext.current
@@ -63,7 +62,8 @@ fun SongsScreen(
         viewModel::onSongClicked,
         viewModel::onPlayNext,
         { shareSongs(context, it) },
-        viewModel::onDelete
+        viewModel::onDelete,
+        onSearchClicked
     )
 }
 
@@ -76,20 +76,21 @@ internal fun SongsScreen(
     onSongClicked: (Song, Int) -> Unit,
     onPlayNext: (List<Song>) -> Unit,
     onShare: (List<Song>) -> Unit,
-    onDelete: (List<Song>) -> Unit
+    onDelete: (List<Song>) -> Unit,
+    onSearchClicked: () -> Unit
 ) {
 
     val context = LocalContext.current
     val songs = (uiState as SongsScreenUiState.Success).songs
 
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     val deleteRequestLauncher = deleteRequestLauncher()
 
     Scaffold(
         modifier = modifier,
         topBar = {
-            SongsTopAppBar(Modifier, {}, scrollBehavior)
+            SongsTopAppBar(Modifier, onSearchClicked, scrollBehavior)
         },
     ) { paddingValues ->
         LazyColumn(
@@ -112,10 +113,6 @@ internal fun SongsScreen(
 
             itemsIndexed(songs) { index, song ->
 
-                val songDeleteAndroid10 = songDeleteAndroid10(songUri = song.uriString.toUri()) {
-                    onDelete(listOf(song))
-                }
-
                 val menuActions = remember {
                     mutableListOf<MenuActionItem>()
                         .apply {
@@ -124,7 +121,12 @@ internal fun SongsScreen(
                             share { onShare(listOf(song)) }
                             deleteAction {
                                 if (api30AndUp) {
-                                    deleteRequestLauncher.launch(getIntentSenderRequest(context, song.uriString.toUri()))
+                                    deleteRequestLauncher.launch(
+                                        getIntentSenderRequest(
+                                            context,
+                                            song.uriString.toUri()
+                                        )
+                                    )
                                 } else {
                                     onDelete(listOf(song))
                                 }
