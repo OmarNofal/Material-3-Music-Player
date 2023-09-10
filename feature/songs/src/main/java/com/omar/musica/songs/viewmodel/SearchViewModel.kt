@@ -63,12 +63,17 @@ class SearchViewModel @Inject constructor(
     }
 
     fun onSongClicked(song: Song, index: Int) {
-
+        val songs = _state.value.songs
+        playbackManager.setPlaylistAndPlayAtIndex(songs, index)
     }
 
-    fun onPlayNext(song: Song) {
-
+    fun onPlayNext(songs: List<Song>) {
+        playbackManager.playNext(songs)
     }
 
+    fun onDelete(songs: List<Song>) {
+        if (songs.isEmpty()) return
+        mediaRepository.deleteSong(songs[0])
+    }
 
 }

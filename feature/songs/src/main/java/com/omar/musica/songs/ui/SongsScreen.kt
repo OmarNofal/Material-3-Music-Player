@@ -10,6 +10,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
@@ -46,6 +47,7 @@ import com.omar.musica.ui.common.share
 import com.omar.musica.ui.common.shareSongs
 
 
+@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
 private val api30AndUp = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
 
 @Composable
@@ -163,7 +165,7 @@ private fun ComponentActivity.deleteRequestLauncher() =
     }
 
 @Composable
-private fun deleteRequestLauncher(): ActivityResultLauncher<IntentSenderRequest> {
+fun deleteRequestLauncher(): ActivityResultLauncher<IntentSenderRequest> {
     val context = LocalContext.current
     return rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult(),
@@ -177,7 +179,7 @@ private fun deleteRequestLauncher(): ActivityResultLauncher<IntentSenderRequest>
 
 
 @RequiresApi(30)
-private fun getIntentSenderRequest(context: Context, uri: Uri): IntentSenderRequest {
+fun getIntentSenderRequest(context: Context, uri: Uri): IntentSenderRequest {
     return with(context) {
 
         val deleteRequest =

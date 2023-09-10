@@ -1,6 +1,8 @@
 package com.omar.musica.songs.ui
 
+import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
@@ -27,17 +29,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.omar.musica.model.Song
 import com.omar.musica.songs.SearchScreenUiState
 import com.omar.musica.songs.viewmodel.SearchViewModel
+import com.omar.musica.ui.common.MenuActionItem
 import com.omar.musica.ui.common.SongItem
+import com.omar.musica.ui.common.addToPlaylists
+import com.omar.musica.ui.common.deleteAction
+import com.omar.musica.ui.common.playNext
+import com.omar.musica.ui.common.share
+import com.omar.musica.ui.common.shareSongs
+
+
+@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
+private val api30AndUp = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
 
 
 @Composable
@@ -57,6 +71,7 @@ fun SearchScreen(
         state = state,
         onSongClicked = searchViewModel::onSongClicked,
         onPlayNext = searchViewModel::onPlayNext,
+        onDelete = searchViewModel::onDelete,
         onSearchQueryChanged = searchViewModel::onSearchQueryChanged,
         searchFocusRequester = searchFocusRequester,
         onBackPressed = { focusManager.clearFocus(); onBackPressed() }
@@ -71,7 +86,8 @@ internal fun SearchScreen(
     modifier: Modifier,
     state: SearchScreenUiState,
     onSongClicked: (Song, Int) -> Unit,
-    onPlayNext: (Song) -> Unit,
+    onPlayNext: (List<Song>) -> Unit,
+    onDelete: (List<Song>) -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     searchFocusRequester: FocusRequester,
     onBackPressed: () -> Unit
@@ -124,21 +140,28 @@ internal fun SearchScreen(
 
             itemsIndexed(state.songs, { _, item -> item.uriString }) { index, song ->
 
-//                val menuActions = remember {
-//                    mutableListOf<MenuActionItem>()
-//                        .apply {
-//                            playNext { onPlayNext(listOf(song)) }
-//                            addToPlaylists { }
-//                            share { onShare(listOf(song)) }
-//                            deleteAction {
-//                                if (api30AndUp) {
-//                                    deleteRequestLauncher.launch(getIntentSenderRequest(context, song.uriString.toUri()))
-//                                } else {
-//                                    onDelete(listOf(song))
-//                                }
-//                            }
-//                        }
-//                }
+                val deleteRequestLauncher = deleteRequestLauncher()
+                val context = LocalContext.current
+                val menuActions = remember {
+                    mutableListOf<MenuActionItem>()
+                        .apply {
+                            playNext { onPlayNext(listOf(song)) }
+                            addToPlaylists { }
+                            share { shareSongs(context, listOf(song)) }
+                            deleteAction {
+                                if (api30AndUp) {
+                                    deleteRequestLauncher.launch(
+                                        getIntentSenderRequest(
+                                            context,
+                                            song.uriString.toUri()
+                                        )
+                                    )
+                                } else {
+                                    onDelete(listOf(song))
+                                }
+                            }
+                        }
+                }
 
                 SongItem(
                     modifier = Modifier
@@ -146,7 +169,7 @@ internal fun SearchScreen(
                         .fillMaxWidth()
                         .clickable { onSongClicked(song, index) },
                     song = song,
-                    menuOptions = null
+                    menuOptions = menuActions
                 )
                 if (song != state.songs.last()) {
                     Divider(
