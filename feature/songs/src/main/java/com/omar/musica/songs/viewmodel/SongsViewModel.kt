@@ -5,10 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.omar.musica.model.Song
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.songs.SongsScreenUiState
+import com.omar.musica.songs.ui.SortOption
 import com.omar.musica.store.MediaRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -18,12 +21,20 @@ import javax.inject.Inject
 class SongsViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val mediaPlaybackManager: PlaybackManager
-): ViewModel() {
+) : ViewModel() {
+
+    private val sortOptionFlow = MutableStateFlow(SortOption.TITLE to true)
 
     val state: StateFlow<SongsScreenUiState> =
         mediaRepository.songsFlow
-            .map {
-                SongsScreenUiState.Success(it)
+            .combine(sortOptionFlow) { songList, sortOptionPair ->
+                // Sort the list according to the sort option
+                val ascending = sortOptionPair.second
+                val sortedList = if (ascending)
+                    songList.sortedByOptionAscending(sortOptionPair.first)
+                else
+                    songList.sortedByOptionDescending(sortOptionPair.first)
+                SongsScreenUiState.Success(sortedList, sortOptionPair.first, sortOptionPair.second)
             }
             .stateIn(
                 viewModelScope,
@@ -36,12 +47,19 @@ class SongsViewModel @Inject constructor(
      * User clicked a song in the list. Default action is to play
      */
     fun onSongClicked(song: Song, index: Int) {
-        val songs = (state.value as SongsScreenUiState.Success)?.songs ?: return
+        val songs = (state.value as SongsScreenUiState.Success).songs
         mediaPlaybackManager.setPlaylistAndPlayAtIndex(songs, index)
     }
 
     fun onPlayNext(songs: List<Song>) {
         mediaPlaybackManager.playNext(songs)
+    }
+
+    /**
+     * User changed the sorting order of the songs screen
+     */
+    fun onSortOptionChanged(sortOption: SortOption, isAscending: Boolean) {
+        sortOptionFlow.value = sortOption to isAscending
     }
 
     /**
@@ -53,5 +71,25 @@ class SongsViewModel @Inject constructor(
     fun onDelete(songs: List<Song>) {
         mediaRepository.deleteSong(songs[0])
     }
+
+    private fun List<Song>.sortedByOptionAscending(sortOption: SortOption): List<Song> =
+        when (sortOption) {
+            SortOption.TITLE -> this.sortedBy { it.title }
+            SortOption.ARTIST -> this.sortedBy { it.artist }
+            SortOption.FileSize -> this.sortedBy { it.size }
+            SortOption.ALBUM -> this.sortedBy { it.album }
+            SortOption.Duration -> this.sortedBy { it.length }
+        }
+
+
+    private fun List<Song>.sortedByOptionDescending(sortOption: SortOption): List<Song> =
+        when (sortOption) {
+            SortOption.TITLE -> this.sortedByDescending { it.title }
+            SortOption.ARTIST -> this.sortedByDescending { it.artist }
+            SortOption.FileSize -> this.sortedByDescending { it.size }
+            SortOption.ALBUM -> this.sortedByDescending { it.album }
+            SortOption.Duration -> this.sortedByDescending { it.length }
+        }
+
 
 }
