@@ -55,6 +55,7 @@ dependencies {
     implementation(project(mapOf("path" to ":core:model")))
     implementation(project(mapOf("path" to ":core:playback")))
     implementation(project(mapOf("path" to ":feature:playlists")))
+    implementation(project(mapOf("path" to ":feature:nowplaying")))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)

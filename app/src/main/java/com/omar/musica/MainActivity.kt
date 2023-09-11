@@ -11,10 +11,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.omar.musica.songs.navigation.SONGS_NAVIGATION_ROUTE_PATTERN
 import com.omar.musica.songs.navigation.songsGraph
 import com.omar.musica.ui.theme.MusicaTheme
+import com.omar.nowplaying.ui.NowPlayingScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 
@@ -43,7 +45,10 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         startDestination = SONGS_NAVIGATION_ROUTE_PATTERN
                     ) {
-                        songsGraph(navController)
+                        songsGraph(navController) { navController.navigate("nowplaying") }
+                        composable("nowplaying") {
+                            NowPlayingScreen()
+                        }
                     }
                 }
             }

@@ -33,7 +33,8 @@ fun NavController.navigateToSearch(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.songsGraph(
-    navController: NavController
+    navController: NavController,
+    onOpenNowPlaying: () -> Unit,
 ) {
 
     navigation(
@@ -62,7 +63,8 @@ fun NavGraphBuilder.songsGraph(
                 Modifier.fillMaxSize(),
                 onSearchClicked = {
                     navController.navigateToSearch()
-                }
+                },
+                onOpenNowPlaying = onOpenNowPlaying
             )
         }
 

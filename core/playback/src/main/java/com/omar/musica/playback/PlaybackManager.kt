@@ -2,19 +2,23 @@ package com.omar.musica.playback
 
 import android.content.ComponentName
 import android.content.Context
-import android.util.Log
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaItem.RequestMetadata
 import androidx.media3.common.MediaMetadata
-import androidx.media3.common.Metadata
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
+import androidx.media3.common.Tracks
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
 import com.omar.musica.model.Song
+import com.omar.musica.playback.state.PlaybackState
+import com.omar.musica.playback.state.PlayerState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,16 +42,36 @@ class PlaybackManager @Inject constructor(@ApplicationContext context: Context) 
     }
 
 
-    val currentlyPlayingSong =
-        MutableStateFlow<String?>(null)
+    private val _state =
+        MutableStateFlow(PlaybackState.emptyState)
 
+    val state: StateFlow<PlaybackState>
+        get() = _state
+
+    val currentSongProgress: Float
+        get() = (mediaController?.currentPosition?.toFloat()
+            ?: 0.0f) / (mediaController?.duration?.toFloat() ?: 1.0f)
+
+
+    val playbackState: PlayerState
+        get() {
+            return when (mediaController?.playbackState) {
+                Player.STATE_READY -> {
+                    if (mediaController?.playWhenReady == true) PlayerState.PLAYING
+                    else PlayerState.PAUSED
+                }
+
+                Player.STATE_BUFFERING -> PlayerState.BUFFERING
+                else -> PlayerState.PAUSED
+            }
+        }
 
     /**
      * Toggle the player state
      */
     fun togglePlayback() {
         if (mediaController == null) {
-            Log.e(TAG, "MediaController not yet initialized")
+            Timber.e("MediaController not yet initialized")
             return
         }
         mediaController?.playWhenReady = !(mediaController?.playWhenReady ?: true)
@@ -62,6 +86,41 @@ class PlaybackManager @Inject constructor(@ApplicationContext context: Context) 
         mediaController?.seekTo(currentPositionMs + 10000)
     }
 
+    /**
+     * Skip backward in currently playing song
+     */
+    fun backward() {
+        val currentPositionMs = mediaController?.currentPosition ?: return
+        mediaController?.seekTo(currentPositionMs - 10000)
+    }
+
+    /**
+     * Jumps to the next song in the queue
+     */
+    fun playNextSong() {
+        mediaController?.seekToNext()
+    }
+
+    /**
+     * Jumps to the previous song in the queue
+     */
+    fun playPreviousSong() {
+        mediaController?.seekToPrevious()
+    }
+
+
+    /**
+     * Starts the current song from the beginning
+     */
+    fun restartCurrentSong() {
+        mediaController?.seekToDefaultPosition()
+    }
+
+    fun seekToPosition(progress: Float) {
+        val controller = mediaController ?: return
+        val songDuration = controller.duration
+        controller.seekTo((songDuration * progress).toLong())
+    }
 
     /**
      * Changes the current playlist of the player and starts playing the song at the specified index
@@ -100,12 +159,24 @@ class PlaybackManager @Inject constructor(@ApplicationContext context: Context) 
         mediaController?.prepare()
     }
 
+    private fun updateState() {
+        val controller = mediaController ?: return
+        val currentMediaItem = controller.currentMediaItem ?: return updateToEmptyState()
+        val songUri = currentMediaItem.requestMetadata.mediaUri ?: return updateToEmptyState()
+        _state.value = PlaybackState(songUri, playbackState)
+    }
+
+    private fun updateToEmptyState() {
+        _state.value = PlaybackState.emptyState
+    }
+
     private fun stopPlayback() {
         mediaController?.stop()
     }
 
     private fun initMediaController(context: Context) {
-        val sessionToken = SessionToken(context, ComponentName(context, PlaybackService::class.java))
+        val sessionToken =
+            SessionToken(context, ComponentName(context, PlaybackService::class.java))
         val mediaControllerFuture = MediaController.Builder(context, sessionToken)
             .setApplicationLooper(context.mainLooper)
             .buildAsync()
@@ -121,16 +192,31 @@ class PlaybackManager @Inject constructor(@ApplicationContext context: Context) 
     private fun attachListeners() {
         mediaController?.addListener(object : Player.Listener {
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-                if (reason == Player.TIMELINE_CHANGE_REASON_SOURCE_UPDATE) return
-                Log.d(TAG, "Timeline changed")
-                val currentItem = mediaController?.mediaMetadata ?: return
-                currentlyPlayingSong.value = currentItem.title.toString()
-                Log.d(TAG, currentItem.albumTitle.toString())
+                //if (reason == Player.TIMELINE_CHANGE_REASON_SOURCE_UPDATE) return
+                updateState()
             }
 
-            override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-                currentlyPlayingSong.value = mediaMetadata.title.toString()
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                //super.onMediaItemTransition(mediaItem, reason)
+
+                Timber.d("Media transitioned to ${mediaItem?.requestMetadata?.mediaUri}")
+                updateState()
             }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                super.onPlaybackStateChanged(playbackState)
+                updateState()
+            }
+
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                updateState()
+            }
+
+            override fun onTracksChanged(tracks: Tracks) {
+                //updateState()
+            }
+
+
         })
     }
 
@@ -146,8 +232,12 @@ class PlaybackManager @Inject constructor(@ApplicationContext context: Context) 
                     .setTitle(this.title)
                     .build()
             )
+            .setRequestMetadata(
+                RequestMetadata.Builder().setMediaUri(uriString.toUri()).build() // to be able to retrieve the URI easily
+            )
             .build()
 
     private fun List<Song>.toMediaItems() = map { it.toMediaItem() }
+
 
 }

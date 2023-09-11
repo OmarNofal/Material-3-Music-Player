@@ -181,6 +181,9 @@ class MediaRepository @Inject constructor(
     }
 
 
+    fun getSong(uri: Uri?) =
+        songsFlow.value.find { it.uriString == uri.toString() }
+
     @TargetApi(29)
     fun deleteSong(song: Song) {
 

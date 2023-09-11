@@ -20,9 +20,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -54,7 +56,8 @@ private val api30AndUp = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
 fun SongsScreen(
     modifier: Modifier = Modifier,
     viewModel: SongsViewModel = hiltViewModel(),
-    onSearchClicked: () -> Unit
+    onSearchClicked: () -> Unit,
+    onOpenNowPlaying: () -> Unit,
 ) {
     val songsUiState by viewModel.state.collectAsState()
     val context = LocalContext.current
@@ -67,6 +70,7 @@ fun SongsScreen(
         viewModel::onDelete,
         onSearchClicked,
         viewModel::onSortOptionChanged,
+        onOpenNowPlaying
     )
 }
 
@@ -81,7 +85,8 @@ internal fun SongsScreen(
     onShare: (List<Song>) -> Unit,
     onDelete: (List<Song>) -> Unit,
     onSearchClicked: () -> Unit,
-    onSortOptionChanged: (SortOption, isAscending: Boolean) -> Unit
+    onSortOptionChanged: (SortOption, isAscending: Boolean) -> Unit,
+    onOpenNowPlaying: () -> Unit
 ) {
 
     val context = LocalContext.current
@@ -164,6 +169,12 @@ internal fun SongsScreen(
                     )
                 }
 
+            }
+
+            item {
+                Button(onClick = onOpenNowPlaying) {
+                    Text(text = "Now Playing")
+                }
             }
 
         }
