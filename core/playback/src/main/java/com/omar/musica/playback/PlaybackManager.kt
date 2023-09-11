@@ -150,9 +150,7 @@ class PlaybackManager @Inject constructor(@ApplicationContext context: Context) 
     }
 
     private fun setSong(song: Song) {
-        val mediaItem = MediaItem.Builder()
-            .setUri(song.uriString.toUri())
-            .build()
+        val mediaItem = song.toMediaItem()
         mediaController?.playWhenReady = false
         mediaController?.stop()
         mediaController?.setMediaItem(mediaItem)
@@ -209,6 +207,10 @@ class PlaybackManager @Inject constructor(@ApplicationContext context: Context) 
             }
 
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                updateState()
+            }
+
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
                 updateState()
             }
 

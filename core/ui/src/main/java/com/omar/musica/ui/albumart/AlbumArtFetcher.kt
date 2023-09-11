@@ -18,7 +18,13 @@ import timber.log.Timber
 
 
 class SongKeyer: Keyer<Song> {
-    override fun key(data: Song, options: Options): String = data.uriString
+
+    /**
+     * Songs in the same album have the same art work.
+     * So we use the albumId as the key to use the same image
+     * for all songs in the same album. If the song has no album, then use its uri as the key
+     */
+    override fun key(data: Song, options: Options): String = data.albumId?.toString() ?: data.uriString
 }
 
 class AlbumArtFetcher(

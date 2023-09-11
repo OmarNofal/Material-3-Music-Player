@@ -1,6 +1,10 @@
 package com.omar.nowplaying.ui
 
 import BlurTransformation
+import android.app.Activity
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,14 +15,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.PauseCircle
+import androidx.compose.material.icons.rounded.PlayCircle
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -32,16 +47,21 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.omar.musica.model.Song
+import com.omar.musica.playback.state.PlayerState
 import com.omar.musica.ui.albumart.LocalThumbnailImageLoader
 import com.omar.musica.ui.common.millisToTime
 import com.omar.nowplaying.NowPlayingState
@@ -53,17 +73,23 @@ import timber.log.Timber
 fun NowPlayingScreen(
     viewModel: NowPlayingViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.currentPlayingSong.collectAsState()
+    val uiState by viewModel.state.collectAsState()
     NowPlayingScreen(
         uiState = uiState,
-        onUserSeek = viewModel::onUserSeek
+        onUserSeek = viewModel::onUserSeek,
+        onPrevious = viewModel::previousSong,
+        onTogglePlayback = viewModel::togglePlayback,
+        onNext = viewModel::nextSong
     )
 }
 
 @Composable
 internal fun NowPlayingScreen(
     uiState: NowPlayingState,
-    onUserSeek: (Float) -> Unit
+    onUserSeek: (Float) -> Unit,
+    onPrevious: () -> Unit,
+    onTogglePlayback: () -> Unit,
+    onNext: () -> Unit
 ) {
     if (uiState.song == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -95,14 +121,22 @@ internal fun NowPlayingScreen(
             ) // darken the blur a bit
         )
 
-        NowPlayingUi(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = 16.dp, end = 16.dp, top = 32.dp)
-                .statusBarsPadding(),
-            uiState = uiState,
-            onUserSeek = onUserSeek,
-        )
+
+        CompositionLocalProvider(
+            LocalContentColor provides Color(0xFFEEEEEE) // since we darken the background color, use lighter text color
+        ) {
+            NowPlayingUi(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 16.dp, end = 16.dp, top = 32.dp)
+                    .statusBarsPadding(),
+                uiState = uiState,
+                onUserSeek = onUserSeek,
+                onPrevious = onPrevious,
+                onTogglePlayback = onTogglePlayback,
+                onNext = onNext
+            )
+        }
 
     }
 }
@@ -111,7 +145,10 @@ internal fun NowPlayingScreen(
 fun NowPlayingUi(
     modifier: Modifier,
     uiState: NowPlayingState,
-    onUserSeek: (Float) -> Unit
+    onUserSeek: (Float) -> Unit,
+    onPrevious: () -> Unit,
+    onTogglePlayback: () -> Unit,
+    onNext: () -> Unit
 ) {
 
     Column(modifier) {
@@ -132,12 +169,9 @@ fun NowPlayingUi(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
+        SongTextInfo(
             modifier = Modifier.fillMaxWidth(),
-            text = uiState.song?.title ?: "No Playing Song",
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            fontSize = 18.sp,
+            song = uiState.song!!
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -149,6 +183,15 @@ fun NowPlayingUi(
             onUserSeek = onUserSeek
         )
 
+        Spacer(modifier = Modifier.height(32.dp))
+
+        SongControls(
+            modifier = Modifier.fillMaxWidth(),
+            isPlaying = uiState.playbackState == PlayerState.PLAYING,
+            onPrevious = onPrevious,
+            onTogglePlayback = onTogglePlayback,
+            onNext = onNext
+        )
 
     }
 
@@ -163,11 +206,28 @@ fun SongProgressInfo(
     onUserSeek: (progress: Float) -> Unit
 ) {
 
+    val view = LocalView.current
+    DisposableEffect(key1 = Unit) {
+        val window = (view.context as Activity).window
+
+        val windowsInsetsController = WindowCompat.getInsetsController(window, view)
+        val previous = windowsInsetsController.isAppearanceLightStatusBars
+
+        windowsInsetsController.isAppearanceLightStatusBars = false
+        windowsInsetsController.isAppearanceLightNavigationBars = false
+
+        onDispose {
+            windowsInsetsController.isAppearanceLightStatusBars = previous
+            windowsInsetsController.isAppearanceLightNavigationBars = previous
+        }
+    }
+
     val currentTimestamp = (songDuration * progress).toLong().millisToTime()
     val songLength = songDuration.millisToTime()
     var sliderValue by remember {
         mutableFloatStateOf(progress)
     }
+
 
     Row(
         modifier,
@@ -205,3 +265,128 @@ fun SongProgressInfo(
 
 
 }
+
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun SongTextInfo(
+    modifier: Modifier,
+    song: Song
+) {
+
+
+    Column(modifier = modifier) {
+
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .basicMarquee(
+                    delayMillis = 2000
+                ),
+            text = song.title,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            fontSize = 22.sp,
+            maxLines = 1
+        )
+
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = song.artist ?: "<unknown>",
+            fontWeight = FontWeight.Normal,
+            textAlign = TextAlign.Center,
+            fontSize = 14.sp,
+            maxLines = 1
+        )
+
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = song.album ?: "<unknown>",
+            fontWeight = FontWeight.Normal,
+            textAlign = TextAlign.Center,
+            fontSize = 12.sp,
+            maxLines = 1
+        )
+
+    }
+
+
+}
+
+
+@Composable
+fun SongControls(
+    modifier: Modifier,
+    isPlaying: Boolean,
+    onPrevious: () -> Unit,
+    onTogglePlayback: () -> Unit,
+    onNext: () -> Unit
+) {
+
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        ControlButton(
+            modifier = Modifier
+                .size(54.dp)
+                .clip(RoundedCornerShape(4.dp)),
+            icon = Icons.Rounded.SkipPrevious,
+            "Skip Previous",
+            onPrevious
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        val pausePlayButton = if (isPlaying) Icons.Rounded.PauseCircle else Icons.Rounded.PlayCircle
+        ControlButton(
+            modifier = Modifier
+                .size(84.dp)
+                .clip(CircleShape),
+            icon = pausePlayButton,
+            "Skip Previous",
+            onTogglePlayback
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        ControlButton(
+            modifier = Modifier
+                .size(54.dp)
+                .clip(RoundedCornerShape(4.dp)),
+            icon = Icons.Rounded.SkipNext,
+            "Skip To Next",
+            onNext
+        )
+
+
+    }
+
+
+}
+
+@Composable
+fun ControlButton(
+    modifier: Modifier,
+    icon: ImageVector,
+    contentDescription: String? = null,
+    onClick: () -> Unit
+) {
+
+    Icon(
+        modifier = modifier.clickable { onClick() },
+        imageVector = icon,
+        contentDescription = contentDescription
+    )
+
+}
+
