@@ -5,6 +5,8 @@ import android.app.Activity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,22 +23,25 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.FastRewind
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.PauseCircle
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -66,6 +71,8 @@ import com.omar.musica.ui.albumart.LocalThumbnailImageLoader
 import com.omar.musica.ui.common.millisToTime
 import com.omar.nowplaying.NowPlayingState
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import timber.log.Timber
 
 
@@ -79,7 +86,9 @@ fun NowPlayingScreen(
         onUserSeek = viewModel::onUserSeek,
         onPrevious = viewModel::previousSong,
         onTogglePlayback = viewModel::togglePlayback,
-        onNext = viewModel::nextSong
+        onNext = viewModel::nextSong,
+        onJumpForward = viewModel::jumpForward,
+        onJumpBackward = viewModel::jumpBackward
     )
 }
 
@@ -89,7 +98,9 @@ internal fun NowPlayingScreen(
     onUserSeek: (Float) -> Unit,
     onPrevious: () -> Unit,
     onTogglePlayback: () -> Unit,
-    onNext: () -> Unit
+    onNext: () -> Unit,
+    onJumpForward: () -> Unit,
+    onJumpBackward: () -> Unit
 ) {
     if (uiState.song == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -98,6 +109,7 @@ internal fun NowPlayingScreen(
         return
     }
 
+    DarkStatusBarEffect()
 
     val imageLoader = LocalThumbnailImageLoader.current
     val context = LocalContext.current
@@ -114,7 +126,7 @@ internal fun NowPlayingScreen(
             imageLoader = imageLoader,
             contentScale = ContentScale.Crop,
             onError = { Timber.e(it.result.throwable) },
-            error = rememberVectorPainter(image = Icons.Rounded.MusicNote),
+            //error = rememberVectorPainter(image = Icons.Rounded.MusicNote),
             colorFilter = ColorFilter.tint(
                 Color(0xFF999999),
                 BlendMode.Multiply
@@ -134,7 +146,9 @@ internal fun NowPlayingScreen(
                 onUserSeek = onUserSeek,
                 onPrevious = onPrevious,
                 onTogglePlayback = onTogglePlayback,
-                onNext = onNext
+                onNext = onNext,
+                onJumpForward = onJumpForward,
+                onJumpBackward = onJumpBackward
             )
         }
 
@@ -148,7 +162,9 @@ fun NowPlayingUi(
     onUserSeek: (Float) -> Unit,
     onPrevious: () -> Unit,
     onTogglePlayback: () -> Unit,
-    onNext: () -> Unit
+    onNext: () -> Unit,
+    onJumpForward: () -> Unit,
+    onJumpBackward: () -> Unit,
 ) {
 
     Column(modifier) {
@@ -178,7 +194,7 @@ fun NowPlayingUi(
 
         SongProgressInfo(
             modifier = Modifier.fillMaxWidth(),
-            songDuration = uiState.song?.length ?: 0L,
+            songDuration = uiState.song.length,
             progress = uiState.songProgress,
             onUserSeek = onUserSeek
         )
@@ -190,7 +206,9 @@ fun NowPlayingUi(
             isPlaying = uiState.playbackState == PlayerState.PLAYING,
             onPrevious = onPrevious,
             onTogglePlayback = onTogglePlayback,
-            onNext = onNext
+            onNext = onNext,
+            onJumpForward = onJumpForward,
+            onJumpBackward = onJumpBackward
         )
 
     }
@@ -206,64 +224,72 @@ fun SongProgressInfo(
     onUserSeek: (progress: Float) -> Unit
 ) {
 
-    val view = LocalView.current
-    DisposableEffect(key1 = Unit) {
-        val window = (view.context as Activity).window
 
-        val windowsInsetsController = WindowCompat.getInsetsController(window, view)
-        val previous = windowsInsetsController.isAppearanceLightStatusBars
+    val songLength = songDuration.millisToTime()
 
-        windowsInsetsController.isAppearanceLightStatusBars = false
-        windowsInsetsController.isAppearanceLightNavigationBars = false
+    var userSetSliderValue by remember {
+        mutableFloatStateOf(0.0f)
+    }
 
-        onDispose {
-            windowsInsetsController.isAppearanceLightStatusBars = previous
-            windowsInsetsController.isAppearanceLightNavigationBars = previous
+    // When the user removes his finger from the slider,
+    // the slider will return to the initial position it was on,
+    // it is subtle but annoying, so we add a delay of 500ms
+    // to give time for the player to change the position of the song.
+    var useSongProgress by remember {
+        mutableStateOf(true)
+    }
+
+    LaunchedEffect(key1 = useSongProgress) {
+        if (!useSongProgress) {
+            delay(500)
+            if (isActive) useSongProgress = true
         }
     }
 
-    val currentTimestamp = (songDuration * progress).toLong().millisToTime()
-    val songLength = songDuration.millisToTime()
-    var sliderValue by remember {
-        mutableFloatStateOf(progress)
-    }
+    val sliderInteractionSource = remember { MutableInteractionSource() }
+    val isPressed by sliderInteractionSource.collectIsDraggedAsState()
 
+    val progressShown =
+        if (useSongProgress && !isPressed) progress else userSetSliderValue
 
-    Row(
-        modifier,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    val timestampShown = (songDuration * progressShown).toLong().millisToTime()
 
-        Text(
-            text = currentTimestamp,
-            modifier = Modifier.width(50.dp),
-            fontSize = 9.sp,
-            maxLines = 1,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Light
-        )
+    Column(modifier) {
+
         Slider(
-            value = sliderValue,
-            onValueChange = { sliderValue = it },
+            value = progressShown,
+            onValueChange = { userSetSliderValue = it },
             modifier = Modifier
-                .weight(1f)
-                .padding(start = 4.dp, end = 4.dp),
+                .fillMaxWidth(),
             enabled = true,
-            onValueChangeFinished = { onUserSeek(sliderValue) },
-        )
-        Text(
-            text = songLength,
-            modifier = Modifier.width(50.dp),
-            fontSize = 9.sp,
-            maxLines = 1,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Light
+            onValueChangeFinished = { onUserSeek(userSetSliderValue); useSongProgress = false },
+            interactionSource = sliderInteractionSource
         )
 
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp, end = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Text(
+                text = timestampShown,
+                fontSize = 10.sp,
+                maxLines = 1,
+                fontWeight = FontWeight.Light
+            )
+
+            Text(
+                text = songLength,
+                fontSize = 10.sp,
+                maxLines = 1,
+                fontWeight = FontWeight.Light
+            )
+
+        }
     }
-
-
 }
 
 
@@ -327,7 +353,9 @@ fun SongControls(
     isPlaying: Boolean,
     onPrevious: () -> Unit,
     onTogglePlayback: () -> Unit,
-    onNext: () -> Unit
+    onNext: () -> Unit,
+    onJumpForward: () -> Unit,
+    onJumpBackward: () -> Unit
 ) {
 
     Row(
@@ -338,11 +366,22 @@ fun SongControls(
 
         ControlButton(
             modifier = Modifier
-                .size(54.dp)
+                .size(34.dp)
                 .clip(RoundedCornerShape(4.dp)),
             icon = Icons.Rounded.SkipPrevious,
             "Skip Previous",
             onPrevious
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        ControlButton(
+            modifier = Modifier
+                .size(34.dp)
+                .clip(RoundedCornerShape(4.dp)),
+            icon = Icons.Rounded.FastRewind,
+            "Jump Back",
+            onJumpBackward
         )
 
         Spacer(modifier = Modifier.width(16.dp))
@@ -350,7 +389,7 @@ fun SongControls(
         val pausePlayButton = if (isPlaying) Icons.Rounded.PauseCircle else Icons.Rounded.PlayCircle
         ControlButton(
             modifier = Modifier
-                .size(84.dp)
+                .size(64.dp)
                 .clip(CircleShape),
             icon = pausePlayButton,
             "Skip Previous",
@@ -361,7 +400,18 @@ fun SongControls(
 
         ControlButton(
             modifier = Modifier
-                .size(54.dp)
+                .size(36.dp)
+                .clip(RoundedCornerShape(4.dp)),
+            icon = Icons.Rounded.FastForward,
+            "Jump Forward",
+            onJumpForward
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        ControlButton(
+            modifier = Modifier
+                .size(36.dp)
                 .clip(RoundedCornerShape(4.dp)),
             icon = Icons.Rounded.SkipNext,
             "Skip To Next",
@@ -390,3 +440,22 @@ fun ControlButton(
 
 }
 
+
+@Composable
+fun DarkStatusBarEffect() {
+    val view = LocalView.current
+    DisposableEffect(key1 = Unit) {
+        val window = (view.context as Activity).window
+
+        val windowsInsetsController = WindowCompat.getInsetsController(window, view)
+        val previous = windowsInsetsController.isAppearanceLightStatusBars
+
+        windowsInsetsController.isAppearanceLightStatusBars = false
+        windowsInsetsController.isAppearanceLightNavigationBars = false
+
+        onDispose {
+            windowsInsetsController.isAppearanceLightStatusBars = previous
+            windowsInsetsController.isAppearanceLightNavigationBars = previous
+        }
+    }
+}
