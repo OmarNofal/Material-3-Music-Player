@@ -4,13 +4,16 @@ import com.omar.musica.model.Song
 import com.omar.musica.playback.state.PlayerState
 
 
-data class NowPlayingState(
-    val song: Song?,
-    val playbackState: PlayerState,
-    val songProgress: Float, // 0 to 1
-) {
+sealed interface NowPlayingState {
 
-    companion object {
-        val emptyState = NowPlayingState(null, PlayerState.PAUSED, 0.0f)
-    }
+
+    data object NotPlaying: NowPlayingState
+
+    data class Playing(
+        val song: Song,
+        val playbackState: PlayerState,
+        val songProgress: Float, // 0 to 1
+    ): NowPlayingState
+
 }
+
