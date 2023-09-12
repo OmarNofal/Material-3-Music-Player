@@ -96,9 +96,10 @@ class MainActivity : ComponentActivity() {
                         }
 
 
-                        val progress = remember(anchoreState.offset, boxMinOffset) {
-                            1 - (anchoreState.offset / boxMinOffset)
-                        }
+//                        val progress = remember(anchoreState.offset, boxMinOffset) {
+//                            1 - (anchoreState.offset / boxMinOffset)
+//                        }
+
                         val enableBackButton by remember {
                             derivedStateOf { (1 - (anchoreState.offset / boxMinOffset)) >= 0.9f }
                         }
@@ -141,7 +142,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             enableBackButton = enableBackButton,
-                            progressProvider = { progress }
+                            progressProvider = { 1 - (anchoreState.offset / boxMinOffset) }
                         )
 
 

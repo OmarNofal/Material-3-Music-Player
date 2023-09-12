@@ -55,6 +55,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -100,7 +101,7 @@ fun NowPlayingScreen(
         modifier = modifier,
         uiState = uiState,
         barHeight = barHeight,
-        progressProvider = progress,
+        progressProvider = progressProvider,
         onCollapseNowPlaying = onCollapseNowPlaying,
         onUserSeek = viewModel::onUserSeek,
         onPrevious = viewModel::previousSong,
@@ -116,7 +117,7 @@ internal fun NowPlayingScreen(
     modifier: Modifier,
     uiState: NowPlayingState,
     barHeight: Dp,
-    progress: Float,
+    progressProvider: () -> Float,
     onCollapseNowPlaying: () -> Unit,
     onUserSeek: (Float) -> Unit,
     onPrevious: () -> Unit,
@@ -138,7 +139,7 @@ internal fun NowPlayingScreen(
 
                 FullScreenNowPlaying(
                     Modifier.fillMaxSize(),
-                    progress,
+                    progressProvider,
                     uiState,
                     onUserSeek,
                     onPrevious,
@@ -154,7 +155,7 @@ internal fun NowPlayingScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(barHeight)
-                        .alpha(1 - progress * 2),
+                        .graphicsLayer { alpha = (1 - progressProvider() * 2) } ,
                     nowPlayingState = uiState,
                     enabled = true,
                     onTogglePlayback
@@ -171,7 +172,7 @@ internal fun NowPlayingScreen(
 @Composable
 fun FullScreenNowPlaying(
     modifier: Modifier,
-    progress: Float,
+    progressProvider: () -> Float,
     uiState: NowPlayingState,
     onUserSeek: (Float) -> Unit,
     onPrevious: () -> Unit,
@@ -181,13 +182,18 @@ fun FullScreenNowPlaying(
     onJumpBackward: () -> Unit
 ) {
 
-    val darkenStatusBarColors by remember {
-        derivedStateOf { progress >= 0.9f }
-    }
-    DarkStatusBarEffect(darkenStatusBarColors)
+//    val darkenStatusBarColors by remember {
+//        derivedStateOf { progress >= 0.9f }
+//    }
+//    DarkStatusBarEffect(darkenStatusBarColors)
+
 
     if (uiState is NowPlayingState.NotPlaying) return
     val uiState = uiState as NowPlayingState.Playing
+
+    val song = remember(uiState.song) {
+        uiState.song
+    }
 
     val imageLoader = LocalThumbnailImageLoader.current
     val context = LocalContext.current
@@ -219,10 +225,10 @@ fun FullScreenNowPlaying(
         NowPlayingUi(
             modifier = Modifier
                 .fillMaxSize()
-                .alpha(progress * 2)
+                .graphicsLayer { alpha = progressProvider() * 2 }
                 .padding(start = 16.dp, end = 16.dp, top = 32.dp)
                 .statusBarsPadding(),
-            progress = progress,
+            //progressProvider = progressProvider,
             uiState = uiState,
             onUserSeek = onUserSeek,
             onPrevious = onPrevious,
@@ -239,7 +245,7 @@ fun FullScreenNowPlaying(
 @Composable
 fun NowPlayingUi(
     modifier: Modifier,
-    progress: Float,
+    //progressProvider: () -> Float,
     uiState: NowPlayingState,
     onUserSeek: (Float) -> Unit,
     onPrevious: () -> Unit,
@@ -254,6 +260,9 @@ fun NowPlayingUi(
 
     val context = LocalContext.current
 
+    val song = remember(uiState.song) {
+        uiState.song
+    }
 
     Column(modifier) {
 
@@ -547,7 +556,6 @@ fun DarkStatusBarEffect(darkStatusBarColor: Boolean) {
     DisposableEffect(key1 = darkStatusBarColor) {
 
         val window = (view.context as Activity).window
-
 
 
         val windowsInsetsController = WindowCompat.getInsetsController(window, view)
