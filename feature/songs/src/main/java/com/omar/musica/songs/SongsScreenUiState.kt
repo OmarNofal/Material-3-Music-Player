@@ -1,14 +1,16 @@
 package com.omar.musica.songs
 
-import com.omar.musica.model.Song
+import androidx.compose.runtime.Immutable
 import com.omar.musica.songs.ui.SortOption
+import com.omar.musica.ui.model.SongUi
 
 
 sealed interface SongsScreenUiState {
 
+    @Immutable
     data class Success(
-        val songs: List<Song>,
+        val songs: List<SongUi>,
         val sortOption: SortOption = SortOption.TITLE,
         val isSortedAscendingly: Boolean = true
-    ): SongsScreenUiState
+    ) : SongsScreenUiState
 }

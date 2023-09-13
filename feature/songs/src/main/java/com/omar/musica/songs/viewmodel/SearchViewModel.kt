@@ -2,16 +2,20 @@ package com.omar.musica.songs.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.omar.musica.model.Song
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.songs.SearchScreenUiState
 import com.omar.musica.store.MediaRepository
+import com.omar.musica.ui.model.SongUi
+import com.omar.musica.ui.model.toSongModel
+import com.omar.musica.ui.model.toSongModels
+import com.omar.musica.ui.model.toUiSongModels
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -31,6 +35,7 @@ class SearchViewModel @Inject constructor(
         get() = _state
 
     val songs = mediaRepository.songsFlow
+        .map { it.toUiSongModels() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), listOf())
 
     init {
@@ -40,7 +45,7 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    private fun updateState(searchQuery: String, songs: List<Song>) {
+    private fun updateState(searchQuery: String, songs: List<SongUi>) {
         _state.getAndUpdate {
             if (searchQuery.isBlank()) return@getAndUpdate SearchScreenUiState.emptyState
             val sortedSongs = songs.filter { song ->
@@ -54,7 +59,7 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    private fun updateSongList(songs: List<Song>) {
+    private fun updateSongList(songs: List<SongUi>) {
         updateState(state.value.searchQuery, songs)
     }
 
@@ -62,18 +67,18 @@ class SearchViewModel @Inject constructor(
         updateState(query, songs.value)
     }
 
-    fun onSongClicked(song: Song, index: Int) {
+    fun onSongClicked(song: SongUi, index: Int) {
         val songs = _state.value.songs
-        playbackManager.setPlaylistAndPlayAtIndex(songs, index)
+        playbackManager.setPlaylistAndPlayAtIndex(songs.toSongModels(), index)
     }
 
-    fun onPlayNext(songs: List<Song>) {
-        playbackManager.playNext(songs)
+    fun onPlayNext(songs: List<SongUi>) {
+        playbackManager.playNext(songs.toSongModels())
     }
 
-    fun onDelete(songs: List<Song>) {
+    fun onDelete(songs: List<SongUi>) {
         if (songs.isEmpty()) return
-        mediaRepository.deleteSong(songs[0])
+        mediaRepository.deleteSong(songs[0].toSongModel())
     }
 
 }

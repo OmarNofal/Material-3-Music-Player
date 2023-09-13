@@ -7,6 +7,10 @@ import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.songs.SongsScreenUiState
 import com.omar.musica.songs.ui.SortOption
 import com.omar.musica.store.MediaRepository
+import com.omar.musica.ui.model.SongUi
+import com.omar.musica.ui.model.toSongModel
+import com.omar.musica.ui.model.toSongModels
+import com.omar.musica.ui.model.toUiSongModels
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,6 +31,7 @@ class SongsViewModel @Inject constructor(
 
     val state: StateFlow<SongsScreenUiState> =
         mediaRepository.songsFlow
+            .map { it.toUiSongModels() }
             .combine(sortOptionFlow) { songList, sortOptionPair ->
                 // Sort the list according to the sort option
                 val ascending = sortOptionPair.second
@@ -46,13 +51,13 @@ class SongsViewModel @Inject constructor(
     /**
      * User clicked a song in the list. Default action is to play
      */
-    fun onSongClicked(song: Song, index: Int) {
+    fun onSongClicked(song: SongUi, index: Int) {
         val songs = (state.value as SongsScreenUiState.Success).songs
-        mediaPlaybackManager.setPlaylistAndPlayAtIndex(songs, index)
+        mediaPlaybackManager.setPlaylistAndPlayAtIndex(songs.toSongModels(), index)
     }
 
-    fun onPlayNext(songs: List<Song>) {
-        mediaPlaybackManager.playNext(songs)
+    fun onPlayNext(songs: List<SongUi>) {
+        mediaPlaybackManager.playNext(songs.toSongModels())
     }
 
     /**
@@ -68,11 +73,11 @@ class SongsViewModel @Inject constructor(
      * Mainly, in Android R and above, we will have to send an intent to delete a media item and the system will ask the user for permission.
      * So they are implemented as part of the UI in Jetpack Compose
      */
-    fun onDelete(songs: List<Song>) {
-        mediaRepository.deleteSong(songs[0])
+    fun onDelete(songs: List<SongUi>) {
+        mediaRepository.deleteSong(songs[0].toSongModel())
     }
 
-    private fun List<Song>.sortedByOptionAscending(sortOption: SortOption): List<Song> =
+    private fun List<SongUi>.sortedByOptionAscending(sortOption: SortOption): List<SongUi> =
         when (sortOption) {
             SortOption.TITLE -> this.sortedBy { it.title }
             SortOption.ARTIST -> this.sortedBy { it.artist }
@@ -82,7 +87,7 @@ class SongsViewModel @Inject constructor(
         }
 
 
-    private fun List<Song>.sortedByOptionDescending(sortOption: SortOption): List<Song> =
+    private fun List<SongUi>.sortedByOptionDescending(sortOption: SortOption): List<SongUi> =
         when (sortOption) {
             SortOption.TITLE -> this.sortedByDescending { it.title }
             SortOption.ARTIST -> this.sortedByDescending { it.artist }

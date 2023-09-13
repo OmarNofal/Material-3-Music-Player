@@ -38,7 +38,6 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.omar.musica.model.Song
 import com.omar.musica.songs.SearchScreenUiState
 import com.omar.musica.songs.viewmodel.SearchViewModel
 import com.omar.musica.ui.common.MenuActionItem
@@ -48,6 +47,7 @@ import com.omar.musica.ui.common.deleteAction
 import com.omar.musica.ui.common.playNext
 import com.omar.musica.ui.common.share
 import com.omar.musica.ui.common.shareSongs
+import com.omar.musica.ui.model.SongUi
 
 
 @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
@@ -85,9 +85,9 @@ fun SearchScreen(
 internal fun SearchScreen(
     modifier: Modifier,
     state: SearchScreenUiState,
-    onSongClicked: (Song, Int) -> Unit,
-    onPlayNext: (List<Song>) -> Unit,
-    onDelete: (List<Song>) -> Unit,
+    onSongClicked: (SongUi, Int) -> Unit,
+    onPlayNext: (List<SongUi>) -> Unit,
+    onDelete: (List<SongUi>) -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     searchFocusRequester: FocusRequester,
     onBackPressed: () -> Unit

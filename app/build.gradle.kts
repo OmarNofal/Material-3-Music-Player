@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("com.omar.android.application")
@@ -40,6 +41,26 @@ android {
     }
 }
 
+
+subprojects {
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        kotlinOptions {
+            val directory = "C:\\Users\\omarw\\Downloads\\Travis Scott - ASTROWORLD (2018) Mp3 (320kbps) [Hunter]"
+            if (project.findProperty("composeCompilerReports") == "true") {
+                freeCompilerArgs += listOf(
+                    "-P",
+                    "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=${directory}/compose_compiler"
+                )
+            }
+            if (project.findProperty("composeCompilerMetrics") == "true") {
+                freeCompilerArgs += listOf(
+                    "-P",
+                    "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=${directory}/compose_compiler"
+                )
+            }
+        }
+    }
+}
 
 dependencies {
 

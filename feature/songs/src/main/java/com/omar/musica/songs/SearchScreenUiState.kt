@@ -1,11 +1,13 @@
 package com.omar.musica.songs
 
-import com.omar.musica.model.Song
+import androidx.compose.runtime.Immutable
+import com.omar.musica.ui.model.SongUi
 
 
+@Immutable
 data class SearchScreenUiState(
     val searchQuery: String,
-    val songs: List<Song>
+    val songs: List<SongUi>
 ) {
     companion object {
         val emptyState = SearchScreenUiState("", listOf())

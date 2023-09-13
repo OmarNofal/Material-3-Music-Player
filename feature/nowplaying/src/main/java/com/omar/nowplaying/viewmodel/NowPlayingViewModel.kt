@@ -2,9 +2,10 @@ package com.omar.nowplaying.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.omar.musica.model.Song
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.MediaRepository
+import com.omar.musica.ui.model.SongUi
+import com.omar.musica.ui.model.toUiSongModel
 import com.omar.nowplaying.NowPlayingState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -37,7 +38,7 @@ class NowPlayingViewModel @Inject constructor(
 
 
     // Used to cache and prevent searching again
-    private var currentPlayingSong: Song? = null
+    private var currentPlayingSong: SongUi? = null
 
     private val _state: StateFlow<NowPlayingState> =
 
@@ -52,6 +53,7 @@ class NowPlayingViewModel @Inject constructor(
             val song = when (currentPlayingSong?.uriString) {
                 playbackManagerState.currentSongUri.toString() -> currentPlayingSong
                 else -> songs.find { it.uriString == playbackManagerState.currentSongUri.toString() }
+                    ?.toUiSongModel()
             }.also { currentPlayingSong = it }
 
             val currentProgress = playbackManager.currentSongProgress

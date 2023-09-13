@@ -40,7 +40,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,7 +47,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
@@ -70,10 +68,10 @@ import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.omar.musica.model.Song
 import com.omar.musica.playback.state.PlayerState
 import com.omar.musica.ui.albumart.LocalThumbnailImageLoader
 import com.omar.musica.ui.common.millisToTime
+import com.omar.musica.ui.model.SongUi
 import com.omar.nowplaying.NowPlayingState
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
 import kotlinx.coroutines.delay
@@ -90,6 +88,7 @@ fun NowPlayingScreen(
     onCollapseNowPlaying: () -> Unit,
     progressProvider: () -> Float,
     viewModel: NowPlayingViewModel = hiltViewModel()
+
 ) {
 
     BackHandler(enableBackButton) {
@@ -97,25 +96,27 @@ fun NowPlayingScreen(
     }
 
     val uiState by viewModel.state.collectAsState()
-    NowPlayingScreen(
-        modifier = modifier,
-        uiState = uiState,
-        barHeight = barHeight,
-        progressProvider = progressProvider,
-        onCollapseNowPlaying = onCollapseNowPlaying,
-        onUserSeek = viewModel::onUserSeek,
-        onPrevious = viewModel::previousSong,
-        onTogglePlayback = viewModel::togglePlayback,
-        onNext = viewModel::nextSong,
-        onJumpForward = viewModel::jumpForward,
-        onJumpBackward = viewModel::jumpBackward
-    )
+
+    if (uiState is NowPlayingState.Playing)
+        NowPlayingScreen(
+            modifier = modifier,
+            uiState = uiState as NowPlayingState.Playing,
+            barHeight = barHeight,
+            progressProvider = progressProvider,
+            onCollapseNowPlaying = onCollapseNowPlaying,
+            onUserSeek = viewModel::onUserSeek,
+            onPrevious = viewModel::previousSong,
+            onTogglePlayback = viewModel::togglePlayback,
+            onNext = viewModel::nextSong,
+            onJumpForward = viewModel::jumpForward,
+            onJumpBackward = viewModel::jumpBackward
+        )
 }
 
 @Composable
 internal fun NowPlayingScreen(
     modifier: Modifier,
-    uiState: NowPlayingState,
+    uiState: NowPlayingState.Playing,
     barHeight: Dp,
     progressProvider: () -> Float,
     onCollapseNowPlaying: () -> Unit,
@@ -173,7 +174,7 @@ internal fun NowPlayingScreen(
 fun FullScreenNowPlaying(
     modifier: Modifier,
     progressProvider: () -> Float,
-    uiState: NowPlayingState,
+    uiState: NowPlayingState.Playing,
     onUserSeek: (Float) -> Unit,
     onPrevious: () -> Unit,
     onTogglePlayback: () -> Unit,
@@ -187,9 +188,6 @@ fun FullScreenNowPlaying(
 //    }
 //    DarkStatusBarEffect(darkenStatusBarColors)
 
-
-    if (uiState is NowPlayingState.NotPlaying) return
-    val uiState = uiState as NowPlayingState.Playing
 
     val song = remember(uiState.song) {
         uiState.song
@@ -205,7 +203,7 @@ fun FullScreenNowPlaying(
             modifier = Modifier.fillMaxSize(),
             model = ImageRequest.Builder(context)
                 .crossfade(500)
-                .data(uiState.song)
+                .data(song)
                 .transformations(
                     BlurTransformation(radius = 40, scale = 0.15f)
                 ).build(),
@@ -218,7 +216,7 @@ fun FullScreenNowPlaying(
             colorFilter = ColorFilter.tint(
                 Color(0xFF999999),
                 BlendMode.Multiply
-            ) // darken the blur a bit
+            )
         )
 
 
@@ -246,7 +244,7 @@ fun FullScreenNowPlaying(
 fun NowPlayingUi(
     modifier: Modifier,
     //progressProvider: () -> Float,
-    uiState: NowPlayingState,
+    uiState: NowPlayingState.Playing,
     onUserSeek: (Float) -> Unit,
     onPrevious: () -> Unit,
     onTogglePlayback: () -> Unit,
@@ -255,18 +253,14 @@ fun NowPlayingUi(
     onJumpBackward: () -> Unit,
 ) {
 
-    if (uiState is NowPlayingState.NotPlaying) return
-    val uiState = uiState as NowPlayingState.Playing
-
     val context = LocalContext.current
 
-    val song = remember(uiState.song) {
-        uiState.song
-    }
 
     Column(modifier) {
 
         val imageLoader = LocalThumbnailImageLoader.current
+
+
 
 
         AsyncImage(
@@ -293,12 +287,12 @@ fun NowPlayingUi(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-//        SongProgressInfo(
-//            modifier = Modifier.fillMaxWidth(),
-//            songDuration = uiState.song.length,
-//            progress = uiState.songProgress,
-//            onUserSeek = onUserSeek
-//        )
+        SongProgressInfo(
+            modifier = Modifier.fillMaxWidth(),
+            songDuration = uiState.song.length,
+            progress = uiState.songProgress,
+            onUserSeek = onUserSeek
+        )
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -403,7 +397,7 @@ fun SongProgressInfo(
 @Composable
 fun SongTextInfo(
     modifier: Modifier,
-    song: Song
+    song: SongUi
 ) {
 
 

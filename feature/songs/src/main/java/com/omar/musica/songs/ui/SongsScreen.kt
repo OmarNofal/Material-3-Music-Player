@@ -36,7 +36,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.omar.musica.model.Song
 import com.omar.musica.songs.SongsScreenUiState
 import com.omar.musica.songs.viewmodel.SongsViewModel
 import com.omar.musica.ui.common.MenuActionItem
@@ -47,6 +46,7 @@ import com.omar.musica.ui.common.deleteAction
 import com.omar.musica.ui.common.playNext
 import com.omar.musica.ui.common.share
 import com.omar.musica.ui.common.shareSongs
+import com.omar.musica.ui.model.SongUi
 
 
 @ChecksSdkIntAtLeast(30)
@@ -80,10 +80,10 @@ fun SongsScreen(
 internal fun SongsScreen(
     modifier: Modifier,
     uiState: SongsScreenUiState,
-    onSongClicked: (Song, Int) -> Unit,
-    onPlayNext: (List<Song>) -> Unit,
-    onShare: (List<Song>) -> Unit,
-    onDelete: (List<Song>) -> Unit,
+    onSongClicked: (SongUi, Int) -> Unit,
+    onPlayNext: (List<SongUi>) -> Unit,
+    onShare: (List<SongUi>) -> Unit,
+    onDelete: (List<SongUi>) -> Unit,
     onSearchClicked: () -> Unit,
     onSortOptionChanged: (SortOption, isAscending: Boolean) -> Unit,
     onOpenNowPlaying: () -> Unit

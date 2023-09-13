@@ -7,6 +7,9 @@ android {
     namespace = "com.omar.nowplaying"
 }
 
+
+
+
 dependencies {
 
     implementation(libs.core.ktx)
