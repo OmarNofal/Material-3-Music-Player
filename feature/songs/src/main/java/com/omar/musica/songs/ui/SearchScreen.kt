@@ -3,19 +3,13 @@ package com.omar.musica.songs.ui
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.annotation.ChecksSdkIntAtLeast
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -46,7 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.omar.musica.songs.SearchScreenUiState
 import com.omar.musica.songs.viewmodel.SearchViewModel
 import com.omar.musica.ui.common.MenuActionItem
-import com.omar.musica.ui.common.SongItem
+import com.omar.musica.ui.common.SelectableSongRow
 import com.omar.musica.ui.common.addToPlaylists
 import com.omar.musica.ui.common.deleteAction
 import com.omar.musica.ui.common.playNext
@@ -170,7 +164,7 @@ internal fun SearchScreen(
                         }
                 }
 
-                SongItem(
+                SelectableSongRow(
                     modifier = Modifier
                         //.animateItemPlacement()
                         .fillMaxWidth()

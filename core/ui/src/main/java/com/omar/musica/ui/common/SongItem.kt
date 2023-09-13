@@ -1,20 +1,29 @@
 package com.omar.musica.ui.common
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -37,10 +47,12 @@ import timber.log.Timber
 
 
 @Composable
-fun SongItem(
+fun SelectableSongRow(
     modifier: Modifier,
     song: SongUi,
-    menuOptions: List<MenuActionItem>? = null
+    menuOptions: List<MenuActionItem>? = null,
+    multiSelectOn: Boolean = false,
+    isSelected: Boolean = false
 ) {
 
     Row(
@@ -65,7 +77,7 @@ fun SongItem(
             fallback = rememberVectorPainter(image = Icons.Rounded.MusicNote),
             placeholder = rememberVectorPainter(image = Icons.Rounded.MusicNote),
             error = rememberVectorPainter(image = Icons.Rounded.MusicNote),
-            onError = { it -> Timber.d("uri: ${it.result.request.data.toString()}" + it.result.throwable.stackTraceToString()) }
+            onError = { Timber.d("uri: ${it.result.request.data}" + it.result.throwable.stackTraceToString()) }
         )
 
         Spacer(modifier = Modifier.width(8.dp))
@@ -108,22 +120,43 @@ fun SongItem(
 
         }
 
-        if (menuOptions != null) {
-            Box() {
-                var expanded by remember { mutableStateOf(false) }
-                IconButton(onClick = { expanded = true }) {
-                    Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = null)
+
+        Box(Modifier.fillMaxHeight().width(48.dp), contentAlignment = Alignment.Center) {
+
+            if (menuOptions != null) {
+                androidx.compose.animation.AnimatedVisibility(visible = !multiSelectOn, enter = EnterTransition.None, exit = ExitTransition.None) {
+                    SongOverflowMenu(menuOptions = menuOptions)
                 }
-                SongDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    actions = menuOptions
+            }
+
+            androidx.compose.animation.AnimatedVisibility(
+                visible = multiSelectOn && isSelected,
+                enter = scaleIn(spring(Spring.DampingRatioMediumBouncy)),
+                exit = scaleOut()
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.tertiary
                 )
             }
+
         }
+
 
     }
 
 }
 
-fun Long.toAlbumArtUri() = "content://media/external/audio/$this"
+@Composable
+fun SongOverflowMenu(menuOptions: List<MenuActionItem>) {
+    var expanded by remember { mutableStateOf(false) }
+    IconButton(onClick = { expanded = true }) {
+        Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = null)
+    }
+    SongDropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { expanded = false },
+        actions = menuOptions
+    )
+}
