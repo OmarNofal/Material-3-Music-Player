@@ -92,7 +92,7 @@ internal fun SongsScreen(
     val context = LocalContext.current
     val songs = (uiState as SongsScreenUiState.Success).songs
 
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     val deleteRequestLauncher = deleteRequestLauncher()
 
