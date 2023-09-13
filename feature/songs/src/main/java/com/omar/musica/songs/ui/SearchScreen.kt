@@ -120,6 +120,8 @@ internal fun SearchScreen(
     ) {
 
 
+        val deleteRequestLauncher = deleteRequestLauncher()
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -140,7 +142,7 @@ internal fun SearchScreen(
 
             itemsIndexed(state.songs, { _, item -> item.uriString }) { index, song ->
 
-                val deleteRequestLauncher = deleteRequestLauncher()
+
                 val context = LocalContext.current
                 val menuActions = remember {
                     mutableListOf<MenuActionItem>()
@@ -165,7 +167,7 @@ internal fun SearchScreen(
 
                 SongItem(
                     modifier = Modifier
-                        .animateItemPlacement()
+                        //.animateItemPlacement()
                         .fillMaxWidth()
                         .clickable { onSongClicked(song, index) },
                     song = song,

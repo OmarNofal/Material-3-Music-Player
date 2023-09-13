@@ -1,5 +1,6 @@
 package com.omar.musica.ui.model
 
+import androidx.core.net.toUri
 import com.omar.musica.model.Song
 
 data class SongUi(
@@ -15,6 +16,8 @@ data class SongUi(
     val albumArtUri: String? = null
 )
 
+val SongUi.uri
+    get() = uriString.toUri()
 
 fun List<SongUi>.toSongModels() =
     map { it.toSongModel() }

@@ -6,6 +6,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -56,6 +58,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -70,6 +73,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.omar.musica.playback.state.PlayerState
 import com.omar.musica.ui.albumart.LocalThumbnailImageLoader
+import com.omar.musica.ui.common.SongAlbumArtImage
 import com.omar.musica.ui.common.millisToTime
 import com.omar.musica.ui.model.SongUi
 import com.omar.nowplaying.NowPlayingState
@@ -83,15 +87,14 @@ import timber.log.Timber
 fun NowPlayingScreen(
     modifier: Modifier,
     barHeight: Dp,
-    //progress: Float,
-    enableBackButton: Boolean,
+    isExpanded: Boolean,
     onCollapseNowPlaying: () -> Unit,
+    onExpandNowPlaying: () -> Unit,
     progressProvider: () -> Float,
     viewModel: NowPlayingViewModel = hiltViewModel()
-
 ) {
 
-    BackHandler(enableBackButton) {
+    BackHandler(isExpanded) {
         onCollapseNowPlaying()
     }
 
@@ -102,8 +105,9 @@ fun NowPlayingScreen(
             modifier = modifier,
             uiState = uiState as NowPlayingState.Playing,
             barHeight = barHeight,
+            isExpanded = isExpanded,
+            onExpandNowPlaying = onExpandNowPlaying,
             progressProvider = progressProvider,
-            onCollapseNowPlaying = onCollapseNowPlaying,
             onUserSeek = viewModel::onUserSeek,
             onPrevious = viewModel::previousSong,
             onTogglePlayback = viewModel::togglePlayback,
@@ -118,8 +122,9 @@ internal fun NowPlayingScreen(
     modifier: Modifier,
     uiState: NowPlayingState.Playing,
     barHeight: Dp,
+    isExpanded: Boolean,
+    onExpandNowPlaying: () -> Unit,
     progressProvider: () -> Float,
-    onCollapseNowPlaying: () -> Unit,
     onUserSeek: (Float) -> Unit,
     onPrevious: () -> Unit,
     onTogglePlayback: () -> Unit,
@@ -128,13 +133,17 @@ internal fun NowPlayingScreen(
     onJumpBackward: () -> Unit
 ) {
 
+    // Since we use a darker background image for the NowPlaying screen
+    // we need to make the status bar icons lighter
+    DarkStatusBarEffect(isExpanded)
 
     Surface(
         modifier = modifier
     ) {
 
         CompositionLocalProvider(
-            LocalContentColor provides Color(0xFFEEEEEE) // since we darken the background color, use lighter text color
+            // since we darken the background color, use lighter text and icon color
+            LocalContentColor provides Color(0xFFEEEEEE)
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
 
@@ -150,15 +159,16 @@ internal fun NowPlayingScreen(
                     onJumpBackward
                 )
 
-
-
                 NowPlayingBarHeader(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(barHeight)
-                        .graphicsLayer { alpha = (1 - progressProvider() * 2) } ,
+                        .pointerInput(Unit) {
+                            detectTapGestures { onExpandNowPlaying() }
+                        }
+                        .graphicsLayer { alpha = (1 - progressProvider() * 2) },
                     nowPlayingState = uiState,
-                    enabled = true,
+                    enabled = !isExpanded, // if the view is expanded then disable the header
                     onTogglePlayback
                 )
 
@@ -183,35 +193,26 @@ fun FullScreenNowPlaying(
     onJumpBackward: () -> Unit
 ) {
 
-//    val darkenStatusBarColors by remember {
-//        derivedStateOf { progress >= 0.9f }
-//    }
-//    DarkStatusBarEffect(darkenStatusBarColors)
-
-
     val song = remember(uiState.song) {
         uiState.song
     }
 
-    val imageLoader = LocalThumbnailImageLoader.current
-    val context = LocalContext.current
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
         AsyncImage(
             modifier = Modifier.fillMaxSize(),
-            model = ImageRequest.Builder(context)
+            model = ImageRequest.Builder(LocalContext.current)
                 .crossfade(500)
                 .data(song)
                 .transformations(
                     BlurTransformation(radius = 40, scale = 0.15f)
                 ).build(),
             contentDescription = null,
-            imageLoader = imageLoader,
+            imageLoader = LocalThumbnailImageLoader.current,
             contentScale = ContentScale.Crop,
             onError = { Timber.e(it.result.throwable) },
-            //error = rememberVectorPainter(image = Icons.Rounded.MusicNote),
             error = ColorPainter(Color.Black),
             colorFilter = ColorFilter.tint(
                 Color(0xFF999999),
@@ -226,8 +227,9 @@ fun FullScreenNowPlaying(
                 .graphicsLayer { alpha = progressProvider() * 2 }
                 .padding(start = 16.dp, end = 16.dp, top = 32.dp)
                 .statusBarsPadding(),
-            //progressProvider = progressProvider,
-            uiState = uiState,
+            song = song,
+            songProgress = uiState.songProgress,
+            playbackState = uiState.playbackState,
             onUserSeek = onUserSeek,
             onPrevious = onPrevious,
             onTogglePlayback = onTogglePlayback,
@@ -243,8 +245,9 @@ fun FullScreenNowPlaying(
 @Composable
 fun NowPlayingUi(
     modifier: Modifier,
-    //progressProvider: () -> Float,
-    uiState: NowPlayingState.Playing,
+    song: SongUi,
+    songProgress: Float,
+    playbackState: PlayerState,
     onUserSeek: (Float) -> Unit,
     onPrevious: () -> Unit,
     onTogglePlayback: () -> Unit,
@@ -253,44 +256,31 @@ fun NowPlayingUi(
     onJumpBackward: () -> Unit,
 ) {
 
-    val context = LocalContext.current
-
-
     Column(modifier) {
 
-        val imageLoader = LocalThumbnailImageLoader.current
-
-
-
-
-        AsyncImage(
+        SongAlbumArtImage(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1.0f)
                 .scale(0.9f)
                 .shadow(32.dp)
                 .clip(RoundedCornerShape(12.dp)),
-            model = ImageRequest.Builder(context)
-                .data(uiState.song)
-                .crossfade(true).build(),
-            contentDescription = "Artwork",
-            contentScale = ContentScale.Crop,
-            imageLoader = imageLoader
+            song = song
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         SongTextInfo(
             modifier = Modifier.fillMaxWidth(),
-            song = uiState.song
+            song = song
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         SongProgressInfo(
             modifier = Modifier.fillMaxWidth(),
-            songDuration = uiState.song.length,
-            progress = uiState.songProgress,
+            songDuration = song.length,
+            progress = songProgress,
             onUserSeek = onUserSeek
         )
 
@@ -298,7 +288,7 @@ fun NowPlayingUi(
 
         SongControls(
             modifier = Modifier.fillMaxWidth(),
-            isPlaying = uiState.playbackState == PlayerState.PLAYING,
+            isPlaying = playbackState == PlayerState.PLAYING,
             onPrevious = onPrevious,
             onTogglePlayback = onTogglePlayback,
             onNext = onNext,
@@ -536,7 +526,7 @@ fun ControlButton(
 ) {
 
     Icon(
-        modifier = modifier.clickable { onClick() },
+        modifier = modifier.clickable(onClick = onClick),
         imageVector = icon,
         contentDescription = contentDescription
     )
