@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Forward
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,7 +40,7 @@ fun SongsTopAppBar(
             actions = {
                 PlainTooltipBox(tooltip = { Text(text = "Play Next") }) {
                     IconButton(modifier = Modifier.tooltipAnchor(), onClick = onPlayNext) {
-                        Icon(Icons.Rounded.Forward, contentDescription = "Play Next")
+                        Icon(Icons.Rounded.SkipNext, contentDescription = "Play Next")
                     }
                 }
             },

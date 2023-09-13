@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -103,13 +102,12 @@ internal fun SearchScreen(
     SearchBar(
         modifier = modifier
             .focusRequester(searchFocusRequester)
-            .fillMaxSize()
-            .statusBarsPadding(),
+            .fillMaxSize(),
         query = state.searchQuery,
         onQueryChange = onSearchQueryChanged,
         onSearch = {}, // Search is done automatically
         active = true,
-        shape = SearchBarDefaults.inputFieldShape,
+        shape = SearchBarDefaults.dockedShape,
         onActiveChange = { if (!it) onBackPressed() },
         placeholder = { Text(text = "Search your entire library") },
         leadingIcon = {
@@ -166,11 +164,12 @@ internal fun SearchScreen(
 
                 SelectableSongRow(
                     modifier = Modifier
-                        //.animateItemPlacement()
                         .fillMaxWidth()
-                        .clickable { onSongClicked(song, index) },
+                        .clickable {
+                            onSongClicked(song, index)
+                        },
                     song = song,
-                    menuOptions = menuActions
+                    menuOptions = menuActions,
                 )
                 if (song != state.songs.last()) {
                     Divider(
@@ -184,7 +183,7 @@ internal fun SearchScreen(
 
         }
 
-    }
 
+    }
 
 }

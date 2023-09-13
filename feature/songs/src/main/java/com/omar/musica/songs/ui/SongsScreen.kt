@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
@@ -103,6 +104,10 @@ internal fun SongsScreen(
 
     val multiSelectEnabled by remember {
         derivedStateOf { multiSelectState.selected.size > 0 }
+    }
+
+    BackHandler(multiSelectEnabled) {
+        multiSelectState.clear()
     }
 
     Scaffold(
