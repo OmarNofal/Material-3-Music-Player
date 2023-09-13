@@ -92,7 +92,7 @@ internal fun SongsScreen(
     val context = LocalContext.current
     val songs = (uiState as SongsScreenUiState.Success).songs
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     val deleteRequestLauncher = deleteRequestLauncher()
 
@@ -104,7 +104,7 @@ internal fun SongsScreen(
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding())
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
         ) {
 
@@ -170,13 +170,6 @@ internal fun SongsScreen(
                 }
 
             }
-
-            item {
-                Button(onClick = onOpenNowPlaying) {
-                    Text(text = "Now Playing")
-                }
-            }
-
         }
     }
 

@@ -12,10 +12,16 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -28,8 +34,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -55,8 +63,6 @@ val SETTINGS_NAVIGATION_GRAPH = "settings"
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-
 
 
     @OptIn(ExperimentalFoundationApi::class)
@@ -102,97 +108,119 @@ class MainActivity : ComponentActivity() {
                     }
 
 
-                    Scaffold(
-                        modifier = Modifier.fillMaxSize(),
-                        bottomBar = {
-                            val backStackState by navController.currentBackStackEntryAsState()
-                            MusicaBottomNavBar(
-                                modifier = Modifier.fillMaxWidth(),
-                                topLevelDestinations = topLevelDestinations,
-                                currentDestination = backStackState?.destination,
-                                onDestinationSelected = { navController.navigateToTopLevelDestination(it) }
-                            )
-                        }
-                    ) { paddingValues ->
+                    // The box which contains the App Scaffold and the
+                    // Now Playing Bar
 
-                        Box(modifier = Modifier
+                    val scrollProvider = { 1 - (anchorState.offset / boxMinOffset) }
+
+
+                    val isExpanded by remember {
+                        derivedStateOf { (1 - (anchorState.offset / boxMinOffset)) >= 0.9f }
+                    }
+
+
+                    // App itself
+                    Box(
+                        modifier = Modifier
                             .fillMaxSize()
-                            .padding(
-                                bottom = paddingValues.calculateBottomPadding()
-                            )) {
-                            NavHost(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController,
-                                startDestination = SONGS_NAVIGATION_GRAPH
-                            ) {
-                                songsGraph(navController) { navController.navigate("nowplaying") }
+                    ) {
 
-                                composable(PLAYLIST_NAVIGATION_GRAPH) {
-                                    Box(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text("Playlists")
-                                    }
+                        // DrawContentFirst
+                        NavHost(
+                            modifier = Modifier.fillMaxSize().padding(bottom = 80.dp + barHeight)
+                                .navigationBarsPadding(),
+                            navController = navController,
+                            startDestination = SONGS_NAVIGATION_GRAPH
+                        ) {
+                            songsGraph(navController) { navController.navigate("nowplaying") }
+
+                            composable(PLAYLIST_NAVIGATION_GRAPH) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("Playlists")
                                 }
-
-                                composable(SETTINGS_NAVIGATION_GRAPH) {
-                                    Box(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text("Settings")
-                                    }
-                                }
-
                             }
 
-
-                            val isExpanded by remember {
-                                derivedStateOf { (1 - (anchorState.offset / boxMinOffset)) >= 0.9f }
+                            composable(SETTINGS_NAVIGATION_GRAPH) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("Settings")
+                                }
                             }
-
-                            NowPlayingScreen(
-                                barHeight = barHeight,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .offset {
-                                        IntOffset(
-                                            // 2
-                                            x = 0,
-                                            y = anchorState
-                                                .requireOffset()
-                                                .roundToInt(),
-                                        )
-                                    }
-                                    .onSizeChanged { layoutSize ->
-                                        anchorState.updateAnchors(
-                                            DraggableAnchors {
-                                                // 5
-                                                val offset = (-barHeightPx + layoutSize.height)
-                                                boxMinOffset = offset
-                                                BarState.COLLAPSED at offset
-                                                BarState.EXPANDED at 0.0f
-                                            }
-                                        )
-                                    }
-                                    .anchoredDraggable(anchorState, Orientation.Vertical),
-                                onCollapseNowPlaying = {
-                                    scope.launch {
-                                        anchorState.animateTo(BarState.COLLAPSED)
-                                    }
-                                },
-                                onExpandNowPlaying = {
-                                    scope.launch {
-                                        anchorState.animateTo(BarState.EXPANDED)
-                                    }
-                                },
-                                isExpanded = isExpanded,
-                                progressProvider = { 1 - (anchorState.offset / boxMinOffset) }
-                            )
-
 
                         }
+
+                        val navigationBarInsets = WindowInsets.navigationBars
+                        // Now Playing Screen
+                        NowPlayingScreen(
+                            barHeight = barHeight,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                //.navigationBarsPadding()
+                                .offset {
+                                    IntOffset(
+                                        // 2
+                                        x = 0,
+                                        y = anchorState
+                                            .requireOffset()
+                                            .roundToInt() - ( ( 1 - scrollProvider()) * navigationBarInsets.getBottom(this) ).toInt(),
+                                    )
+                                }
+
+                                .onSizeChanged { layoutSize ->
+                                    anchorState.updateAnchors(
+                                        DraggableAnchors {
+                                            // 5
+                                            val bottomNavBarHeightPx =
+                                                with(density) { 80.dp.toPx() }
+                                            val offset =
+                                                (-barHeightPx + layoutSize.height - bottomNavBarHeightPx)
+                                            boxMinOffset = offset
+                                            BarState.COLLAPSED at offset
+                                            BarState.EXPANDED at 0.0f
+                                        }
+                                    )
+                                }
+                                .anchoredDraggable(anchorState, Orientation.Vertical),
+                            onCollapseNowPlaying = {
+                                scope.launch {
+                                    anchorState.animateTo(BarState.COLLAPSED)
+                                }
+                            },
+                            onExpandNowPlaying = {
+                                scope.launch {
+                                    anchorState.animateTo(BarState.EXPANDED)
+                                }
+                            },
+                            isExpanded = isExpanded,
+                            progressProvider = { 1 - (anchorState.offset / boxMinOffset) }
+                        )
+
+
+                        // Finally draw the bottom nav bar
+                        val backStackState by navController.currentBackStackEntryAsState()
+                        MusicaBottomNavBar(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter)
+                                .graphicsLayer { alpha = 1 - scrollProvider() }
+                                .offset {
+                                    val navigationBarHeight = 80.dp.toPx()
+                                    IntOffset(0, (navigationBarHeight * scrollProvider()).toInt())
+                                }
+                            ,
+                            topLevelDestinations = topLevelDestinations,
+                            currentDestination = backStackState?.destination,
+                            onDestinationSelected = {
+                                navController.navigateToTopLevelDestination(
+                                    it
+                                )
+                            }
+                        )
 
 
                     }
