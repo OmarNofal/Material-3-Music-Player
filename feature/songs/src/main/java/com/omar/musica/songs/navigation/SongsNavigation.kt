@@ -6,26 +6,25 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import androidx.navigation.navOptions
 import androidx.navigation.navigation
 import com.omar.musica.songs.ui.SearchScreen
 import com.omar.musica.songs.ui.SongsScreen
 
 
-const val SONGS_NAVIGATION_ROUTE_PATTERN = "songs_graph"
+const val SONGS_NAVIGATION_GRAPH = "songs_graph"
 const val SONGS_ROUTE = "songs_route"
 private const val SEARCH_ROUTE = "search_route"
 
 
 fun NavController.navigateToSongs(navOptions: NavOptions? = null) {
-    navigate(SONGS_NAVIGATION_ROUTE_PATTERN, navOptions)
+    navigate(SONGS_NAVIGATION_GRAPH, navOptions)
 }
 
 fun NavController.navigateToSearch(navOptions: NavOptions? = null) {
@@ -38,7 +37,7 @@ fun NavGraphBuilder.songsGraph(
 ) {
 
     navigation(
-        route = SONGS_NAVIGATION_ROUTE_PATTERN,
+        route = SONGS_NAVIGATION_GRAPH,
         startDestination = SONGS_ROUTE,
     ) {
         composable(
@@ -47,12 +46,18 @@ fun NavGraphBuilder.songsGraph(
                 EnterTransition.None
             },
             exitTransition = {
+                if (initialState.destination.route != SEARCH_ROUTE) {
+                    fadeOut()
+                } else
                 fadeOut(tween(300))+
                         slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Up,
                             tween(300, easing = FastOutSlowInEasing)
                         )
             },
             popEnterTransition = {
+                if (initialState.destination.route != SEARCH_ROUTE) {
+                    fadeIn()
+                } else
                 fadeIn(tween(300))+
                         slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Down,
                             tween(300, easing = FastOutSlowInEasing)
@@ -62,7 +67,14 @@ fun NavGraphBuilder.songsGraph(
             SongsScreen(
                 Modifier.fillMaxSize(),
                 onSearchClicked = {
-                    navController.navigateToSearch()
+                    navController.navigateToSearch(
+                        navOptions = navOptions {
+                            anim {
+                                popEnter
+                            }
+
+                        }
+                    )
                 },
                 onOpenNowPlaying = onOpenNowPlaying
             )
