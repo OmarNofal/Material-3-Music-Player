@@ -1,0 +1,11 @@
+package com.omar.musica.ui.common
+
+import android.content.Context
+import android.widget.Toast
+
+
+fun Context.showShortToast(text: String) =
+    Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+
+fun Context.showSongsAddedToNextToast(numOfSongs: Int) =
+    showShortToast("$numOfSongs ${if (numOfSongs == 1) "Song" else "Songs"} will play next")

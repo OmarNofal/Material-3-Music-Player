@@ -32,7 +32,8 @@ fun NavController.navigateToSearch(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.songsGraph(
-    navController: NavController
+    navController: NavController,
+    enableBackPress: Boolean = true,
 ) {
 
     navigation(
@@ -100,7 +101,8 @@ fun NavGraphBuilder.songsGraph(
         {
             SearchScreen(
                 modifier = Modifier.fillMaxSize(),
-                onBackPressed = navController::popBackStack
+                onBackPressed = navController::popBackStack,
+                enableBackPress = enableBackPress
             )
         }
     }

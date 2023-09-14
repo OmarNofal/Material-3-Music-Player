@@ -2,8 +2,8 @@ package com.omar.musica.songs.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Forward
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -15,6 +15,8 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import com.omar.musica.ui.common.MultiSelectState
+import com.omar.musica.ui.model.SongUi
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 fun SongsTopAppBar(
     modifier: Modifier = Modifier,
     onSearchClicked: () -> Unit,
+    onShare: (List<SongUi>) -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
     multiSelectState: MultiSelectState,
     onPlayNext: () -> Unit
@@ -43,12 +46,17 @@ fun SongsTopAppBar(
                         Icon(Icons.Rounded.SkipNext, contentDescription = "Play Next")
                     }
                 }
+                PlainTooltipBox(tooltip = { Text(text = "Share") }) {
+                    IconButton(modifier = Modifier.tooltipAnchor(), onClick = { onShare(multiSelectState.selected) }) {
+                        Icon(Icons.Rounded.Share, contentDescription = "Play Next")
+                    }
+                }
             },
             navigationIcon = {
                 IconButton(onClick = { multiSelectState.selected.clear() }) {
                     Icon(
                         imageVector = Icons.Rounded.Close,
-                        contentDescription = "End Multiselection mode"
+                        contentDescription = "End Multi selection mode"
                     )
                 }
             }

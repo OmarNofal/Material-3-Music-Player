@@ -118,7 +118,7 @@ fun MusicaApp(
             navController = navController,
             startDestination = SONGS_NAVIGATION_GRAPH
         ) {
-            songsGraph(navController)
+            songsGraph(navController, enableBackPress = !appState.isNowPlayingExpanded)
 
             composable(PLAYLIST_NAVIGATION_GRAPH) {
                 Box(

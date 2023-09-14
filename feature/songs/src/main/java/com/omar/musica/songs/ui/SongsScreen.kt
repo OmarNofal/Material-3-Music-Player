@@ -13,15 +13,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -30,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -41,14 +37,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.songs.SongsScreenUiState
 import com.omar.musica.songs.viewmodel.SongsViewModel
 import com.omar.musica.ui.common.MenuActionItem
-import com.omar.musica.ui.common.SelectableSongRow
+import com.omar.musica.ui.common.MultiSelectState
 import com.omar.musica.ui.common.SongsSummary
 import com.omar.musica.ui.common.addToPlaylists
 import com.omar.musica.ui.common.deleteAction
 import com.omar.musica.ui.common.playNext
 import com.omar.musica.ui.common.rememberSongDialog
+import com.omar.musica.ui.common.selectableSongsList
 import com.omar.musica.ui.common.share
 import com.omar.musica.ui.common.shareSongs
+import com.omar.musica.ui.common.showSongsAddedToNextToast
 import com.omar.musica.ui.common.songInfo
 import com.omar.musica.ui.model.SongUi
 
@@ -77,7 +75,7 @@ fun SongsScreen(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SongsScreen(
     modifier: Modifier,
@@ -114,7 +112,8 @@ internal fun SongsScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            SongsTopAppBar(Modifier, onSearchClicked, scrollBehavior, multiSelectState) {
+            SongsTopAppBar(Modifier, onSearchClicked, onShare,scrollBehavior, multiSelectState) {
+                context.showSongsAddedToNextToast(multiSelectState.selected.size)
                 onPlayNext(multiSelectState.selected)
                 multiSelectState.clear()
             }
@@ -152,12 +151,16 @@ internal fun SongsScreen(
                 }
             }
 
-            itemsIndexed(songs, key = { _, song -> song.uriString }) { index, song ->
 
-                val menuActions = remember {
+
+            selectableSongsList(
+                songs,
+                multiSelectState,
+                multiSelectEnabled,
+                menuActionsBuilder = { song: SongUi ->
                     mutableListOf<MenuActionItem>()
                         .apply {
-                            playNext { onPlayNext(listOf(song)) }
+                            playNext { onPlayNext(listOf(song)); context.showSongsAddedToNextToast(1) }
                             addToPlaylists { }
                             share { onShare(listOf(song)) }
                             songInfo { songDialog.open(song) }
@@ -174,36 +177,9 @@ internal fun SongsScreen(
                                 }
                             }
                         }
-                }
-
-                SelectableSongRow(
-                    modifier = Modifier
-                        .animateItemPlacement()
-                        .fillMaxWidth()
-                        .combinedClickable(
-                            onLongClick = {
-                                multiSelectState.toggleSong(song)
-                            }
-                        ) {
-                            if (multiSelectEnabled)
-                                multiSelectState.toggleSong(song)
-                            else
-                                onSongClicked(song, index)
-                        },
-                    song = song,
-                    menuOptions = menuActions,
-                    multiSelectOn = multiSelectEnabled,
-                    isSelected = multiSelectState.selected.contains(song)
-                )
-                if (song != songs.last()) {
-                    Divider(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(start = (12 + 54 + 8).dp)
-                    )
-                }
-
-            }
+                },
+                onSongClicked = onSongClicked
+            )
         }
     }
 
@@ -237,26 +213,3 @@ fun getIntentSenderRequest(context: Context, uri: Uri): IntentSenderRequest {
     }
 }
 
-data class MultiSelectState(
-    val selected: MutableList<SongUi> = mutableStateListOf()
-) {
-    fun selectSong(songUi: SongUi) {
-        selected.add(songUi)
-    }
-
-    fun toggleSong(songUi: SongUi) {
-        if (selected.contains(songUi)) {
-            deselectSong(songUi)
-        } else {
-            selectSong(songUi)
-        }
-    }
-
-    fun clear() {
-        selected.clear()
-    }
-
-    fun deselectSong(songUi: SongUi) {
-        selected.remove(songUi)
-    }
-}
