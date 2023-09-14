@@ -40,11 +40,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.omar.musica.PLAYLIST_NAVIGATION_GRAPH
 import com.omar.musica.SETTINGS_NAVIGATION_GRAPH
 import com.omar.musica.navigation.MusicaBottomNavBar
 import com.omar.musica.navigation.TopLevelDestination
 import com.omar.musica.navigation.navigateToTopLevelDestination
+import com.omar.musica.playlists.navigation.playlistsGraph
 import com.omar.musica.songs.navigation.SONGS_NAVIGATION_GRAPH
 import com.omar.musica.songs.navigation.songsGraph
 import com.omar.musica.state.rememberMusicaAppState
@@ -120,14 +120,7 @@ fun MusicaApp(
         ) {
             songsGraph(navController, enableBackPress = !appState.isNowPlayingExpanded)
 
-            composable(PLAYLIST_NAVIGATION_GRAPH) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Playlists")
-                }
-            }
+            playlistsGraph()
 
             composable(SETTINGS_NAVIGATION_GRAPH) {
                 Box(

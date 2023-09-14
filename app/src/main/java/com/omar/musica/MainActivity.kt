@@ -15,7 +15,7 @@ import com.omar.musica.ui.theme.MusicaTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 
-val PLAYLIST_NAVIGATION_GRAPH = "playlists"
+
 val SETTINGS_NAVIGATION_GRAPH = "settings"
 
 @AndroidEntryPoint

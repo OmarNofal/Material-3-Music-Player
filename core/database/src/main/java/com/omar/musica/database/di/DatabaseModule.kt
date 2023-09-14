@@ -21,6 +21,7 @@ object DatabaseModule {
         @ApplicationContext context: Context
     ): MusicaDatabase =
         Room.databaseBuilder(context, MusicaDatabase::class.java, name = DB_NAME)
+            .fallbackToDestructiveMigration()
             .build()
 
     @Singleton
