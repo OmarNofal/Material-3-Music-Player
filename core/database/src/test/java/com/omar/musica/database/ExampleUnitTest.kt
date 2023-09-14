@@ -1,4 +1,4 @@
-package com.omar.feature.playlists
+package com.omar.musica.database
 
 import org.junit.Test
 
