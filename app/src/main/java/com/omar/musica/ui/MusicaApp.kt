@@ -118,7 +118,7 @@ fun MusicaApp(
             navController = navController,
             startDestination = SONGS_NAVIGATION_GRAPH
         ) {
-            songsGraph(navController) { navController.navigate("nowplaying") }
+            songsGraph(navController)
 
             composable(PLAYLIST_NAVIGATION_GRAPH) {
                 Box(
@@ -143,9 +143,11 @@ fun MusicaApp(
         val navigationBarInsets = WindowInsets.navigationBars
         AnimatedVisibility(
             visible = shouldShowNowPlayingBar,
-            enter = slideInVertically(tween(500), initialOffsetY = { barHeightPx.roundToInt() * 2 }),
-            exit = slideOutVertically(spring(), targetOffsetY = { - barHeightPx.roundToInt() })
-            ) {
+            enter = slideInVertically(
+                tween(500),
+                initialOffsetY = { barHeightPx.roundToInt() * 2 }),
+            exit = slideOutVertically(spring(), targetOffsetY = { -barHeightPx.roundToInt() })
+        ) {
 
             NowPlayingScreen(
                 barHeight = barHeight,

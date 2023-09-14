@@ -46,8 +46,10 @@ import com.omar.musica.ui.common.SongsSummary
 import com.omar.musica.ui.common.addToPlaylists
 import com.omar.musica.ui.common.deleteAction
 import com.omar.musica.ui.common.playNext
+import com.omar.musica.ui.common.rememberSongDialog
 import com.omar.musica.ui.common.share
 import com.omar.musica.ui.common.shareSongs
+import com.omar.musica.ui.common.songInfo
 import com.omar.musica.ui.model.SongUi
 
 
@@ -59,7 +61,6 @@ fun SongsScreen(
     modifier: Modifier = Modifier,
     viewModel: SongsViewModel = hiltViewModel(),
     onSearchClicked: () -> Unit,
-    onOpenNowPlaying: () -> Unit,
 ) {
     val songsUiState by viewModel.state.collectAsState()
     val context = LocalContext.current
@@ -71,8 +72,7 @@ fun SongsScreen(
         { shareSongs(context, it) },
         viewModel::onDelete,
         onSearchClicked,
-        viewModel::onSortOptionChanged,
-        onOpenNowPlaying
+        viewModel::onSortOptionChanged
     )
 }
 
@@ -87,8 +87,7 @@ internal fun SongsScreen(
     onShare: (List<SongUi>) -> Unit,
     onDelete: (List<SongUi>) -> Unit,
     onSearchClicked: () -> Unit,
-    onSortOptionChanged: (SortOption, isAscending: Boolean) -> Unit,
-    onOpenNowPlaying: () -> Unit
+    onSortOptionChanged: (SortOption, isAscending: Boolean) -> Unit
 ) {
 
     val context = LocalContext.current
@@ -97,6 +96,8 @@ internal fun SongsScreen(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     val deleteRequestLauncher = deleteRequestLauncher()
+
+    val songDialog = rememberSongDialog()
 
     val multiSelectState = remember {
         MultiSelectState()
@@ -159,6 +160,7 @@ internal fun SongsScreen(
                             playNext { onPlayNext(listOf(song)) }
                             addToPlaylists { }
                             share { onShare(listOf(song)) }
+                            songInfo { songDialog.open(song) }
                             deleteAction {
                                 if (api30AndUp) {
                                     deleteRequestLauncher.launch(

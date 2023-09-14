@@ -17,3 +17,6 @@ fun MutableList<MenuActionItem>.addToPlaylists(callback: () -> Unit)
 
 fun MutableList<MenuActionItem>.share(callback: () -> Unit)
     = add(MenuActionItem("Share", callback))
+
+fun MutableList<MenuActionItem>.songInfo(callback: () -> Unit)
+    = add(MenuActionItem("Song Info", callback))

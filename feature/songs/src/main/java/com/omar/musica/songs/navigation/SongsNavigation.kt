@@ -32,8 +32,7 @@ fun NavController.navigateToSearch(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.songsGraph(
-    navController: NavController,
-    onOpenNowPlaying: () -> Unit,
+    navController: NavController
 ) {
 
     navigation(
@@ -49,19 +48,21 @@ fun NavGraphBuilder.songsGraph(
                 if (initialState.destination.route != SEARCH_ROUTE) {
                     fadeOut()
                 } else
-                fadeOut(tween(300))+
-                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Up,
-                            tween(300, easing = FastOutSlowInEasing)
-                        )
+                    fadeOut(tween(300)) +
+                            slideOutOfContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Up,
+                                tween(300, easing = FastOutSlowInEasing)
+                            )
             },
             popEnterTransition = {
                 if (initialState.destination.route != SEARCH_ROUTE) {
                     fadeIn()
                 } else
-                fadeIn(tween(300))+
-                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Down,
-                            tween(300, easing = FastOutSlowInEasing)
-                        )
+                    fadeIn(tween(300)) +
+                            slideIntoContainer(
+                                AnimatedContentTransitionScope.SlideDirection.Down,
+                                tween(300, easing = FastOutSlowInEasing)
+                            )
             }
         ) {
             SongsScreen(
@@ -75,23 +76,23 @@ fun NavGraphBuilder.songsGraph(
 
                         }
                     )
-                },
-                onOpenNowPlaying = onOpenNowPlaying
+                }
             )
         }
 
         composable(
             SEARCH_ROUTE,
             enterTransition = {
-                fadeIn(tween(300))+
+                fadeIn(tween(300)) +
                         slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up,
                             tween(300, easing = FastOutSlowInEasing),
-                            initialOffset = { it -> it}
+                            initialOffset = { it -> it }
                         )
             },
-            popExitTransition =  {
-                fadeOut(tween(300))+
-                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down,
+            popExitTransition = {
+                fadeOut(tween(300)) +
+                        slideOutOfContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Down,
                             tween(300, easing = FastOutSlowInEasing)
                         )
             }
