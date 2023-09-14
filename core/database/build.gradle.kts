@@ -10,12 +10,13 @@ android {
 }
 
 dependencies {
+    kapt(libs.room.compiler)
 
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.room.runtime)
-    kapt(libs.room.compiler)
+    implementation(libs.room.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)

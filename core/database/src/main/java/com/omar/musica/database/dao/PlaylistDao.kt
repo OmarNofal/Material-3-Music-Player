@@ -10,7 +10,7 @@ import com.omar.musica.database.entities.PLAYLIST_NAME_COLUMN
 import com.omar.musica.database.entities.PLAYLIST_SONG_ENTITY
 import com.omar.musica.database.entities.PlaylistEntity
 import com.omar.musica.database.model.PlaylistInfoWithNumberOfSongs
-import com.omar.musica.database.model.PlaylistWithSongsUris
+import com.omar.musica.database.model.PlaylistWithSongsUri
 import kotlinx.coroutines.flow.Flow
 
 
@@ -19,9 +19,9 @@ interface PlaylistDao {
 
     @Query(
         "SELECT P.*, S.song_uri FROM $PLAYLIST_ENTITY P JOIN $PLAYLIST_SONG_ENTITY S " +
-                "ON P.${PLAYLIST_ID_COLUMN} = S.${PLAYLIST_ID_COLUMN}"
+                "ON P.${PLAYLIST_ID_COLUMN} = S.${PLAYLIST_ID_COLUMN} WHERE P.$PLAYLIST_ID_COLUMN = :playlistId"
     )
-    fun getPlaylistsWithSongsFlow(): Flow<PlaylistWithSongsUris>
+    fun getPlaylistWithSongsFlow(playlistId: Int): Flow<PlaylistWithSongsUri>
 
     @Insert
     suspend fun createPlaylist(playlistEntity: PlaylistEntity)
@@ -51,7 +51,7 @@ interface PlaylistDao {
 
 
     @Query(
-        "SELECT P.*, COUNT(*)  FROM $PLAYLIST_ENTITY P JOIN $PLAYLIST_SONG_ENTITY S " +
+        "SELECT P.*, COUNT(*) as 'numberOfSongs' FROM $PLAYLIST_ENTITY P JOIN $PLAYLIST_SONG_ENTITY S " +
                 "ON P.${PLAYLIST_ID_COLUMN} = S.${PLAYLIST_ID_COLUMN} "
     )
     fun getPlaylistsInfoFlow(): Flow<List<PlaylistInfoWithNumberOfSongs>>

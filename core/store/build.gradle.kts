@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(project(mapOf("path" to ":core:model")))
+    implementation(project(mapOf("path" to ":core:database")))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)
