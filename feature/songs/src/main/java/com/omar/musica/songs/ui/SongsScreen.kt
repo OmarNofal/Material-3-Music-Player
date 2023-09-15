@@ -49,6 +49,7 @@ import com.omar.musica.ui.common.shareSongs
 import com.omar.musica.ui.common.showSongsAddedToNextToast
 import com.omar.musica.ui.common.songInfo
 import com.omar.musica.ui.model.SongUi
+import com.omar.musica.ui.playlist.rememberAddToPlaylistDialog
 
 
 @ChecksSdkIntAtLeast(30)
@@ -109,10 +110,21 @@ internal fun SongsScreen(
         multiSelectState.clear()
     }
 
+    val addToPlaylistDialog = rememberAddToPlaylistDialog()
+
     Scaffold(
         modifier = modifier,
         topBar = {
-            SongsTopAppBar(Modifier, onSearchClicked, onShare,scrollBehavior, multiSelectState) {
+            SongsTopAppBar(
+                Modifier,
+                onSearchClicked,
+                onShare,
+                scrollBehavior,
+                multiSelectState,
+                onAddToPlaylists = {
+                    addToPlaylistDialog.launch(multiSelectState.selected)
+                }
+            ) {
                 context.showSongsAddedToNextToast(multiSelectState.selected.size)
                 onPlayNext(multiSelectState.selected)
                 multiSelectState.clear()
@@ -161,7 +173,7 @@ internal fun SongsScreen(
                     mutableListOf<MenuActionItem>()
                         .apply {
                             playNext { onPlayNext(listOf(song)); context.showSongsAddedToNextToast(1) }
-                            addToPlaylists { }
+                            addToPlaylists { addToPlaylistDialog.launch(listOf(song)) }
                             share { onShare(listOf(song)) }
                             songInfo { songDialog.open(song) }
                             deleteAction {

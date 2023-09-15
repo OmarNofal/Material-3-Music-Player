@@ -2,6 +2,7 @@ package com.omar.musica.songs.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.SkipNext
@@ -27,6 +28,7 @@ fun SongsTopAppBar(
     onShare: (List<SongUi>) -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
     multiSelectState: MultiSelectState,
+    onAddToPlaylists: () -> Unit,
     onPlayNext: () -> Unit
 ) {
 
@@ -48,7 +50,12 @@ fun SongsTopAppBar(
                 }
                 PlainTooltipBox(tooltip = { Text(text = "Share") }) {
                     IconButton(modifier = Modifier.tooltipAnchor(), onClick = { onShare(multiSelectState.selected) }) {
-                        Icon(Icons.Rounded.Share, contentDescription = "Play Next")
+                        Icon(Icons.Rounded.Share, contentDescription = "Share")
+                    }
+                }
+                PlainTooltipBox(tooltip = { Text(text = "Add to Playlists") }) {
+                    IconButton(modifier = Modifier.tooltipAnchor(), onClick = onAddToPlaylists) {
+                        Icon(Icons.Rounded.PlaylistAdd, contentDescription = "Add to Playlists")
                     }
                 }
             },

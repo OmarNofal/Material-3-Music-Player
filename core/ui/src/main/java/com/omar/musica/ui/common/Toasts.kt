@@ -9,3 +9,6 @@ fun Context.showShortToast(text: String) =
 
 fun Context.showSongsAddedToNextToast(numOfSongs: Int) =
     showShortToast("$numOfSongs ${if (numOfSongs == 1) "Song" else "Songs"} will play next")
+
+fun Context.showSongsAddedToPlaylistsToast(numOfSongs: Int, numOfPlaylists: Int) =
+    showShortToast("$numOfSongs ${if(numOfSongs == 1) "Song" else "Songs"} added to ${if (numOfPlaylists == 1) "Playlist" else "Playlists"}")

@@ -2,6 +2,7 @@ package com.omar.musica.database.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import com.omar.musica.database.entities.PLAYLIST_ENTITY
@@ -9,6 +10,7 @@ import com.omar.musica.database.entities.PLAYLIST_ID_COLUMN
 import com.omar.musica.database.entities.PLAYLIST_NAME_COLUMN
 import com.omar.musica.database.entities.PLAYLIST_SONG_ENTITY
 import com.omar.musica.database.entities.PlaylistEntity
+import com.omar.musica.database.entities.PlaylistsSongsEntity
 import com.omar.musica.database.entities.SONG_URI_STRING_COLUMN
 import com.omar.musica.database.model.PlaylistInfoWithNumberOfSongs
 import com.omar.musica.database.model.PlaylistWithSongsUri
@@ -43,6 +45,19 @@ interface PlaylistDao {
     )
     suspend fun deletePlaylistSongs(playlistId: Int)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertSongsToPlaylist(playlistsSongsEntity: List<PlaylistsSongsEntity>)
+
+    @Transaction
+    suspend fun insertSongsToPlaylists(
+        songUris: List<String>,
+        playlistsSongsEntity: List<PlaylistEntity>
+    ) {
+        for (playlist in playlistsSongsEntity) {
+            val songsEntities = songUris.map { PlaylistsSongsEntity(playlist.id, it) }
+            insertSongsToPlaylist(songsEntities)
+        }
+    }
 
     @Query(
         "UPDATE $PLAYLIST_ENTITY SET $PLAYLIST_NAME_COLUMN = :newName " +

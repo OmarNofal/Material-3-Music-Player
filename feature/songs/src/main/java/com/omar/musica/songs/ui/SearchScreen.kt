@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,6 +63,7 @@ import com.omar.musica.ui.common.shareSongs
 import com.omar.musica.ui.common.showSongsAddedToNextToast
 import com.omar.musica.ui.common.songInfo
 import com.omar.musica.ui.model.SongUi
+import com.omar.musica.ui.playlist.rememberAddToPlaylistDialog
 
 
 @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
@@ -128,6 +130,8 @@ internal fun SearchScreen(
         derivedStateOf { multiSelectState.selected.size > 0 }
     }
 
+    val addToPlaylistDialog = rememberAddToPlaylistDialog()
+
     BackHandler(multiSelectEnabled && enableBackPress) {
         multiSelectState.clear()
     }
@@ -149,6 +153,9 @@ internal fun SearchScreen(
                         context.showSongsAddedToNextToast(multiSelectState.selected.size)
                         onPlayNext(multiSelectState.selected)
                         multiSelectState.clear()
+                    },
+                    onAddToPlaylists = {
+                        addToPlaylistDialog.launch(multiSelectState.selected)
                     },
                     onShare = onShare
                 )
@@ -187,7 +194,7 @@ internal fun SearchScreen(
                         mutableListOf<MenuActionItem>()
                             .apply {
                                 playNext { onPlayNext(listOf(song)) }
-                                addToPlaylists { }
+                                addToPlaylists { addToPlaylistDialog.launch(listOf(song)) }
                                 share { onShare(listOf(song)) }
                                 songInfo { songInfoDialog.open(song) }
                                 deleteAction {
@@ -225,6 +232,7 @@ fun SearchScreenTopBar(
     focusRequester: FocusRequester,
     onBackPressed: () -> Unit,
     onPlayNext: () -> Unit,
+    onAddToPlaylists: () -> Unit,
     onShare: (List<SongUi>) -> Unit,
     onSearchQueryChanged: (String) -> Unit
 ) {
@@ -258,6 +266,11 @@ fun SearchScreenTopBar(
                             modifier = Modifier.tooltipAnchor(),
                             onClick = { onShare(multiSelectState.selected) }) {
                             Icon(Icons.Rounded.Share, contentDescription = "Play Next")
+                        }
+                    }
+                    PlainTooltipBox(tooltip = { Text(text = "Add to Playlists") }) {
+                        IconButton(modifier = Modifier.tooltipAnchor(), onClick = { onAddToPlaylists() }) {
+                            Icon(Icons.Rounded.PlaylistAdd, contentDescription = "Add to Playlists")
                         }
                     }
                 },

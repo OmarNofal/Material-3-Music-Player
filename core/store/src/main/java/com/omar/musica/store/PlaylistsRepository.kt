@@ -41,6 +41,11 @@ class PlaylistsRepository @Inject constructor(
         }
     }
 
+    fun addSongsToPlaylists(songsUris: List<String>, playlists: List<PlaylistInfo>) {
+        coroutineScope.launch {
+            playlistsDao.insertSongsToPlaylists(songsUris, playlists.toDBEntities())
+        }
+    }
 
     fun getPlaylistWithSongsFlow(playlistId: Int): Flow<Playlist> =
         combine(
@@ -69,6 +74,12 @@ class PlaylistsRepository @Inject constructor(
             )
         }
 
+
+    private fun PlaylistInfo.toDBEntity() =
+        PlaylistEntity(id, name)
+
+    private fun List<PlaylistInfo>.toDBEntities() =
+        map { it.toDBEntity() }
 
     private fun PlaylistInfoWithNumberOfSongs.toDomainPlaylist() =
         PlaylistInfo(
