@@ -76,7 +76,7 @@ fun MusicaApp(
         AnchoredDraggableState(
             BarState.COLLAPSED,
             positionalThreshold = { distance: Float -> 0.5f * distance },
-            velocityThreshold = { with(density) { 100.dp.toPx() } },
+            velocityThreshold = { with(density) { 50.dp.toPx() } },
             animationSpec = tween()
         )
     }
@@ -86,16 +86,10 @@ fun MusicaApp(
 
     var boxMinOffset by remember { mutableFloatStateOf(0.0f) }
 
-    // The box which contains the App Scaffold and the
-    // Now Playing Bar
-
     val scrollProvider = { 1 - (anchorState.offset / boxMinOffset) }
 
 
-    val isExpanded by remember {
-        derivedStateOf { (1 - (anchorState.offset / boxMinOffset)) >= 0.9f }
-    }
-
+    val isExpanded = anchorState.currentValue == BarState.EXPANDED
 
     val appState = rememberMusicaAppState(
         navHostController = navController,

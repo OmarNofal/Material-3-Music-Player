@@ -6,9 +6,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -18,12 +21,12 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.model.PlaylistInfo
-import com.omar.musica.ui.common.showSongsAddedToNextToast
 import com.omar.musica.ui.common.showSongsAddedToPlaylistsToast
 import com.omar.musica.ui.model.SongUi
 
@@ -61,11 +64,13 @@ fun AddToPlaylistDialog(
         confirmButton = {
             TextButton(onClick = {
                 if (state !is AddToPlaylistState.Success) return@TextButton
-                val selectedPlaylists = dialogEntries.entries.filter { it.isSelected }.map { it.playlist }
+                val selectedPlaylists =
+                    dialogEntries.entries.filter { it.isSelected }.map { it.playlist }
                 viewModel.addSongsToPlaylists(songs, selectedPlaylists)
                 context.showSongsAddedToPlaylistsToast(songs.size, selectedPlaylists.size)
                 onDismissRequest()
-            }) {
+            }, enabled = dialogEntries.entries.any { it.isSelected }
+                ) {
                 Text("Confirm")
             }
         },
@@ -84,7 +89,7 @@ fun AddToPlaylistDialog(
                 LazyColumn {
 
                     itemsIndexed(dialogEntries.entries) { index, entry ->
-                        Row {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(
                                 checked = entry.isSelected,
                                 onCheckedChange = { dialogEntries.toggle(index) })
@@ -96,7 +101,9 @@ fun AddToPlaylistDialog(
                 }
 
             }
-        }
+        },
+        title = { Text(text = "Add to Playlists") },
+        icon = { Icon(imageVector = Icons.Rounded.PlaylistAdd, contentDescription = null) }
     )
 
 }
