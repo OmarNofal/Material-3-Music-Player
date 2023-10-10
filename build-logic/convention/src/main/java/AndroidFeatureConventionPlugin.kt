@@ -31,7 +31,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
 
             dependencies {
                 add("implementation", project(":core:model"))
-
+                add("implementation", "androidx.compose.material3:material3-window-size-class")
                 add("testImplementation", kotlin("test"))
                 add("androidTestImplementation", kotlin("test"))
 

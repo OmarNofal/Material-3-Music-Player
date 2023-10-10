@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,11 +37,13 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -179,7 +182,7 @@ internal fun NowPlayingScreen(
 
 }
 
-
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun FullScreenNowPlaying(
     modifier: Modifier,
@@ -220,16 +223,29 @@ fun FullScreenNowPlaying(
             )
         )
 
+        val activity = LocalContext.current as Activity
+        val windowSizeClass =  calculateWindowSizeClass(activity = activity)
+        val heightClass = windowSizeClass.heightSizeClass
 
-        NowPlayingUi(
+        val isLandscape = heightClass == WindowHeightSizeClass.Compact
+
+
+        val paddingModifier = if (isLandscape)
+            Modifier.padding(16.dp)
+        else
+            Modifier.padding(start = 16.dp, end = 16.dp, top = 32.dp)
+
+
+        PortraitNowPlayingUi(
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer { alpha = progressProvider() * 2 }
-                .padding(start = 16.dp, end = 16.dp, top = 32.dp)
+                .then(paddingModifier)
                 .statusBarsPadding(),
             song = song,
             songProgress = uiState.songProgress,
             playbackState = uiState.playbackState,
+            isLandscape = isLandscape,
             onUserSeek = onUserSeek,
             onPrevious = onPrevious,
             onTogglePlayback = onTogglePlayback,
@@ -242,12 +258,14 @@ fun FullScreenNowPlaying(
     }
 }
 
+
 @Composable
-fun NowPlayingUi(
+fun PortraitNowPlayingUi(
     modifier: Modifier,
     song: SongUi,
     songProgress: Float,
     playbackState: PlayerState,
+    isLandscape: Boolean,
     onUserSeek: (Float) -> Unit,
     onPrevious: () -> Unit,
     onTogglePlayback: () -> Unit,
@@ -256,11 +274,13 @@ fun NowPlayingUi(
     onJumpBackward: () -> Unit,
 ) {
 
-    Column(modifier) {
 
+
+
+    val content : @Composable () -> Unit = {
+        val initialModifier = if (isLandscape) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
         SongAlbumArtImage(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = initialModifier
                 .aspectRatio(1.0f)
                 .scale(0.9f)
                 .shadow(32.dp)
@@ -268,35 +288,45 @@ fun NowPlayingUi(
             song = song
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
 
-        SongTextInfo(
-            modifier = Modifier.fillMaxWidth(),
-            song = song
-        )
+        Spacer(modifier = if (isLandscape) Modifier.width(16.dp) else Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Column {
+            SongTextInfo(
+                modifier = Modifier.fillMaxWidth(),
+                song = song
+            )
 
-        SongProgressInfo(
-            modifier = Modifier.fillMaxWidth(),
-            songDuration = song.length,
-            progress = songProgress,
-            onUserSeek = onUserSeek
-        )
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(32.dp))
+            SongProgressInfo(
+                modifier = Modifier.fillMaxWidth(),
+                songDuration = song.length,
+                progress = songProgress,
+                onUserSeek = onUserSeek
+            )
 
-        SongControls(
-            modifier = Modifier.fillMaxWidth(),
-            isPlaying = playbackState == PlayerState.PLAYING,
-            onPrevious = onPrevious,
-            onTogglePlayback = onTogglePlayback,
-            onNext = onNext,
-            onJumpForward = onJumpForward,
-            onJumpBackward = onJumpBackward
-        )
+            Spacer(modifier = Modifier.height(32.dp))
 
+            SongControls(
+                modifier = Modifier.fillMaxWidth(),
+                isPlaying = playbackState == PlayerState.PLAYING,
+                onPrevious = onPrevious,
+                onTogglePlayback = onTogglePlayback,
+                onNext = onNext,
+                onJumpForward = onJumpForward,
+                onJumpBackward = onJumpBackward
+            )
+        }
     }
+
+    if (isLandscape)
+        Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+            content()
+        } else
+            Column(modifier) {
+                content()
+            }
 
 
 }
@@ -400,6 +430,7 @@ fun SongTextInfo(
                     delayMillis = 2000
                 ),
             text = song.title,
+
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             fontSize = 22.sp,

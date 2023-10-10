@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)
+    implementation("androidx.compose.material3:material3-window-size-class")
     implementation(project(mapOf("path" to ":core:store")))
     implementation(project(mapOf("path" to ":core:model")))
     implementation(project(mapOf("path" to ":core:ui")))
