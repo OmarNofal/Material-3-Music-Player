@@ -27,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +50,7 @@ import com.omar.musica.SETTINGS_NAVIGATION_GRAPH
 import com.omar.musica.navigation.MusicaBottomNavBar
 import com.omar.musica.navigation.TopLevelDestination
 import com.omar.musica.navigation.navigateToTopLevelDestination
+import com.omar.musica.playback.PlaybackService
 import com.omar.musica.playlists.navigation.playlistsGraph
 import com.omar.musica.songs.navigation.SONGS_NAVIGATION_GRAPH
 import com.omar.musica.songs.navigation.songsGraph
@@ -58,7 +58,6 @@ import com.omar.musica.state.rememberMusicaAppState
 import com.omar.nowplaying.ui.BarState
 import com.omar.nowplaying.ui.NowPlayingScreen
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -91,7 +90,6 @@ fun MusicaApp(
     }
 
 
-
     val barHeight = 64.dp
     val barHeightPx = with(density) { barHeight.toPx() }
 
@@ -108,7 +106,6 @@ fun MusicaApp(
         nowPlayingViewModel = hiltViewModel(),
         nowPlayingVisibilityProvider = scrollProvider,
     )
-
 
 
     val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = false)
@@ -240,7 +237,7 @@ fun MusicaApp(
                 }
             }
         }
-        val activity = (context as? ComponentActivity) ?: return@DisposableEffect onDispose {  }
+        val activity = (context as? ComponentActivity) ?: return@DisposableEffect onDispose { }
         activity.addOnNewIntentListener(listener)
         onDispose { activity.removeOnNewIntentListener(listener) }
     }
