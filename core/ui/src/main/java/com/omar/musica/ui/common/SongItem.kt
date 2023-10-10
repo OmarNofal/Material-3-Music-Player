@@ -36,11 +36,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.omar.musica.ui.R
 import com.omar.musica.ui.albumart.LocalThumbnailImageLoader
 import com.omar.musica.ui.model.SongUi
 import timber.log.Timber
@@ -75,8 +77,8 @@ fun SelectableSongRow(
             contentDescription = "Cover Photo",
             contentScale = ContentScale.Crop,
             fallback = rememberVectorPainter(image = Icons.Rounded.MusicNote),
-            placeholder = rememberVectorPainter(image = Icons.Rounded.MusicNote),
-            error = rememberVectorPainter(image = Icons.Rounded.MusicNote),
+            placeholder = painterResource(id = R.drawable.placeholder),
+            error = painterResource(id = R.drawable.placeholder),
             onError = { Timber.d("uri: ${it.result.request.data}" + it.result.throwable.stackTraceToString()) }
         )
 
@@ -121,7 +123,10 @@ fun SelectableSongRow(
         }
 
 
-        Box(Modifier.fillMaxHeight().width(48.dp), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .fillMaxHeight()
+                .width(48.dp), contentAlignment = Alignment.Center) {
 
             if (menuOptions != null) {
                 androidx.compose.animation.AnimatedVisibility(visible = !multiSelectOn, enter = EnterTransition.None, exit = ExitTransition.None) {

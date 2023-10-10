@@ -3,7 +3,9 @@ package com.omar.nowplaying.ui
 import BlurTransformation
 import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -60,11 +62,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -72,8 +76,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import coil.size.Size
 import com.omar.musica.playback.state.PlayerState
 import com.omar.musica.ui.albumart.LocalThumbnailImageLoader
 import com.omar.musica.ui.common.SongAlbumArtImage
@@ -83,7 +89,6 @@ import com.omar.nowplaying.NowPlayingState
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import timber.log.Timber
 
 
 @Composable
@@ -204,27 +209,43 @@ fun FullScreenNowPlaying(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
-        AsyncImage(
+
+        CrossFadingAlbumArt(
             modifier = Modifier.fillMaxSize(),
             model = ImageRequest.Builder(LocalContext.current)
-                .crossfade(500)
                 .data(song)
+                .size(Size.ORIGINAL)
                 .transformations(
                     BlurTransformation(radius = 40, scale = 0.15f)
                 ).build(),
-            contentDescription = null,
-            imageLoader = LocalThumbnailImageLoader.current,
-            contentScale = ContentScale.Crop,
-            onError = { Timber.e(it.result.throwable) },
-            error = ColorPainter(Color.Black),
+            errorPainter = remember { ColorPainter(Color.Black) },
             colorFilter = ColorFilter.tint(
                 Color(0xFF999999),
                 BlendMode.Multiply
             )
         )
+//        AsyncImage(
+//            modifier = Modifier.fillMaxSize(),
+//            model = ImageRequest.Builder(LocalContext.current)
+//                .data(song)
+//                .crossfade(5000)
+//                .transitionFactory(CrossfadeTransition.Factory(5000, true))
+//                .transformations(
+//                    BlurTransformation(radius = 40, scale = 0.15f)
+//                ).build(),
+//            contentDescription = null,
+//            imageLoader = LocalThumbnailImageLoader.current,
+//            contentScale = ContentScale.Crop,
+//            onError = { Timber.e(it.result.throwable) },
+//            error = ColorPainter(Color.Black),
+//            colorFilter = ColorFilter.tint(
+//                Color(0xFF999999),
+//                BlendMode.Multiply
+//            )
+//        )
 
         val activity = LocalContext.current as Activity
-        val windowSizeClass =  calculateWindowSizeClass(activity = activity)
+        val windowSizeClass = calculateWindowSizeClass(activity = activity)
         val heightClass = windowSizeClass.heightSizeClass
 
         val isLandscape = heightClass == WindowHeightSizeClass.Compact
@@ -324,9 +345,9 @@ fun PortraitNowPlayingUi(
         Row(modifier, verticalAlignment = Alignment.CenterVertically) {
             content()
         } else
-            Column(modifier) {
-                content()
-            }
+        Column(modifier) {
+            content()
+        }
 
 
 }
@@ -584,6 +605,74 @@ fun DarkStatusBarEffect(darkStatusBarColor: Boolean) {
         onDispose {
             windowsInsetsController.isAppearanceLightStatusBars = previous
             windowsInsetsController.isAppearanceLightNavigationBars = previous
+        }
+    }
+}
+
+@Composable
+fun CrossFadingAlbumArt(
+    modifier: Modifier,
+    model: Any,
+    errorPainter: Painter,
+    colorFilter: ColorFilter? = null,
+    contentScale: ContentScale = ContentScale.Crop
+) {
+
+
+    val painter = rememberAsyncImagePainter(
+        model = model,
+        contentScale = ContentScale.Crop,
+        imageLoader = LocalThumbnailImageLoader.current,
+    )
+
+
+    var firstPainter by remember {
+        mutableStateOf<Painter>(ColorPainter(Color.Black))
+    }
+
+    var secondPainter by remember {
+        mutableStateOf<Painter>(ColorPainter(Color.Black))
+    }
+
+    var isUsingFirstPainter by remember {
+        mutableStateOf(true)
+    }
+
+    val state = painter.state
+
+
+    LaunchedEffect(key1 = state) {
+        val newPainter = when (state) {
+            is AsyncImagePainter.State.Success -> state.painter
+            is AsyncImagePainter.State.Error -> errorPainter
+            else -> if (isUsingFirstPainter) firstPainter else secondPainter
+        }
+        if (isUsingFirstPainter) {
+            secondPainter = newPainter
+        } else {
+            firstPainter = newPainter
+        }
+        isUsingFirstPainter = !isUsingFirstPainter
+    }
+
+
+    Crossfade(modifier = modifier, targetState = isUsingFirstPainter, label = "") {
+        if (it) {
+            Image(
+                modifier = modifier,
+                painter = firstPainter,
+                contentDescription = null,
+                colorFilter = colorFilter,
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Image(
+                modifier = modifier,
+                painter = secondPainter,
+                contentDescription = null,
+                colorFilter = colorFilter,
+                contentScale = contentScale
+            )
         }
     }
 }
