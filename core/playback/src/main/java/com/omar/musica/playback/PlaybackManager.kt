@@ -147,6 +147,7 @@ class PlaybackManager @Inject constructor(@ApplicationContext context: Context) 
         val mediaItems = songs.toMediaItems()
         val currentIndex = mediaController?.currentMediaItemIndex ?: 0
         mediaController?.addMediaItems(currentIndex + 1, mediaItems)
+        mediaController?.prepare()
     }
 
     private fun setSong(song: Song) {

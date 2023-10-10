@@ -1,5 +1,8 @@
 package com.omar.musica.ui
 
+import android.app.Activity
+import android.content.Intent
+import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -21,6 +24,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -32,9 +37,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.core.util.Consumer
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -50,6 +57,8 @@ import com.omar.musica.songs.navigation.songsGraph
 import com.omar.musica.state.rememberMusicaAppState
 import com.omar.nowplaying.ui.BarState
 import com.omar.nowplaying.ui.NowPlayingScreen
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -81,6 +90,8 @@ fun MusicaApp(
         )
     }
 
+
+
     val barHeight = 64.dp
     val barHeightPx = with(density) { barHeight.toPx() }
 
@@ -98,7 +109,19 @@ fun MusicaApp(
         nowPlayingVisibilityProvider = scrollProvider,
     )
 
+
+
     val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = false)
+
+    val context = LocalContext.current
+    LaunchedEffect(key1 = Unit) {
+        delay(500)
+        val activity = (context as? Activity) ?: return@LaunchedEffect
+        val action = activity.intent.action
+        if (action == PlaybackService.VIEW_MEDIA_SCREEN_ACTION && shouldShowNowPlayingBar) {
+            anchorState.animateTo(BarState.EXPANDED)
+        }
+    }
 
     // App itself
     Box(modifier = modifier) {
@@ -205,6 +228,21 @@ fun MusicaApp(
         )
 
 
+    }
+
+
+
+    DisposableEffect(navController) {
+        val listener = Consumer<Intent> {
+            if (it.action == PlaybackService.VIEW_MEDIA_SCREEN_ACTION) {
+                scope.launch {
+                    anchorState.animateTo(BarState.EXPANDED)
+                }
+            }
+        }
+        val activity = (context as? ComponentActivity) ?: return@DisposableEffect onDispose {  }
+        activity.addOnNewIntentListener(listener)
+        onDispose { activity.removeOnNewIntentListener(listener) }
     }
 
 
