@@ -24,12 +24,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.omar.musica.ui.R
 import com.omar.musica.ui.albumart.LocalThumbnailImageLoader
 import com.omar.musica.ui.model.SongUi
+import kotlin.math.pow
 
 
 @Composable
@@ -66,6 +69,8 @@ fun rememberSongDialog(): SongInfoDialog {
                                 modifier = Modifier
                                     .size(64.dp),
                                 model = safeSong,
+                                error = painterResource(R.drawable.placeholder),
+                                placeholder = painterResource(R.drawable.placeholder),
                                 contentDescription = null,
                                 imageLoader = LocalThumbnailImageLoader.current
                             )
@@ -76,7 +81,10 @@ fun rememberSongDialog(): SongInfoDialog {
                                 value = safeSong.title
                             )
                         }
-                        Divider(Modifier.padding(top = 8.dp).fillMaxWidth())
+                        Divider(
+                            Modifier
+                                .padding(top = 8.dp)
+                                .fillMaxWidth())
                         SongMetadataSpacer()
                         SongMetadataRow(
                             modifier = rowModifier,
@@ -100,6 +108,18 @@ fun rememberSongDialog(): SongInfoDialog {
                             modifier = rowModifier,
                             title = "Album",
                             value = safeSong.album ?: "<unknown>"
+                        )
+                        SongMetadataSpacer()
+                        SongMetadataRow(
+                            modifier = rowModifier,
+                            title = "File Size",
+                            value = safeSong.size.bytesToSizeString()
+                        )
+                        SongMetadataSpacer()
+                        SongMetadataRow(
+                            modifier = rowModifier,
+                            title = "Duration",
+                            value = safeSong.length.millisToTime()
                         )
                     }
                 }
@@ -136,4 +156,24 @@ internal fun SongMetadataSpacer() {
 
 interface SongInfoDialog {
     fun open(songUi: SongUi)
+}
+
+
+val sizeRanges = arrayOf(
+    2.0.pow(10.0).toLong() until 2.0.pow(20.0).toLong() to "KB",
+    2.0.pow(20.0).toLong() until 2.0.pow(30.0).toLong() to "MB",
+    2.0.pow(30.0).toLong() until Long.MAX_VALUE to "GB"
+)
+fun Long.bytesToSizeString(): String {
+
+    if (this in 0 until 1024) return "$this Bytes"
+
+    val result = try {
+        val sizeRange = sizeRanges.first { this in it.first }
+        "${this / sizeRange.first.first} ${sizeRange.second}"
+    } catch (e: NoSuchElementException) {
+        "Unknown size"
+    }
+
+    return result
 }
