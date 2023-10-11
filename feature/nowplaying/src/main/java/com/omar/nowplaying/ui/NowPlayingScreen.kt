@@ -41,6 +41,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -68,7 +69,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -224,34 +224,23 @@ fun FullScreenNowPlaying(
                 BlendMode.Multiply
             )
         )
-//        AsyncImage(
-//            modifier = Modifier.fillMaxSize(),
-//            model = ImageRequest.Builder(LocalContext.current)
-//                .data(song)
-//                .crossfade(5000)
-//                .transitionFactory(CrossfadeTransition.Factory(5000, true))
-//                .transformations(
-//                    BlurTransformation(radius = 40, scale = 0.15f)
-//                ).build(),
-//            contentDescription = null,
-//            imageLoader = LocalThumbnailImageLoader.current,
-//            contentScale = ContentScale.Crop,
-//            onError = { Timber.e(it.result.throwable) },
-//            error = ColorPainter(Color.Black),
-//            colorFilter = ColorFilter.tint(
-//                Color(0xFF999999),
-//                BlendMode.Multiply
-//            )
-//        )
+
 
         val activity = LocalContext.current as Activity
         val windowSizeClass = calculateWindowSizeClass(activity = activity)
         val heightClass = windowSizeClass.heightSizeClass
+        val widthClass = windowSizeClass.widthSizeClass
 
         val isLandscape = heightClass == WindowHeightSizeClass.Compact
 
+        val screenSize = when {
+            heightClass == WindowHeightSizeClass.Compact && widthClass == WindowWidthSizeClass.Compact -> NowPlayingScreenSize.COMPACT
+            heightClass == WindowHeightSizeClass.Compact && widthClass != WindowWidthSizeClass.Compact -> NowPlayingScreenSize.LANDSCAPE
+            else -> NowPlayingScreenSize.PORTRAIT
+        }
 
-        val paddingModifier = if (isLandscape)
+
+        val paddingModifier = if (screenSize == NowPlayingScreenSize.LANDSCAPE)
             Modifier.padding(16.dp)
         else
             Modifier.padding(start = 16.dp, end = 16.dp, top = 32.dp)
@@ -266,7 +255,7 @@ fun FullScreenNowPlaying(
             song = song,
             songProgress = uiState.songProgress,
             playbackState = uiState.playbackState,
-            isLandscape = isLandscape,
+            screenSize = screenSize,
             onUserSeek = onUserSeek,
             onPrevious = onPrevious,
             onTogglePlayback = onTogglePlayback,
@@ -286,7 +275,7 @@ fun PortraitNowPlayingUi(
     song: SongUi,
     songProgress: Float,
     playbackState: PlayerState,
-    isLandscape: Boolean,
+    screenSize: NowPlayingScreenSize,
     onUserSeek: (Float) -> Unit,
     onPrevious: () -> Unit,
     onTogglePlayback: () -> Unit,
@@ -296,10 +285,9 @@ fun PortraitNowPlayingUi(
 ) {
 
 
-
-
-    val content : @Composable () -> Unit = {
-        val initialModifier = if (isLandscape) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
+    val content: @Composable () -> Unit = {
+        val initialModifier =
+            if (screenSize == NowPlayingScreenSize.LANDSCAPE) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
         SongAlbumArtImage(
             modifier = initialModifier
                 .aspectRatio(1.0f)
@@ -310,7 +298,11 @@ fun PortraitNowPlayingUi(
         )
 
 
-        Spacer(modifier = if (isLandscape) Modifier.width(16.dp) else Modifier.height(16.dp))
+        Spacer(
+            modifier = if (screenSize == NowPlayingScreenSize.LANDSCAPE) Modifier.width(16.dp) else Modifier.height(
+                16.dp
+            )
+        )
 
         Column {
             SongTextInfo(
@@ -341,7 +333,7 @@ fun PortraitNowPlayingUi(
         }
     }
 
-    if (isLandscape)
+    if (screenSize == NowPlayingScreenSize.LANDSCAPE)
         Row(modifier, verticalAlignment = Alignment.CenterVertically) {
             content()
         } else
@@ -675,4 +667,8 @@ fun CrossFadingAlbumArt(
             )
         }
     }
+}
+
+enum class NowPlayingScreenSize {
+    LANDSCAPE, PORTRAIT, COMPACT
 }
