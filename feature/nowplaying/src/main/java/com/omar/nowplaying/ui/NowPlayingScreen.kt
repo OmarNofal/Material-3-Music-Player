@@ -288,14 +288,16 @@ fun PortraitNowPlayingUi(
     val content: @Composable () -> Unit = {
         val initialModifier =
             if (screenSize == NowPlayingScreenSize.LANDSCAPE) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
-        SongAlbumArtImage(
-            modifier = initialModifier
-                .aspectRatio(1.0f)
-                .scale(0.9f)
-                .shadow(32.dp)
-                .clip(RoundedCornerShape(12.dp)),
-            song = song
-        )
+
+        if (screenSize != NowPlayingScreenSize.COMPACT)
+            SongAlbumArtImage(
+                modifier = initialModifier
+                    .aspectRatio(1.0f)
+                    .scale(0.9f)
+                    .shadow(32.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                song = song
+            )
 
 
         Spacer(
