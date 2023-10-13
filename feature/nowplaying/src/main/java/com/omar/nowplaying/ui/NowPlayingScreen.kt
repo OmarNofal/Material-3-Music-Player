@@ -36,6 +36,7 @@ import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -143,7 +144,8 @@ internal fun NowPlayingScreen(
 
     // Since we use a darker background image for the NowPlaying screen
     // we need to make the status bar icons lighter
-    DarkStatusBarEffect(isExpanded)
+    if (isExpanded)
+        DarkStatusBarEffect()
 
     Surface(
         modifier = modifier
@@ -231,7 +233,6 @@ fun FullScreenNowPlaying(
         val heightClass = windowSizeClass.heightSizeClass
         val widthClass = windowSizeClass.widthSizeClass
 
-        val isLandscape = heightClass == WindowHeightSizeClass.Compact
 
         val screenSize = when {
             heightClass == WindowHeightSizeClass.Compact && widthClass == WindowWidthSizeClass.Compact -> NowPlayingScreenSize.COMPACT
@@ -581,9 +582,9 @@ fun ControlButton(
 
 
 @Composable
-fun DarkStatusBarEffect(darkStatusBarColor: Boolean) {
+fun DarkStatusBarEffect() {
     val view = LocalView.current
-    DisposableEffect(key1 = darkStatusBarColor) {
+    DisposableEffect(Unit) {
 
         val window = (view.context as Activity).window
 
@@ -591,10 +592,9 @@ fun DarkStatusBarEffect(darkStatusBarColor: Boolean) {
         val windowsInsetsController = WindowCompat.getInsetsController(window, view)
         val previous = windowsInsetsController.isAppearanceLightStatusBars
 
-        if (darkStatusBarColor) {
-            windowsInsetsController.isAppearanceLightStatusBars = false
-            windowsInsetsController.isAppearanceLightNavigationBars = false
-        }
+
+        windowsInsetsController.isAppearanceLightStatusBars = false
+        windowsInsetsController.isAppearanceLightNavigationBars = false
 
         onDispose {
             windowsInsetsController.isAppearanceLightStatusBars = previous
