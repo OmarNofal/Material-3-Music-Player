@@ -1,6 +1,8 @@
 package com.omar.musica.settings
 
+import android.os.Build
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +22,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -31,8 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,7 +48,12 @@ fun SettingsScreen(
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val state by settingsViewModel.state.collectAsState()
-    SettingsScreen(modifier = modifier, state = state, onThemeSelected = settingsViewModel::onThemeSelected)
+    SettingsScreen(
+        modifier = modifier,
+        state = state,
+        onThemeSelected = settingsViewModel::onThemeSelected,
+        onToggleDynamicColor = settingsViewModel::toggleDynamicColorScheme
+    )
 }
 
 @Composable
@@ -55,6 +61,7 @@ fun SettingsScreen(
     modifier: Modifier,
     state: SettingsState,
     onThemeSelected: (AppTheme) -> Unit,
+    onToggleDynamicColor: () -> Unit
 ) {
 
     Scaffold(
@@ -74,7 +81,8 @@ fun SettingsScreen(
                 SettingsList(
                     modifier = Modifier.fillMaxSize(),
                     userPreferences = state.userPreferences,
-                    onThemeSelected = onThemeSelected
+                    onThemeSelected = onThemeSelected,
+                    onToggleDynamicColor = onToggleDynamicColor
                 )
             }
 
@@ -89,6 +97,7 @@ fun SettingsList(
     modifier: Modifier,
     userPreferences: UserPreferences,
     onThemeSelected: (AppTheme) -> Unit,
+    onToggleDynamicColor: () -> Unit
 ) {
     val sectionTitleModifier = Modifier
         .fillMaxWidth()
@@ -129,6 +138,15 @@ fun SettingsList(
                 Text(text = text, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(text = "Dynamic Color Scheme")
+                    Switch(checked = userPreferences.isUsingDynamicColor, onCheckedChange = { onToggleDynamicColor() })
+                }
+            }
     }
 
 
@@ -145,7 +163,7 @@ fun AppThemeDialog(
     if (!visible) return
     val optionsStrings = listOf("Follow System Settings", "Light", "Dark")
     val options = listOf(AppTheme.SYSTEM, AppTheme.LIGHT, AppTheme.DARK)
-    var selectedOptionIndex by remember { mutableStateOf(options.indexOf(currentSelected).coerceAtLeast(0)) }
+    val selectedOptionIndex by remember { mutableStateOf(options.indexOf(currentSelected).coerceAtLeast(0)) }
     AlertDialog(
         onDismissRequest = onDismissRequest,
         dismissButton = { TextButton(onClick = onDismissRequest) { Text(text = "Cancel") }  },

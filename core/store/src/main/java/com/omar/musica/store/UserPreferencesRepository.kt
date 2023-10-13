@@ -37,6 +37,12 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    suspend fun toggleDynamicColor() {
+        context.datastore.edit {
+            it[DYNAMIC_COLOR_KEY] = !(it[DYNAMIC_COLOR_KEY] ?: true)
+        }
+    }
+
     private fun mapPrefsToModel(prefs: Preferences) = UserPreferences(
         songsSortOrder = "",
         theme = AppTheme.valueOf(prefs[THEME_KEY] ?: "SYSTEM"),

@@ -30,7 +30,9 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun toggleDynamicColorScheme() {
-
+        viewModelScope.launch {
+            userPreferencesRepository.toggleDynamicColor()
+        }
     }
 
 }
