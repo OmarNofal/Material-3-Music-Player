@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -43,15 +42,14 @@ import androidx.compose.ui.unit.dp
 import androidx.core.util.Consumer
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.omar.musica.SETTINGS_NAVIGATION_GRAPH
 import com.omar.musica.navigation.MusicaBottomNavBar
 import com.omar.musica.navigation.TopLevelDestination
 import com.omar.musica.navigation.navigateToTopLevelDestination
 import com.omar.musica.playback.PlaybackService
 import com.omar.musica.playlists.navigation.playlistsGraph
+import com.omar.musica.settings.navigation.settingsGraph
 import com.omar.musica.songs.navigation.SONGS_NAVIGATION_GRAPH
 import com.omar.musica.songs.navigation.songsGraph
 import com.omar.musica.state.rememberMusicaAppState
@@ -136,14 +134,7 @@ fun MusicaApp(
 
             playlistsGraph()
 
-            composable(SETTINGS_NAVIGATION_GRAPH) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Settings")
-                }
-            }
+            settingsGraph()
 
         }
 

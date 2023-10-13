@@ -12,6 +12,7 @@ appcompat = "1.6.1"
 coilCompose = "2.4.0"
 composeFoundation = "1.6.0-alpha05"
 core-ktx = "1.10.1"
+datastore = "1.0.0"
 espresso-core = "3.5.1"
 hilt = "2.47"
 junit = "4.13.2"
@@ -46,6 +47,7 @@ androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coilCompose"}
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
+datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore"}
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }

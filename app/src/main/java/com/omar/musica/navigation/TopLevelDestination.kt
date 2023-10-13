@@ -8,8 +8,8 @@ import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.omar.musica.SETTINGS_NAVIGATION_GRAPH
 import com.omar.musica.playlists.navigation.PLAYLISTS_NAVIGATION_GRAPH
+import com.omar.musica.settings.navigation.SETTINGS_NAVIGATION_GRAPH
 import com.omar.musica.songs.navigation.SONGS_NAVIGATION_GRAPH
 
 enum class TopLevelDestination(
