@@ -7,11 +7,14 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.omar.musica.database.dao.BlacklistedFoldersDao
+import com.omar.musica.database.entities.BlacklistedFolderEntity
 import com.omar.musica.model.AppTheme
 import com.omar.musica.model.UserPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,17 +22,17 @@ import javax.inject.Singleton
 
 @Singleton
 class UserPreferencesRepository @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val blacklistDao: BlacklistedFoldersDao
 ) {
 
-    fun getUserSettingsFlow(): Flow<UserPreferences> = context.datastore
-        .data
-        .catch {
-            emptyPreferences()
-        }.map { settings ->
-            mapPrefsToModel(settings)
+    fun getUserSettingsFlow(): Flow<UserPreferences> =
+        combine(
+            context.datastore.data.catch { emptyPreferences() },
+            blacklistDao.getAllBlacklistedFoldersFlow()
+        ) { settings, blacklistFolders ->
+            mapPrefsToModel(settings, blacklistFolders)
         }
-
 
     suspend fun changeTheme(appTheme: AppTheme) {
         context.datastore.edit {
@@ -43,12 +46,12 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
-    private fun mapPrefsToModel(prefs: Preferences) = UserPreferences(
+    private fun mapPrefsToModel(prefs: Preferences, blacklistedFolders: List<BlacklistedFolderEntity>) = UserPreferences(
         songsSortOrder = "",
         theme = AppTheme.valueOf(prefs[THEME_KEY] ?: "SYSTEM"),
         isUsingDynamicColor = prefs[DYNAMIC_COLOR_KEY] ?: true,
         cacheAlbumCoverArt = prefs[CACHE_ALBUM_COVER_ART_KEY] ?: true,
-        excludedFolders = listOf(),
+        excludedFolders = blacklistedFolders.map { it.folderPath },
         minDurationMillis = prefs[MIN_DURATION_MILLIS_KEY] ?: -1
     )
 

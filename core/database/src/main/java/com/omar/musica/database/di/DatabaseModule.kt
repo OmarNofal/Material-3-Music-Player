@@ -30,4 +30,10 @@ object DatabaseModule {
         appDatabase: MusicaDatabase
     ) = appDatabase.playlistsDao()
 
+    @Singleton
+    @Provides
+    fun provideBlacklistedFoldersDao(
+        appDatabase: MusicaDatabase
+    ) = appDatabase.blacklistDao()
+
 }
