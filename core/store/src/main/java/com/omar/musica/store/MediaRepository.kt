@@ -3,33 +3,25 @@ package com.omar.musica.store
 import android.annotation.TargetApi
 import android.content.ContentUris
 import android.content.Context
-import android.content.Intent
 import android.database.ContentObserver
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
-import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
-import androidx.documentfile.provider.DocumentFile
 import com.omar.musica.model.Song
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -46,6 +38,7 @@ private const val TAG = "MediaRepository"
 @Singleton
 class MediaRepository @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) {
 
 
@@ -94,12 +87,23 @@ class MediaRepository @Inject constructor(
                 context.contentResolver.unregisterContentObserver(observer)
             }
 
-        }.flowOn(Dispatchers.IO).stateIn(
-            scope = scope,
-            started = SharingStarted.WhileSubscribed(5000, 5000),
-            initialValue = listOf()
-        )
+        }.combine(
+            userPreferencesRepository.getUserSettingsFlow()
+                .map { it.excludedFolders }.distinctUntilChanged()
+        ) { songs: List<Song>, excludedFolders: List<String> ->
 
+            songs.filter { song ->
+                !excludedFolders.any { folder ->
+                    song.location.startsWith(folder)
+                }
+            }
+
+        }
+            .flowOn(Dispatchers.IO).stateIn(
+                scope = scope,
+                started = SharingStarted.WhileSubscribed(5000, 5000),
+                initialValue = listOf()
+            )
 
     suspend fun getAllSongs(): List<Song> = withContext(Dispatchers.IO) {
 
@@ -148,12 +152,14 @@ class MediaRepository @Inject constructor(
                         contentResolver.query(
                             MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
                             arrayOf(MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART),
-                            "${MediaStore.Audio.Albums._ID}=?", arrayOf(c.getLong(albumIdColumn).toString()), null
-                            ).use {
-                                if (it == null) return@use null
-                                if (!it.moveToFirst()) return@use null
-                                val columnIndex = it.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART)
-                                it.getStringOrNull(columnIndex)
+                            "${MediaStore.Audio.Albums._ID}=?",
+                            arrayOf(c.getLong(albumIdColumn).toString()),
+                            null
+                        ).use {
+                            if (it == null) return@use null
+                            if (!it.moveToFirst()) return@use null
+                            val columnIndex = it.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART)
+                            it.getStringOrNull(columnIndex)
                         }
 
 

@@ -12,10 +12,12 @@ import com.omar.musica.database.entities.BlacklistedFolderEntity
 import com.omar.musica.model.AppTheme
 import com.omar.musica.model.UserPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,6 +46,14 @@ class UserPreferencesRepository @Inject constructor(
         context.datastore.edit {
             it[DYNAMIC_COLOR_KEY] = !(it[DYNAMIC_COLOR_KEY] ?: true)
         }
+    }
+
+    suspend fun deleteFolderFromBlacklist(folder: String) = withContext(Dispatchers.IO) {
+        blacklistDao.deleteFolder(folder)
+    }
+
+    suspend fun addBlacklistedFolder(folder: String) = withContext(Dispatchers.IO) {
+        blacklistDao.addFolder(BlacklistedFolderEntity(0, folder))
     }
 
     private fun mapPrefsToModel(prefs: Preferences, blacklistedFolders: List<BlacklistedFolderEntity>) = UserPreferences(

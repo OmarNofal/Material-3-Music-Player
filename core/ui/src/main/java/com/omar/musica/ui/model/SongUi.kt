@@ -1,8 +1,10 @@
 package com.omar.musica.ui.model
 
+import androidx.compose.runtime.Stable
 import androidx.core.net.toUri
 import com.omar.musica.model.Song
 
+@Stable
 data class SongUi(
     val fileName: String,
     val title: String,
