@@ -48,6 +48,7 @@ import com.omar.musica.ui.common.share
 import com.omar.musica.ui.common.shareSongs
 import com.omar.musica.ui.common.showSongsAddedToNextToast
 import com.omar.musica.ui.common.songInfo
+import com.omar.musica.ui.model.LibrarySettingsUi
 import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.playlist.rememberAddToPlaylistDialog
 
@@ -62,10 +63,12 @@ fun SongsScreen(
     onSearchClicked: () -> Unit,
 ) {
     val songsUiState by viewModel.state.collectAsState()
+    val librarySettings by viewModel.librarySettingsState.collectAsState()
     val context = LocalContext.current
     SongsScreen(
         modifier,
         songsUiState,
+        librarySettings,
         viewModel::onSongClicked,
         viewModel::onPlayNext,
         { shareSongs(context, it) },
@@ -81,6 +84,7 @@ fun SongsScreen(
 internal fun SongsScreen(
     modifier: Modifier,
     uiState: SongsScreenUiState,
+    librarySettingsUi: LibrarySettingsUi,
     onSongClicked: (SongUi, Int) -> Unit,
     onPlayNext: (List<SongUi>) -> Unit,
     onShare: (List<SongUi>) -> Unit,

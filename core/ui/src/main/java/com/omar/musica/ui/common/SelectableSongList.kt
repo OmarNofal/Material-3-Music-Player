@@ -46,7 +46,7 @@ fun LazyListScope.selectableSongsList(
             song = song,
             menuOptions = menuActions,
             multiSelectOn = multiSelectEnabled,
-            isSelected = multiSelectState.selected.contains(song)
+            isSelected = multiSelectState.selected.contains(song),
         )
         if (song != songs.last()) {
             Divider(

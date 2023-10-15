@@ -54,9 +54,10 @@ fun SelectableSongRow(
     song: SongUi,
     menuOptions: List<MenuActionItem>? = null,
     multiSelectOn: Boolean = false,
-    isSelected: Boolean = false,
-    efficientThumbnailLoading: Boolean = true,
+    isSelected: Boolean = false
 ) {
+
+    val efficientThumbnailLoading = LocalUserPreferences.current.librarySettings.cacheAlbumCoverArt
 
     Row(
         modifier = modifier
@@ -127,10 +128,15 @@ fun SelectableSongRow(
         Box(
             Modifier
                 .fillMaxHeight()
-                .width(48.dp), contentAlignment = Alignment.Center) {
+                .width(48.dp), contentAlignment = Alignment.Center
+        ) {
 
             if (menuOptions != null) {
-                androidx.compose.animation.AnimatedVisibility(visible = !multiSelectOn, enter = EnterTransition.None, exit = ExitTransition.None) {
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = !multiSelectOn,
+                    enter = EnterTransition.None,
+                    exit = ExitTransition.None
+                ) {
                     SongOverflowMenu(menuOptions = menuOptions)
                 }
             }

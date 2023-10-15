@@ -17,12 +17,12 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.omar.musica.model.AppTheme
-import com.omar.musica.model.UserPreferences
 import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
 import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
 import com.omar.musica.ui.albumart.efficientAlbumArtImageLoader
 import com.omar.musica.ui.albumart.inefficientAlbumArtImageLoader
+import com.omar.musica.ui.model.AppThemeUi
+import com.omar.musica.ui.model.UserPreferencesUi
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -48,13 +48,13 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun MusicaTheme(
-    userPreferences: UserPreferences,
+    userPreferences: UserPreferencesUi,
     content: @Composable () -> Unit
 ) {
     val darkTheme = when (userPreferences.uiSettings.theme) {
-        AppTheme.DARK -> true
-        AppTheme.LIGHT -> false
-        AppTheme.SYSTEM -> isSystemInDarkTheme()
+        AppThemeUi.DARK -> true
+        AppThemeUi.LIGHT -> false
+        AppThemeUi.SYSTEM -> isSystemInDarkTheme()
     }
 
     val colorScheme = when {

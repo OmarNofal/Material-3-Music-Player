@@ -6,7 +6,9 @@ import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.songs.SongsScreenUiState
 import com.omar.musica.songs.ui.SortOption
 import com.omar.musica.store.MediaRepository
+import com.omar.musica.store.UserPreferencesRepository
 import com.omar.musica.ui.model.SongUi
+import com.omar.musica.ui.model.toLibrarySettingsUi
 import com.omar.musica.ui.model.toSongModel
 import com.omar.musica.ui.model.toSongModels
 import com.omar.musica.ui.model.toUiSongModels
@@ -15,18 +17,26 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 
 @HiltViewModel
 class SongsViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
-    private val mediaPlaybackManager: PlaybackManager
+    private val mediaPlaybackManager: PlaybackManager,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val sortOptionFlow = MutableStateFlow(SortOption.TITLE to true)
+
+    val librarySettingsState = userPreferencesRepository.librarySettingsFlow
+        .map { it.toLibrarySettingsUi() }
+        .stateIn(viewModelScope, started = SharingStarted.Eagerly, initialValue = runBlocking { userPreferencesRepository.librarySettingsFlow.first().toLibrarySettingsUi() })
+
 
     val state: StateFlow<SongsScreenUiState> =
         mediaRepository.songsFlow
