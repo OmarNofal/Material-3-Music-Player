@@ -36,7 +36,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -50,13 +49,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.omar.musica.settings.common.GeneralSettingsItem
+import com.omar.musica.settings.common.SettingInfo
+import com.omar.musica.settings.common.SwitchSettingsItem
 import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.UserPreferencesUi
 import getPath
@@ -145,22 +146,18 @@ fun SettingsList(
                     settingsCallbacks.onThemeSelected(it)
                 }
             )
-            Column(modifier = Modifier
+            val text = when (userPreferences.uiSettings.theme) {
+                AppThemeUi.SYSTEM -> "Follow System Settings"
+                AppThemeUi.LIGHT -> "Light"
+                AppThemeUi.DARK -> "Dark"
+            }
+            GeneralSettingsItem(modifier = Modifier
                 .fillMaxWidth()
                 .clickable { appThemeDialogVisible = true }
-                .padding(horizontal = 32.dp, vertical = 16.dp)) {
-                Text(text = "App Theme", fontSize = 16.sp)
-                val text = when (userPreferences.uiSettings.theme) {
-                    AppThemeUi.SYSTEM -> "Follow System Settings"
-                    AppThemeUi.LIGHT -> "Light"
-                    AppThemeUi.DARK -> "Dark"
-                }
-                Text(
-                    text = text,
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+                .padding(horizontal = 32.dp, vertical = 16.dp),
+                title = "App Theme",
+                subtitle = text
+            )
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             item {
@@ -171,19 +168,13 @@ fun SettingsList(
                 )
             }
             item {
-                Row(
+                SwitchSettingsItem(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { settingsCallbacks.toggleDynamicColorScheme() }
-                        .padding(horizontal = 32.dp, vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(text = "Dynamic Color Scheme")
-                    Switch(
-                        checked = userPreferences.uiSettings.isUsingDynamicColor,
-                        onCheckedChange = { settingsCallbacks.toggleDynamicColorScheme() })
-                }
+                        .fillMaxWidth(),
+                    title = "Dynamic Color Scheme",
+                    toggled = userPreferences.uiSettings.isUsingDynamicColor,
+                    onToggle = { settingsCallbacks.toggleDynamicColorScheme() }
+                )
             }
         }
 
@@ -202,17 +193,13 @@ fun SettingsList(
                 onFolderDeleted = settingsCallbacks::onFolderDeleted,
                 onDismissRequest = { blacklistDialogVisible = false }
             )
-            Column(modifier = Modifier
+            GeneralSettingsItem(modifier = Modifier
                 .fillMaxWidth()
                 .clickable { blacklistDialogVisible = true }
-                .padding(horizontal = 32.dp, vertical = 16.dp)) {
-                Text(text = "Blacklisted Folders", fontSize = 16.sp)
-                Text(
-                    text = "Music in these folders will not appear in the app",
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+                .padding(horizontal = 32.dp, vertical = 16.dp),
+                title = "Blacklisted Folders",
+                subtitle = "Music in these folders will not appear in the app"
+            )
         }
 
         item {
@@ -224,38 +211,20 @@ fun SettingsList(
         }
 
         item {
-
-            var infoDialogVisible by remember {
-                mutableStateOf(false)
-            }
-            InformationDialog(
-                visible = infoDialogVisible,
-                text = "If enabled, this will cache the album art of one song and reuse it for all songs which have the same album name.\n\n" +
-                        "This will greatly improve efficiency and loading times. However, this might cause problems if two songs in the same album " +
-                        "don't have the same artwork.\n\n" +
-                        "If disabled, this will load the album art of each song separately, which will result in correct artwork, at the expense of loading times" +
-                        " and memory.",
-                title = "Album Art Cache",
-                icon = Icons.Rounded.Info,
-                onDismissRequest = { infoDialogVisible = false }
+            SwitchSettingsItem(modifier = Modifier.fillMaxWidth(),
+                title = "Cache Album Art",
+                info = SettingInfo(
+                    title = "Album Art Cache",
+                    text = "If enabled, this will cache the album art of one song and reuse it for all songs which have the same album name.\n\n" +
+                            "This will greatly improve efficiency and loading times. However, this might cause problems if two songs in the same album " +
+                            "don't have the same artwork.\n\n" +
+                            "If disabled, this will load the album art of each song separately, which will result in correct artwork, at the expense of loading times" +
+                            " and memory.",
+                    icon = Icons.Rounded.Info
+                ),
+                toggled = userPreferences.librarySettings.cacheAlbumCoverArt,
+                onToggle = { settingsCallbacks.onToggleCacheAlbumArt() }
             )
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .clickable { infoDialogVisible = true }
-                .padding(horizontal = 32.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = "Cache Album Art", fontSize = 16.sp)
-                Spacer(modifier = Modifier.width(6.dp))
-                IconButton(onClick = { infoDialogVisible = true }) {
-                    Icon(imageVector = Icons.Rounded.Info, contentDescription = "More Info")
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                Switch(
-                    checked = userPreferences.librarySettings.cacheAlbumCoverArt,
-                    onCheckedChange = { settingsCallbacks.onToggleCacheAlbumArt() }
-                )
-            }
         }
 
 
@@ -277,17 +246,13 @@ fun SettingsList(
                 },
                 { jumpDurationDialogVisible = false }
             )
-            Column(modifier = Modifier
+            GeneralSettingsItem(modifier = Modifier
                 .fillMaxWidth()
                 .clickable { jumpDurationDialogVisible = true }
-                .padding(horizontal = 32.dp, vertical = 16.dp)) {
-                Text(text = "Jump Interval", fontSize = 16.sp)
-                Text(
-                    text = "${userPreferences.playerSettings.jumpInterval / 1000} seconds",
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+                .padding(horizontal = 32.dp, vertical = 16.dp),
+                title = "Jump Interval",
+                subtitle = "${userPreferences.playerSettings.jumpInterval / 1000} seconds"
+            )
         }
 
 
@@ -468,26 +433,6 @@ fun SectionTitle(
     )
 }
 
-@Composable
-fun InformationDialog(
-    visible: Boolean,
-    text: String,
-    title: String,
-    icon: ImageVector,
-    onDismissRequest: () -> Unit
-) {
-    if (!visible) return
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        dismissButton = { TextButton(onClick = onDismissRequest) { Text(text = "Ok") } },
-        confirmButton = { },
-        icon = { Icon(icon, contentDescription = null) },
-        title = { Text(text = title) },
-        text = {
-            Text(text = text)
-        }
-    )
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
