@@ -1,5 +1,6 @@
 package com.omar.musica.settings
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.omar.musica.store.UserPreferencesRepository
@@ -18,48 +19,63 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository
-) : ViewModel() {
+) : ViewModel(), ISettingsViewModel {
 
     val state = userPreferencesRepository.userSettingsFlow
         .map { SettingsState.Loaded(it.toUiModel()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsState.Loading)
 
-    fun onFolderDeleted(folder: String) {
+    override fun onFolderDeleted(folder: String) {
         viewModelScope.launch {
             userPreferencesRepository.deleteFolderFromBlacklist(folder)
         }
     }
 
-    fun onToggleCacheAlbumArt() {
+    override fun onToggleCacheAlbumArt() {
         viewModelScope.launch {
             userPreferencesRepository.toggleCacheAlbumArt()
         }
     }
 
-    fun onFolderAdded(folder: String) {
+    override fun onFolderAdded(folder: String) {
         viewModelScope.launch {
             userPreferencesRepository.addBlacklistedFolder(folder)
         }
     }
 
-    fun onThemeSelected(appTheme: AppThemeUi) {
+    override fun onThemeSelected(appTheme: AppThemeUi) {
         viewModelScope.launch {
             userPreferencesRepository.changeTheme(appTheme.toAppTheme())
         }
     }
 
-    fun onJumpDurationChanged(durationMillis: Int) {
+    override fun onJumpDurationChanged(durationMillis: Int) {
         viewModelScope.launch {
             userPreferencesRepository.changeJumpDurationMillis(durationMillis)
         }
     }
 
-    fun toggleDynamicColorScheme() {
+    override fun toggleDynamicColorScheme() {
         viewModelScope.launch {
             userPreferencesRepository.toggleDynamicColor()
         }
     }
 
+}
+
+@Stable
+interface ISettingsViewModel {
+    fun onFolderDeleted(folder: String)
+
+    fun onToggleCacheAlbumArt()
+
+    fun onFolderAdded(folder: String)
+
+    fun onThemeSelected(appTheme: AppThemeUi)
+
+    fun onJumpDurationChanged(durationMillis: Int)
+
+    fun toggleDynamicColorScheme()
 }
 
 sealed interface SettingsState {

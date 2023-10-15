@@ -71,12 +71,7 @@ fun SettingsScreen(
     SettingsScreen(
         modifier = modifier,
         state = state,
-        onThemeSelected = settingsViewModel::onThemeSelected,
-        onToggleDynamicColor = settingsViewModel::toggleDynamicColorScheme,
-        onFolderDeleted = settingsViewModel::onFolderDeleted,
-        onFolderAdded = settingsViewModel::onFolderAdded,
-        onJumpDurationChanged = settingsViewModel::onJumpDurationChanged,
-        onToggleCacheAlbumArt = settingsViewModel::onToggleCacheAlbumArt
+        settingsCallbacks = settingsViewModel
     )
 }
 
@@ -84,12 +79,7 @@ fun SettingsScreen(
 fun SettingsScreen(
     modifier: Modifier,
     state: SettingsState,
-    onThemeSelected: (AppThemeUi) -> Unit,
-    onToggleDynamicColor: () -> Unit,
-    onFolderDeleted: (String) -> Unit,
-    onFolderAdded: (String) -> Unit,
-    onJumpDurationChanged: (Int) -> Unit,
-    onToggleCacheAlbumArt: () -> Unit,
+    settingsCallbacks: ISettingsViewModel
 ) {
 
     Scaffold(
@@ -113,12 +103,7 @@ fun SettingsScreen(
                 SettingsList(
                     modifier = Modifier.fillMaxSize(),
                     userPreferences = state.userPreferences,
-                    onThemeSelected = onThemeSelected,
-                    onToggleDynamicColor = onToggleDynamicColor,
-                    onFolderDeleted = onFolderDeleted,
-                    onFolderAdded = onFolderAdded,
-                    onJumpDurationChanged = onJumpDurationChanged,
-                    onToggleCacheAlbumArt = onToggleCacheAlbumArt,
+                    settingsCallbacks = settingsCallbacks
                 )
             }
 
@@ -132,12 +117,7 @@ fun SettingsScreen(
 fun SettingsList(
     modifier: Modifier,
     userPreferences: UserPreferencesUi,
-    onThemeSelected: (AppThemeUi) -> Unit,
-    onToggleDynamicColor: () -> Unit,
-    onFolderDeleted: (String) -> Unit,
-    onFolderAdded: (String) -> Unit,
-    onJumpDurationChanged: (Int) -> Unit,
-    onToggleCacheAlbumArt: () -> Unit
+    settingsCallbacks: ISettingsViewModel
 ) {
     val sectionTitleModifier = Modifier
         .fillMaxWidth()
@@ -162,7 +142,7 @@ fun SettingsList(
                 onDismissRequest = { appThemeDialogVisible = false },
                 onThemeSelected = {
                     appThemeDialogVisible = false
-                    onThemeSelected(it)
+                    settingsCallbacks.onThemeSelected(it)
                 }
             )
             Column(modifier = Modifier
@@ -194,7 +174,7 @@ fun SettingsList(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onToggleDynamicColor() }
+                        .clickable { settingsCallbacks.toggleDynamicColorScheme() }
                         .padding(horizontal = 32.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -202,7 +182,7 @@ fun SettingsList(
                     Text(text = "Dynamic Color Scheme")
                     Switch(
                         checked = userPreferences.uiSettings.isUsingDynamicColor,
-                        onCheckedChange = { onToggleDynamicColor() })
+                        onCheckedChange = { settingsCallbacks.toggleDynamicColorScheme() })
                 }
             }
         }
@@ -218,8 +198,8 @@ fun SettingsList(
             BlacklistedFoldersDialog(
                 isVisible = blacklistDialogVisible,
                 folders = userPreferences.librarySettings.excludedFolders,
-                onFolderAdded = { onFolderAdded(it) },
-                onFolderDeleted = onFolderDeleted,
+                onFolderAdded = { settingsCallbacks.onFolderAdded(it) },
+                onFolderDeleted = settingsCallbacks::onFolderDeleted,
                 onDismissRequest = { blacklistDialogVisible = false }
             )
             Column(modifier = Modifier
@@ -272,9 +252,8 @@ fun SettingsList(
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Switch(
-
                     checked = userPreferences.librarySettings.cacheAlbumCoverArt,
-                    onCheckedChange = { onToggleCacheAlbumArt() }
+                    onCheckedChange = { settingsCallbacks.onToggleCacheAlbumArt() }
                 )
             }
         }
@@ -294,7 +273,7 @@ fun SettingsList(
                 userPreferences.playerSettings.jumpInterval,
                 onDurationChanged = {
                     jumpDurationDialogVisible = false
-                    onJumpDurationChanged(it)
+                    settingsCallbacks.onJumpDurationChanged(it)
                 },
                 { jumpDurationDialogVisible = false }
             )
