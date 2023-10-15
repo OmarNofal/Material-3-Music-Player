@@ -33,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -43,7 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.omar.musica.ui.R
-import com.omar.musica.ui.albumart.LocalThumbnailImageLoader
+import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
+import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
 import com.omar.musica.ui.model.SongUi
 import timber.log.Timber
 
@@ -54,7 +54,8 @@ fun SelectableSongRow(
     song: SongUi,
     menuOptions: List<MenuActionItem>? = null,
     multiSelectOn: Boolean = false,
-    isSelected: Boolean = false
+    isSelected: Boolean = false,
+    efficientThumbnailLoading: Boolean = true,
 ) {
 
     Row(
@@ -73,7 +74,7 @@ fun SelectableSongRow(
                 .size(54.dp)
                 .clip(RoundedCornerShape(6.dp)),
             model = song,
-            imageLoader = LocalThumbnailImageLoader.current,
+            imageLoader = if (efficientThumbnailLoading) LocalEfficientThumbnailImageLoader.current else LocalInefficientThumbnailImageLoader.current,
             contentDescription = "Cover Photo",
             contentScale = ContentScale.Crop,
             fallback = rememberVectorPainter(image = Icons.Rounded.MusicNote),

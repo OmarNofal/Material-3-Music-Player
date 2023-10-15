@@ -48,6 +48,12 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    suspend fun toggleCacheAlbumArt() {
+        context.datastore.edit {
+            it[CACHE_ALBUM_COVER_ART_KEY] = !(it[CACHE_ALBUM_COVER_ART_KEY] ?: true)
+        }
+    }
+
     suspend fun toggleDynamicColor() {
         context.datastore.edit {
             it[DYNAMIC_COLOR_KEY] = !(it[DYNAMIC_COLOR_KEY] ?: true)

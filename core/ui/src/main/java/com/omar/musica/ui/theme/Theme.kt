@@ -10,22 +10,19 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import coil.compose.LocalImageLoader
 import com.omar.musica.model.AppTheme
 import com.omar.musica.model.UserPreferences
-import com.omar.musica.ui.albumart.LocalThumbnailImageLoader
-import com.omar.musica.ui.albumart.thumbnailImageLoader
-import kotlinx.coroutines.flow.Flow
+import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
+import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
+import com.omar.musica.ui.albumart.efficientAlbumArtImageLoader
+import com.omar.musica.ui.albumart.inefficientAlbumArtImageLoader
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -54,7 +51,7 @@ fun MusicaTheme(
     userPreferences: UserPreferences,
     content: @Composable () -> Unit
 ) {
-    val darkTheme = when(userPreferences.theme) {
+    val darkTheme = when (userPreferences.theme) {
         AppTheme.DARK -> true
         AppTheme.LIGHT -> false
         AppTheme.SYSTEM -> isSystemInDarkTheme()
@@ -95,9 +92,11 @@ fun MusicaTheme(
     }
 
     val context = LocalContext.current
-    val imageLoader = remember { context.thumbnailImageLoader() }
+    val efficientImageLoader = remember { context.efficientAlbumArtImageLoader() }
+    val inefficientImageLoader = remember { context.inefficientAlbumArtImageLoader() }
     CompositionLocalProvider(
-        LocalThumbnailImageLoader provides imageLoader
+        LocalEfficientThumbnailImageLoader provides efficientImageLoader,
+        LocalInefficientThumbnailImageLoader provides inefficientImageLoader
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

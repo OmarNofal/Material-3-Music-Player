@@ -7,11 +7,18 @@ import coil.transition.CrossfadeTransition
 import java.lang.IllegalStateException
 
 
-fun Context.thumbnailImageLoader() = ImageLoader.Builder(this)
+fun Context.efficientAlbumArtImageLoader() = ImageLoader.Builder(this)
     .transitionFactory(CrossfadeTransition.Factory())
         .components {
-            add(SongKeyer())
+            add(AlbumKeyer())
             add(AlbumArtFetcher.Factory())
         }.build()
 
-val LocalThumbnailImageLoader = staticCompositionLocalOf<ImageLoader> { throw IllegalStateException() }
+fun Context.inefficientAlbumArtImageLoader() = ImageLoader.Builder(this)
+    .components {
+        add(SongKeyer())
+        add(AlbumArtFetcher.Factory())
+    }.build()
+
+val LocalEfficientThumbnailImageLoader = staticCompositionLocalOf<ImageLoader> { throw IllegalStateException() }
+val LocalInefficientThumbnailImageLoader = staticCompositionLocalOf<ImageLoader> { throw IllegalStateException() }

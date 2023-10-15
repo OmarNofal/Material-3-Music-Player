@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.omar.musica.ui.R
-import com.omar.musica.ui.albumart.LocalThumbnailImageLoader
+import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
 import com.omar.musica.ui.model.SongUi
 import kotlin.math.pow
 
@@ -72,7 +72,7 @@ fun rememberSongDialog(): SongInfoDialog {
                                 error = painterResource(R.drawable.placeholder),
                                 placeholder = painterResource(R.drawable.placeholder),
                                 contentDescription = null,
-                                imageLoader = LocalThumbnailImageLoader.current
+                                imageLoader = LocalEfficientThumbnailImageLoader.current
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             SongMetadataRow(

@@ -4,14 +4,17 @@ import android.os.Build
 import android.provider.DocumentsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,6 +26,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
@@ -47,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -71,7 +76,8 @@ fun SettingsScreen(
         onToggleDynamicColor = settingsViewModel::toggleDynamicColorScheme,
         onFolderDeleted = settingsViewModel::onFolderDeleted,
         onFolderAdded = settingsViewModel::onFolderAdded,
-        onJumpDurationChanged = settingsViewModel::onJumpDurationChanged
+        onJumpDurationChanged = settingsViewModel::onJumpDurationChanged,
+        onToggleCacheAlbumArt = settingsViewModel::onToggleCacheAlbumArt
     )
 }
 
@@ -83,7 +89,8 @@ fun SettingsScreen(
     onToggleDynamicColor: () -> Unit,
     onFolderDeleted: (String) -> Unit,
     onFolderAdded: (String) -> Unit,
-    onJumpDurationChanged: (Int) -> Unit
+    onJumpDurationChanged: (Int) -> Unit,
+    onToggleCacheAlbumArt: () -> Unit,
 ) {
 
     Scaffold(
@@ -111,7 +118,8 @@ fun SettingsScreen(
                     onToggleDynamicColor = onToggleDynamicColor,
                     onFolderDeleted = onFolderDeleted,
                     onFolderAdded = onFolderAdded,
-                    onJumpDurationChanged = onJumpDurationChanged
+                    onJumpDurationChanged = onJumpDurationChanged,
+                    onToggleCacheAlbumArt = onToggleCacheAlbumArt,
                 )
             }
 
@@ -129,7 +137,8 @@ fun SettingsList(
     onToggleDynamicColor: () -> Unit,
     onFolderDeleted: (String) -> Unit,
     onFolderAdded: (String) -> Unit,
-    onJumpDurationChanged: (Int) -> Unit
+    onJumpDurationChanged: (Int) -> Unit,
+    onToggleCacheAlbumArt: () -> Unit
 ) {
     val sectionTitleModifier = Modifier
         .fillMaxWidth()
@@ -227,6 +236,51 @@ fun SettingsList(
             }
         }
 
+        item {
+            Divider(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = 32.dp)
+            )
+        }
+
+        item {
+
+            var infoDialogVisible by remember {
+                mutableStateOf(false)
+            }
+            InformationDialog(
+                visible = infoDialogVisible,
+                text = "If enabled, this will cache the album art of one song and reuse it for all songs which have the same album name.\n\n" +
+                        "This will greatly improve efficiency and loading times. However, this might cause problems if two songs in the same album " +
+                        "don't have the same artwork.\n\n" +
+                        "If disabled, this will load the album art of each song separately, which will result in correct artwork, at the expense of loading times" +
+                        " and memory.",
+                title = "Album Art Cache",
+                icon = Icons.Rounded.Info,
+                onDismissRequest = { infoDialogVisible = false }
+            )
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .clickable { infoDialogVisible = true }
+                .padding(horizontal = 32.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "Cache Album Art", fontSize = 16.sp)
+                Spacer(modifier = Modifier.width(6.dp))
+                IconButton(onClick = { infoDialogVisible = true }) {
+                    Icon(imageVector = Icons.Rounded.Info, contentDescription = "More Info")
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                Switch(
+                    
+                    checked = userPreferences.cacheAlbumCoverArt,
+                    onCheckedChange = { onToggleCacheAlbumArt() }
+                )
+            }
+        }
+
+
 
         item {
             SectionTitle(modifier = sectionTitleModifier, title = "Player")
@@ -240,8 +294,8 @@ fun SettingsList(
                 jumpDurationDialogVisible,
                 userPreferences.jumpDuration,
                 onDurationChanged = {
-                                    jumpDurationDialogVisible = false
-                                    onJumpDurationChanged(it)
+                    jumpDurationDialogVisible = false
+                    onJumpDurationChanged(it)
                 },
                 { jumpDurationDialogVisible = false }
             )
@@ -282,10 +336,12 @@ fun JumpDurationDialog(
     AlertDialog(
         onDismissRequest = onDismissRequest,
         dismissButton = { TextButton(onClick = onDismissRequest) { Text(text = "Close") } },
-        confirmButton = { TextButton(onClick = {
-            val duration = durationString.toIntOrNull() ?: return@TextButton
-            onDurationChanged(duration * 1000)
-        }) { Text(text = "Confirm") }  },
+        confirmButton = {
+            TextButton(onClick = {
+                val duration = durationString.toIntOrNull() ?: return@TextButton
+                onDurationChanged(duration * 1000)
+            }) { Text(text = "Confirm") }
+        },
         icon = { Icon(Icons.Rounded.FastForward, contentDescription = null) },
         title = { Text(text = "Jump Interval") },
         text = {
@@ -299,6 +355,7 @@ fun JumpDurationDialog(
 
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BlacklistedFoldersDialog(
     isVisible: Boolean,
@@ -332,10 +389,11 @@ fun BlacklistedFoldersDialog(
         icon = { Icon(Icons.Rounded.Block, contentDescription = null) },
         title = { Text(text = "Blacklisted Folders") },
         text = {
-            Column {
-                LazyColumn(modifier = Modifier.weight(1f)) {
+            Column(verticalArrangement = Arrangement.SpaceBetween) {
+                LazyColumn(modifier = Modifier) {
                     items(folders) {
                         Row(
+                            modifier = Modifier.animateItemPlacement(),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
@@ -348,9 +406,13 @@ fun BlacklistedFoldersDialog(
                                 )
                             }
                         }
+                        if (it != folders.last()) {
+                          Spacer(modifier = Modifier.height(8.dp))
+                        }
                     }
                 }
-
+                Spacer(modifier = Modifier.height(8.dp))
+                Divider(Modifier.fillMaxWidth())
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier
                     .fillMaxWidth()
                     .clip(
@@ -428,6 +490,26 @@ fun SectionTitle(
     )
 }
 
+@Composable
+fun InformationDialog(
+    visible: Boolean,
+    text: String,
+    title: String,
+    icon: ImageVector,
+    onDismissRequest: () -> Unit
+) {
+    if (!visible) return
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        dismissButton = { TextButton(onClick = onDismissRequest) { Text(text = "Ok") } },
+        confirmButton = { },
+        icon = { Icon(icon, contentDescription = null) },
+        title = { Text(text = title) },
+        text = {
+            Text(text = text)
+        }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

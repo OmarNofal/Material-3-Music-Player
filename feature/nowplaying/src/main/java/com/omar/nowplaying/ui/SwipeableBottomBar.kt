@@ -1,5 +1,6 @@
 package com.omar.nowplaying.ui
 
+import BlurTransformation
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
@@ -20,10 +21,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import coil.request.ImageRequest
+import coil.size.Size
 import com.omar.musica.playback.state.PlayerState
 import com.omar.musica.ui.common.SongAlbumArtImage
 import com.omar.nowplaying.NowPlayingState
+import com.omar.nowplaying.R
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -48,12 +54,12 @@ fun NowPlayingBarHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        SongAlbumArtImage(
-            modifier = Modifier
-                .fillMaxHeight()
-                .aspectRatio(1.0f),
-            song = song
-        )
+        CrossFadingAlbumArt(modifier = Modifier
+            .fillMaxHeight()
+            .aspectRatio(1.0f), model = ImageRequest.Builder(LocalContext.current)
+            .data(song).size(Size.ORIGINAL).build(), errorPainter = painterResource(
+            id = com.omar.musica.ui.R.drawable.placeholder
+        ))
 
         Spacer(modifier = Modifier.width(16.dp))
 

@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.omar.musica.model.PlaylistInfo
-import com.omar.musica.ui.albumart.LocalThumbnailImageLoader
+import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
 
 
 @Composable
@@ -72,7 +72,7 @@ fun PlaylistImage() {
             .size(48.dp)
             .clip(RoundedCornerShape(6.dp)),
         model = null,
-        imageLoader = LocalThumbnailImageLoader.current,
+        imageLoader = LocalEfficientThumbnailImageLoader.current,
         contentDescription = "Playlist Photo",
         contentScale = ContentScale.Crop,
         error = rememberVectorPainter(image = Icons.Rounded.LibraryMusic)

@@ -29,6 +29,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun onToggleCacheAlbumArt() {
+        viewModelScope.launch {
+            userPreferencesRepository.toggleCacheAlbumArt()
+        }
+    }
+
     fun onFolderAdded(folder: String) {
         viewModelScope.launch {
             userPreferencesRepository.addBlacklistedFolder(folder)

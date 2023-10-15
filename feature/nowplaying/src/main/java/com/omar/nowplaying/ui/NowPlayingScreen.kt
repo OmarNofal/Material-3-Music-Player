@@ -4,6 +4,7 @@ import BlurTransformation
 import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
@@ -36,7 +37,6 @@ import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -70,6 +70,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -82,11 +83,13 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
 import com.omar.musica.playback.state.PlayerState
-import com.omar.musica.ui.albumart.LocalThumbnailImageLoader
+import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
+import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
 import com.omar.musica.ui.common.SongAlbumArtImage
 import com.omar.musica.ui.common.millisToTime
 import com.omar.musica.ui.model.SongUi
 import com.omar.nowplaying.NowPlayingState
+import com.omar.nowplaying.R
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -291,14 +294,25 @@ fun PortraitNowPlayingUi(
             if (screenSize == NowPlayingScreenSize.LANDSCAPE) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
 
         if (screenSize != NowPlayingScreenSize.COMPACT)
-            SongAlbumArtImage(
+            CrossFadingAlbumArt(
                 modifier = initialModifier
                     .aspectRatio(1.0f)
                     .scale(0.9f)
-                    .shadow(32.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                song = song
+                    .clip(RoundedCornerShape(12.dp))
+                    .shadow(32.dp),
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(song)
+                    .size(Size.ORIGINAL).build(),
+                errorPainter = painterResource(com.omar.musica.ui.R.drawable.placeholder)
             )
+//            SongAlbumArtImage(
+//                modifier = initialModifier
+//                    .aspectRatio(1.0f)
+//                    .scale(0.9f)
+//                    .shadow(32.dp)
+//                    .clip(RoundedCornerShape(12.dp)),
+//                song = song
+//            )
 
 
         Spacer(
@@ -616,7 +630,7 @@ fun CrossFadingAlbumArt(
     val painter = rememberAsyncImagePainter(
         model = model,
         contentScale = ContentScale.Crop,
-        imageLoader = LocalThumbnailImageLoader.current,
+        imageLoader = LocalInefficientThumbnailImageLoader.current,
     )
 
 
@@ -650,7 +664,7 @@ fun CrossFadingAlbumArt(
     }
 
 
-    Crossfade(modifier = modifier, targetState = isUsingFirstPainter, label = "") {
+    Crossfade(targetState = isUsingFirstPainter, label = "") {
         if (it) {
             Image(
                 modifier = modifier,

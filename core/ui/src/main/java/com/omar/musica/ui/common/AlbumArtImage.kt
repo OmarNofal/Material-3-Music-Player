@@ -9,7 +9,8 @@ import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.omar.musica.ui.R
-import com.omar.musica.ui.albumart.LocalThumbnailImageLoader
+import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
+import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
 import com.omar.musica.ui.model.SongUi
 
 
@@ -29,7 +30,7 @@ fun SongAlbumArtImage(
         model = imageRequest,
         contentDescription = "Artwork",
         contentScale = ContentScale.Crop,
-        imageLoader = LocalThumbnailImageLoader.current,
+        imageLoader = LocalInefficientThumbnailImageLoader.current,
         error = painterResource(id = R.drawable.placeholder),
         placeholder = painterResource(id = R.drawable.placeholder)
     )

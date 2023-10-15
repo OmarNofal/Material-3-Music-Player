@@ -16,15 +16,21 @@ import com.omar.musica.ui.model.SongUi
 import timber.log.Timber
 
 
-class SongKeyer : Keyer<SongUi> {
-
+class AlbumKeyer : Keyer<SongUi> {
     /**
-     * Songs in the same album have the same art work.
+     * Songs in the same album (should) have the same art work.
      * So we use the albumId as the key to use the same image
      * for all songs in the same album. If the song has no album, then use its uri as the key
      */
     override fun key(data: SongUi, options: Options): String =
         data.albumId?.toString() ?: data.uriString
+}
+
+class SongKeyer : Keyer<SongUi> {
+
+
+    override fun key(data: SongUi, options: Options): String =
+        data.uriString
 }
 
 class AlbumArtFetcher(
