@@ -9,7 +9,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -58,7 +57,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.omar.musica.model.AppTheme
+import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.UserPreferencesUi
 import getPath
 
@@ -85,7 +84,7 @@ fun SettingsScreen(
 fun SettingsScreen(
     modifier: Modifier,
     state: SettingsState,
-    onThemeSelected: (AppTheme) -> Unit,
+    onThemeSelected: (AppThemeUi) -> Unit,
     onToggleDynamicColor: () -> Unit,
     onFolderDeleted: (String) -> Unit,
     onFolderAdded: (String) -> Unit,
@@ -133,7 +132,7 @@ fun SettingsScreen(
 fun SettingsList(
     modifier: Modifier,
     userPreferences: UserPreferencesUi,
-    onThemeSelected: (AppTheme) -> Unit,
+    onThemeSelected: (AppThemeUi) -> Unit,
     onToggleDynamicColor: () -> Unit,
     onFolderDeleted: (String) -> Unit,
     onFolderAdded: (String) -> Unit,
@@ -159,7 +158,7 @@ fun SettingsList(
             }
             AppThemeDialog(
                 visible = appThemeDialogVisible,
-                currentSelected = userPreferences.theme,
+                currentSelected = userPreferences.uiSettings.theme,
                 onDismissRequest = { appThemeDialogVisible = false },
                 onThemeSelected = {
                     appThemeDialogVisible = false
@@ -171,10 +170,10 @@ fun SettingsList(
                 .clickable { appThemeDialogVisible = true }
                 .padding(horizontal = 32.dp, vertical = 16.dp)) {
                 Text(text = "App Theme", fontSize = 16.sp)
-                val text = when (userPreferences.theme) {
-                    AppTheme.SYSTEM -> "Follow System Settings"
-                    AppTheme.LIGHT -> "Light"
-                    AppTheme.DARK -> "Dark"
+                val text = when (userPreferences.uiSettings.theme) {
+                    AppThemeUi.SYSTEM -> "Follow System Settings"
+                    AppThemeUi.LIGHT -> "Light"
+                    AppThemeUi.DARK -> "Dark"
                 }
                 Text(
                     text = text,
@@ -202,7 +201,7 @@ fun SettingsList(
                 ) {
                     Text(text = "Dynamic Color Scheme")
                     Switch(
-                        checked = userPreferences.isUsingDynamicColor,
+                        checked = userPreferences.uiSettings.isUsingDynamicColor,
                         onCheckedChange = { onToggleDynamicColor() })
                 }
             }
@@ -218,7 +217,7 @@ fun SettingsList(
             }
             BlacklistedFoldersDialog(
                 isVisible = blacklistDialogVisible,
-                folders = userPreferences.excludedFolders,
+                folders = userPreferences.librarySettings.excludedFolders,
                 onFolderAdded = { onFolderAdded(it) },
                 onFolderDeleted = onFolderDeleted,
                 onDismissRequest = { blacklistDialogVisible = false }
@@ -273,8 +272,8 @@ fun SettingsList(
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Switch(
-                    
-                    checked = userPreferences.cacheAlbumCoverArt,
+
+                    checked = userPreferences.librarySettings.cacheAlbumCoverArt,
                     onCheckedChange = { onToggleCacheAlbumArt() }
                 )
             }
@@ -292,7 +291,7 @@ fun SettingsList(
             }
             JumpDurationDialog(
                 jumpDurationDialogVisible,
-                userPreferences.jumpDuration,
+                userPreferences.playerSettings.jumpInterval,
                 onDurationChanged = {
                     jumpDurationDialogVisible = false
                     onJumpDurationChanged(it)
@@ -305,7 +304,7 @@ fun SettingsList(
                 .padding(horizontal = 32.dp, vertical = 16.dp)) {
                 Text(text = "Jump Interval", fontSize = 16.sp)
                 Text(
-                    text = "${userPreferences.jumpDuration / 1000} seconds",
+                    text = "${userPreferences.playerSettings.jumpInterval / 1000} seconds",
                     fontSize = 10.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -407,7 +406,7 @@ fun BlacklistedFoldersDialog(
                             }
                         }
                         if (it != folders.last()) {
-                          Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
                 }
@@ -434,13 +433,13 @@ fun BlacklistedFoldersDialog(
 @Composable
 fun AppThemeDialog(
     visible: Boolean,
-    currentSelected: AppTheme,
+    currentSelected: AppThemeUi,
     onDismissRequest: () -> Unit,
-    onThemeSelected: (AppTheme) -> Unit,
+    onThemeSelected: (AppThemeUi) -> Unit,
 ) {
     if (!visible) return
     val optionsStrings = listOf("Follow System Settings", "Light", "Dark")
-    val options = listOf(AppTheme.SYSTEM, AppTheme.LIGHT, AppTheme.DARK)
+    val options = listOf(AppThemeUi.SYSTEM, AppThemeUi.LIGHT, AppThemeUi.DARK)
     val selectedOptionIndex by remember {
         mutableStateOf(
             options.indexOf(currentSelected).coerceAtLeast(0)

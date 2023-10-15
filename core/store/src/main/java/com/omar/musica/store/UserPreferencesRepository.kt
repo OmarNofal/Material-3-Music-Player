@@ -11,13 +11,17 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.omar.musica.database.dao.BlacklistedFoldersDao
 import com.omar.musica.database.entities.BlacklistedFolderEntity
 import com.omar.musica.model.AppTheme
+import com.omar.musica.model.DEFAULT_JUMP_DURATION_MILLIS
+import com.omar.musica.model.LibrarySettings
 import com.omar.musica.model.PlayerSettings
+import com.omar.musica.model.UiSettings
 import com.omar.musica.model.UserPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -30,7 +34,8 @@ class UserPreferencesRepository @Inject constructor(
     private val blacklistDao: BlacklistedFoldersDao
 ) {
 
-    fun getUserSettingsFlow(): Flow<UserPreferences> =
+
+    val userSettingsFlow: Flow<UserPreferences> =
         combine(
             context.datastore.data.catch { emptyPreferences() },
             blacklistDao.getAllBlacklistedFoldersFlow()
@@ -38,9 +43,19 @@ class UserPreferencesRepository @Inject constructor(
             mapPrefsToModel(settings, blacklistFolders)
         }
 
-    fun jumpForwardIntervalFlow() = context.datastore.data
-        .catch { emptyPreferences() }
-        .map { it[JUMP_DURATION_KEY] ?: 10_000 }
+    val librarySettingsFlow = userSettingsFlow
+        .map {
+        it.librarySettings }.distinctUntilChanged()
+
+    val  playerSettingsFlow = userSettingsFlow
+        .map {
+            it.playerSettings
+        }.distinctUntilChanged()
+
+    val uiSettingsFlow = userSettingsFlow
+        .map {
+            it.uiSettings
+        }.distinctUntilChanged()
 
     suspend fun changeTheme(appTheme: AppTheme) {
         context.datastore.edit {
@@ -74,20 +89,28 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
-    fun playerSettingsFlow() = context.datastore.data
-        .catch { emptyPreferences() }
-        .map {
-            PlayerSettings(it[JUMP_DURATION_KEY] ?: 10_000)
-        }
+
+    private fun Preferences.getPlayerSettings(): PlayerSettings {
+        val  jumpDuration = this[JUMP_DURATION_KEY] ?: DEFAULT_JUMP_DURATION_MILLIS
+        return PlayerSettings(jumpDuration)
+    }
+
+    private fun Preferences.getUiSettings(): UiSettings {
+        val theme = AppTheme.valueOf(this[THEME_KEY] ?: "SYSTEM")
+        val isUsingDynamicColor = this[DYNAMIC_COLOR_KEY] ?: true
+        return UiSettings(theme, isUsingDynamicColor)
+    }
+
+    private fun Preferences.getLibrarySettings(excludedFolders: List<String>): LibrarySettings {
+        val songsSortOrder = ""
+        val cacheAlbumCoverArt = this[CACHE_ALBUM_COVER_ART_KEY] ?: true
+        return LibrarySettings(songsSortOrder, cacheAlbumCoverArt, excludedFolders)
+    }
 
     private fun mapPrefsToModel(prefs: Preferences, blacklistedFolders: List<BlacklistedFolderEntity>) = UserPreferences(
-        songsSortOrder = "",
-        theme = AppTheme.valueOf(prefs[THEME_KEY] ?: "SYSTEM"),
-        isUsingDynamicColor = prefs[DYNAMIC_COLOR_KEY] ?: true,
-        cacheAlbumCoverArt = prefs[CACHE_ALBUM_COVER_ART_KEY] ?: true,
-        excludedFolders = blacklistedFolders.map { it.folderPath },
-        minDurationMillis = prefs[MIN_DURATION_MILLIS_KEY] ?: -1,
-        jumpDuration = prefs[JUMP_DURATION_KEY] ?: 10000
+        prefs.getLibrarySettings(blacklistedFolders.map { it.folderPath }),
+        prefs.getUiSettings(),
+        prefs.getPlayerSettings()
     )
 
     companion object {

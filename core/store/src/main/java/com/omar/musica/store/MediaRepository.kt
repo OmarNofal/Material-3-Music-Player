@@ -19,7 +19,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -51,7 +50,7 @@ class MediaRepository @Inject constructor(
     val songsFlow =
         callbackFlow {
 
-            Log.d(TAG, "Initializing callback flow to get all songs")
+            Timber.d(TAG, "Initializing callback flow to get all songs")
             var lastChangedUri: Uri? = null
             val observer = object : ContentObserver(null) {
                 override fun onChange(selfChange: Boolean, uri: Uri?) {
@@ -88,8 +87,7 @@ class MediaRepository @Inject constructor(
             }
 
         }.combine(
-            userPreferencesRepository.getUserSettingsFlow()
-                .map { it.excludedFolders }.distinctUntilChanged()
+            userPreferencesRepository.librarySettingsFlow.map { it.excludedFolders }
         ) { songs: List<Song>, excludedFolders: List<String> ->
 
             songs.filter { song ->

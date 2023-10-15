@@ -2,9 +2,10 @@ package com.omar.musica.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.omar.musica.model.AppTheme
 import com.omar.musica.store.UserPreferencesRepository
+import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.UserPreferencesUi
+import com.omar.musica.ui.model.toAppTheme
 import com.omar.musica.ui.model.toUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,7 +20,7 @@ class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
-    val state = userPreferencesRepository.getUserSettingsFlow()
+    val state = userPreferencesRepository.userSettingsFlow
         .map { SettingsState.Loaded(it.toUiModel()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsState.Loading)
 
@@ -41,9 +42,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun onThemeSelected(appTheme: AppTheme) {
+    fun onThemeSelected(appTheme: AppThemeUi) {
         viewModelScope.launch {
-            userPreferencesRepository.changeTheme(appTheme)
+            userPreferencesRepository.changeTheme(appTheme.toAppTheme())
         }
     }
 

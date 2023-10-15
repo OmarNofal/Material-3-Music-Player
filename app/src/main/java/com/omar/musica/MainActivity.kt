@@ -32,11 +32,11 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val initialUserPreferences =
-            runBlocking { userPreferencesRepository.getUserSettingsFlow().first() }
+            runBlocking { userPreferencesRepository.userSettingsFlow.first() }
 
         setContent {
 
-            val userPreferences by userPreferencesRepository.getUserSettingsFlow().collectAsState(
+            val userPreferences by userPreferencesRepository.userSettingsFlow.collectAsState(
                 initial = initialUserPreferences
             )
 

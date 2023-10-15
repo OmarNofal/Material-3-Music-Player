@@ -51,14 +51,14 @@ fun MusicaTheme(
     userPreferences: UserPreferences,
     content: @Composable () -> Unit
 ) {
-    val darkTheme = when (userPreferences.theme) {
+    val darkTheme = when (userPreferences.uiSettings.theme) {
         AppTheme.DARK -> true
         AppTheme.LIGHT -> false
         AppTheme.SYSTEM -> isSystemInDarkTheme()
     }
 
     val colorScheme = when {
-        userPreferences.isUsingDynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        userPreferences.uiSettings.isUsingDynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }

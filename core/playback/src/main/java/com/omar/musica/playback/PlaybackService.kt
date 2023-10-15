@@ -15,6 +15,7 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.omar.musica.model.DEFAULT_JUMP_DURATION_MILLIS
 import com.omar.musica.model.PlayerSettings
 import com.omar.musica.store.UserPreferencesRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -64,8 +65,9 @@ class PlaybackService : MediaSessionService() {
             .build()
 
         player.repeatMode = Player.REPEAT_MODE_ALL
-        playerSettings = userPreferencesRepository.playerSettingsFlow()
-            .stateIn(scope, started = SharingStarted.Eagerly, PlayerSettings(10000))
+        playerSettings = userPreferencesRepository.playerSettingsFlow
+            .stateIn(scope, started = SharingStarted.Eagerly, PlayerSettings(
+                DEFAULT_JUMP_DURATION_MILLIS))
     }
 
 
