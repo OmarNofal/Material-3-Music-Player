@@ -41,6 +41,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun onJumpDurationChanged(durationMillis: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.changeJumpDurationMillis(durationMillis)
+        }
+    }
+
     fun toggleDynamicColorScheme() {
         viewModelScope.launch {
             userPreferencesRepository.toggleDynamicColor()

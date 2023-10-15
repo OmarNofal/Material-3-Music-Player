@@ -3,6 +3,7 @@ package com.omar.musica.playback
 import android.content.ComponentName
 import android.content.Context
 import androidx.core.net.toUri
+import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaItem.RequestMetadata
 import androidx.media3.common.MediaMetadata
@@ -10,6 +11,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.Tracks
 import androidx.media3.session.MediaController
+import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
 import com.omar.musica.model.Song
@@ -82,16 +84,14 @@ class PlaybackManager @Inject constructor(@ApplicationContext context: Context) 
      * Skip forward in currently playing song // TODO depend on user settings
      */
     fun forward() {
-        val currentPositionMs = mediaController?.currentPosition ?: return
-        mediaController?.seekTo(currentPositionMs + 10000)
+        mediaController?.sendCustomCommand(SessionCommand("JUMP_FORWARD", bundleOf()), bundleOf())
     }
 
     /**
      * Skip backward in currently playing song
      */
     fun backward() {
-        val currentPositionMs = mediaController?.currentPosition ?: return
-        mediaController?.seekTo(currentPositionMs - 10000)
+        mediaController?.sendCustomCommand(SessionCommand("JUMP_BACKWARD", bundleOf()), bundleOf())
     }
 
     /**

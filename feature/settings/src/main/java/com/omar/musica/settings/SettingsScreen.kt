@@ -1,9 +1,7 @@
 package com.omar.musica.settings
 
 import android.os.Build
-import android.os.FileUtils
 import android.provider.DocumentsContract
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -19,10 +17,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
@@ -36,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -48,10 +49,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toFile
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.model.AppTheme
 import com.omar.musica.ui.model.UserPreferencesUi
@@ -70,7 +70,8 @@ fun SettingsScreen(
         onThemeSelected = settingsViewModel::onThemeSelected,
         onToggleDynamicColor = settingsViewModel::toggleDynamicColorScheme,
         onFolderDeleted = settingsViewModel::onFolderDeleted,
-        onFolderAdded = settingsViewModel::onFolderAdded
+        onFolderAdded = settingsViewModel::onFolderAdded,
+        onJumpDurationChanged = settingsViewModel::onJumpDurationChanged
     )
 }
 
@@ -81,7 +82,8 @@ fun SettingsScreen(
     onThemeSelected: (AppTheme) -> Unit,
     onToggleDynamicColor: () -> Unit,
     onFolderDeleted: (String) -> Unit,
-    onFolderAdded: (String) -> Unit
+    onFolderAdded: (String) -> Unit,
+    onJumpDurationChanged: (Int) -> Unit
 ) {
 
     Scaffold(
@@ -108,7 +110,8 @@ fun SettingsScreen(
                     onThemeSelected = onThemeSelected,
                     onToggleDynamicColor = onToggleDynamicColor,
                     onFolderDeleted = onFolderDeleted,
-                    onFolderAdded = onFolderAdded
+                    onFolderAdded = onFolderAdded,
+                    onJumpDurationChanged = onJumpDurationChanged
                 )
             }
 
@@ -125,7 +128,8 @@ fun SettingsList(
     onThemeSelected: (AppTheme) -> Unit,
     onToggleDynamicColor: () -> Unit,
     onFolderDeleted: (String) -> Unit,
-    onFolderAdded: (String) -> Unit
+    onFolderAdded: (String) -> Unit,
+    onJumpDurationChanged: (Int) -> Unit
 ) {
     val sectionTitleModifier = Modifier
         .fillMaxWidth()
@@ -223,11 +227,77 @@ fun SettingsList(
             }
         }
 
+
+        item {
+            SectionTitle(modifier = sectionTitleModifier, title = "Player")
+        }
+
+        item {
+            var jumpDurationDialogVisible by remember {
+                mutableStateOf(false)
+            }
+            JumpDurationDialog(
+                jumpDurationDialogVisible,
+                userPreferences.jumpDuration,
+                onDurationChanged = {
+                                    jumpDurationDialogVisible = false
+                                    onJumpDurationChanged(it)
+                },
+                { jumpDurationDialogVisible = false }
+            )
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .clickable { jumpDurationDialogVisible = true }
+                .padding(horizontal = 32.dp, vertical = 16.dp)) {
+                Text(text = "Jump Interval", fontSize = 16.sp)
+                Text(
+                    text = "${userPreferences.jumpDuration / 1000} seconds",
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+
     }
 
 
 }
 
+
+@Composable
+fun JumpDurationDialog(
+    visible: Boolean,
+    currentDurationMillis: Int,
+    onDurationChanged: (Int) -> Unit,
+    onDismissRequest: () -> Unit
+) {
+
+    if (!visible) return
+
+    var durationString by remember(currentDurationMillis) {
+        mutableStateOf((currentDurationMillis / 1000).toString())
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        dismissButton = { TextButton(onClick = onDismissRequest) { Text(text = "Close") } },
+        confirmButton = { TextButton(onClick = {
+            val duration = durationString.toIntOrNull() ?: return@TextButton
+            onDurationChanged(duration * 1000)
+        }) { Text(text = "Confirm") }  },
+        icon = { Icon(Icons.Rounded.FastForward, contentDescription = null) },
+        title = { Text(text = "Jump Interval") },
+        text = {
+            TextField(
+                value = durationString,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                onValueChange = { durationString = it })
+        }
+    )
+
+
+}
 
 @Composable
 fun BlacklistedFoldersDialog(
@@ -245,8 +315,10 @@ fun BlacklistedFoldersDialog(
         contract = ActivityResultContracts.OpenDocumentTree(),
         onResult = { uri ->
             if (uri == null) return@rememberLauncherForActivityResult
-            val documentTree = DocumentsContract.buildDocumentUriUsingTree(uri,
-                DocumentsContract.getTreeDocumentId(uri));
+            val documentTree = DocumentsContract.buildDocumentUriUsingTree(
+                uri,
+                DocumentsContract.getTreeDocumentId(uri)
+            )
             val path = getPath(context, documentTree) ?: return@rememberLauncherForActivityResult
             onFolderAdded(path)
         }
@@ -263,11 +335,17 @@ fun BlacklistedFoldersDialog(
             Column {
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     items(folders) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
                             Text(text = it, modifier = Modifier.weight(1f))
                             Spacer(modifier = Modifier.width(4.dp))
-                            IconButton(onClick =  { onFolderDeleted(it) } ) {
-                                Icon(imageVector = Icons.Rounded.Delete, contentDescription = "Remove Folder from Blacklist")
+                            IconButton(onClick = { onFolderDeleted(it) }) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Delete,
+                                    contentDescription = "Remove Folder from Blacklist"
+                                )
                             }
                         }
                     }

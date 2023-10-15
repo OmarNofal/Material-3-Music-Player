@@ -37,6 +37,8 @@ data class UserPreferencesUi(
      * Songs shorter than this will not appear
      */
     val minDurationMillis: Long,
+
+    val jumpDuration: Int,
 )
 
 fun UserPreferences.toUiModel() =
@@ -46,5 +48,6 @@ fun UserPreferences.toUiModel() =
         cacheAlbumCoverArt,
         isUsingDynamicColor,
         excludedFolders,
-        minDurationMillis
+        minDurationMillis,
+        jumpDuration
     )

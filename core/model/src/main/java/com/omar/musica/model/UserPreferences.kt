@@ -33,6 +33,7 @@ data class UserPreferences(
      */
     val minDurationMillis: Long,
 
+    val jumpDuration: Int,
 )
 
 

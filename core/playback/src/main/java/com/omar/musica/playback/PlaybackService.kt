@@ -15,12 +15,29 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.omar.musica.model.PlayerSettings
+import com.omar.musica.store.UserPreferencesRepository
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import timber.log.Timber
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class PlaybackService : MediaSessionService() {
+
+    @Inject
+    lateinit var userPreferencesRepository: UserPreferencesRepository
 
     private lateinit var player: Player
     private lateinit var mediaSession: MediaSession
+
+    private val scope = CoroutineScope(Dispatchers.IO)
+
+    private lateinit var playerSettings: StateFlow<PlayerSettings>
 
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     override fun onCreate() {
@@ -33,6 +50,7 @@ class PlaybackService : MediaSessionService() {
                 true
             )
             .setHandleAudioBecomingNoisy(true)
+            .setUseLazyPreparation(false)
             .build()
 
 
@@ -44,6 +62,10 @@ class PlaybackService : MediaSessionService() {
             .setCustomLayout(buildCommandButtons())
             .setSessionActivity(buildPendingIntent())
             .build()
+
+        player.repeatMode = Player.REPEAT_MODE_ALL
+        playerSettings = userPreferencesRepository.playerSettingsFlow()
+            .stateIn(scope, started = SharingStarted.Eagerly, PlayerSettings(10000))
     }
 
 
@@ -102,15 +124,26 @@ class PlaybackService : MediaSessionService() {
 
             ): ListenableFuture<SessionResult> {
                 if (CUSTOM_COMMAND_JUMP_FORWARD == customCommand.customAction) {
-                    player.seekForward()
+                    seekForward()
                 } else if (CUSTOM_COMMAND_JUMP_BACKWARD == customCommand.customAction) {
-                    player.seekBack()
+                    seekBackward()
                 }
                 return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
             }
         }
 
     }
+
+    fun seekForward() {
+        val currentPosition = player.currentPosition
+        player.seekTo(currentPosition + playerSettings.value.jumpInterval)
+    }
+
+    fun seekBackward() {
+        val currentPosition = player.currentPosition
+        player.seekTo(currentPosition - playerSettings.value.jumpInterval)
+    }
+
 
     override fun onDestroy() {
         mediaSession.run {
