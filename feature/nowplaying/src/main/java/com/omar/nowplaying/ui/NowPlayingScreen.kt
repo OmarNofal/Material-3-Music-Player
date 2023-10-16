@@ -627,13 +627,6 @@ fun CrossFadingAlbumArt(
 ) {
 
 
-    val painter = rememberAsyncImagePainter(
-        model = model,
-        contentScale = ContentScale.Crop,
-        imageLoader = LocalInefficientThumbnailImageLoader.current,
-    )
-
-
     var firstPainter by remember {
         mutableStateOf<Painter>(ColorPainter(Color.Black))
     }
@@ -646,23 +639,24 @@ fun CrossFadingAlbumArt(
         mutableStateOf(true)
     }
 
-    val state = painter.state
-
-
-    LaunchedEffect(key1 = state) {
-        val newPainter = when (state) {
-            is AsyncImagePainter.State.Success -> state.painter
-            is AsyncImagePainter.State.Error -> errorPainter
-            else -> if (isUsingFirstPainter) firstPainter else secondPainter
+    val painter = rememberAsyncImagePainter(
+        model = model,
+        contentScale = ContentScale.Crop,
+        imageLoader = LocalInefficientThumbnailImageLoader.current,
+        onState = {
+            val newPainter = when (it) {
+                is AsyncImagePainter.State.Success -> it.painter
+                is AsyncImagePainter.State.Error -> errorPainter
+                else -> if (isUsingFirstPainter) firstPainter else secondPainter
+            }
+            if (isUsingFirstPainter) {
+                secondPainter = newPainter
+            } else {
+                firstPainter = newPainter
+            }
+            isUsingFirstPainter = !isUsingFirstPainter
         }
-        if (isUsingFirstPainter) {
-            secondPainter = newPainter
-        } else {
-            firstPainter = newPainter
-        }
-        isUsingFirstPainter = !isUsingFirstPainter
-    }
-
+    )
 
     Crossfade(targetState = isUsingFirstPainter, label = "") {
         if (it) {
