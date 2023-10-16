@@ -50,12 +50,14 @@ class AlbumArtFetcher(
         val metadataRetriever = MediaMetadataRetriever()
             .apply { setDataSource(options.context, data.uriString.toUri()) }
 
+
         val byteArr = metadataRetriever.embeddedPicture ?: return null
 
         val bitmapOptions = BitmapFactory.Options()
             .apply {
-                outWidth = options.size.height.pxOrElse { 0 }
-                outHeight = options.size.width.pxOrElse { 0 }
+                outWidth = options.size.width.pxOrElse { 0 }
+                outHeight = options.size.height.pxOrElse { 0 }
+                inJustDecodeBounds = false
             }
         val bitmap =
             BitmapFactory.decodeByteArray(byteArr, 0, byteArr.size, bitmapOptions) ?: return null
