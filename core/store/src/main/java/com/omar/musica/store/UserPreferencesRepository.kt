@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -58,6 +59,21 @@ class UserPreferencesRepository @Inject constructor(
         .map {
             it.uiSettings
         }.distinctUntilChanged()
+
+
+    suspend fun saveCurrentPosition(songUriString: String, position: Long) {
+        context.datastore.edit {
+            it[SONG_URI_KEY] = songUriString
+            it[SONG_POSITION_KEY] = position
+        }
+    }
+
+    suspend fun getSavedPosition(): Pair<String?, Long> {
+        val prefs = context.datastore.data.first()
+        val songUri = prefs[SONG_URI_KEY]
+        val songPosition = prefs[SONG_POSITION_KEY] ?: 0
+        return songUri to songPosition
+    }
 
     suspend fun changeLibrarySortOrder(sortOption: SortOption, isAscending: Boolean) {
         context.datastore.edit {
@@ -133,6 +149,8 @@ class UserPreferencesRepository @Inject constructor(
         val MIN_DURATION_MILLIS_KEY = longPreferencesKey("MIN_DURATION_KEY")
         val CACHE_ALBUM_COVER_ART_KEY = booleanPreferencesKey("CACHE_ALBUM_COVER_ART")
         val JUMP_DURATION_KEY = intPreferencesKey("JUMP_DURATION_KEY")
+        val SONG_URI_KEY = stringPreferencesKey("SONG_URI")
+        val SONG_POSITION_KEY = longPreferencesKey("SONG_POSITION")
     }
 
 }

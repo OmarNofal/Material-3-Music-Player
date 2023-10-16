@@ -3,9 +3,12 @@ package com.omar.musica.playback
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Bundle
+import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC
 import androidx.media3.common.C.USAGE_MEDIA
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
@@ -17,13 +20,20 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.omar.musica.model.DEFAULT_JUMP_DURATION_MILLIS
 import com.omar.musica.model.PlayerSettings
+import com.omar.musica.store.QueueItem
+import com.omar.musica.store.QueueRepository
 import com.omar.musica.store.UserPreferencesRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -33,10 +43,13 @@ class PlaybackService : MediaSessionService() {
     @Inject
     lateinit var userPreferencesRepository: UserPreferencesRepository
 
+    @Inject
+    lateinit var queueRepository: QueueRepository
+
     private lateinit var player: Player
     private lateinit var mediaSession: MediaSession
 
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private lateinit var playerSettings: StateFlow<PlayerSettings>
 
@@ -66,8 +79,19 @@ class PlaybackService : MediaSessionService() {
 
         player.repeatMode = Player.REPEAT_MODE_ALL
         playerSettings = userPreferencesRepository.playerSettingsFlow
-            .stateIn(scope, started = SharingStarted.Eagerly, PlayerSettings(
-                DEFAULT_JUMP_DURATION_MILLIS))
+            .stateIn(
+                scope, started = SharingStarted.Eagerly, PlayerSettings(
+                    DEFAULT_JUMP_DURATION_MILLIS
+                )
+            )
+
+        recoverQueue()
+        scope.launch(Dispatchers.Main) {
+            while(isActive) {
+                saveCurrentPosition()
+                delay(5000)
+            }
+        }
     }
 
 
@@ -78,6 +102,15 @@ class PlaybackService : MediaSessionService() {
         return PendingIntent.getActivity(this, 1, intent, PendingIntent.FLAG_IMMUTABLE)
     }
 
+    private suspend fun saveCurrentPosition() {
+        val uriString = player.currentMediaItem?.requestMetadata?.mediaUri
+        val position = player.currentPosition
+        withContext(Dispatchers.IO) {
+            userPreferencesRepository.saveCurrentPosition(uriString.toString(), position)
+        }
+    }
+
+    private suspend fun restorePosition() = userPreferencesRepository.getSavedPosition()
 
     private fun buildCommandButtons(): List<CommandButton> {
         val rewindCommandButton = CommandButton.Builder()
@@ -96,6 +129,22 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession {
         Timber.i(TAG, "Controller request: ${controllerInfo.packageName}")
         return mediaSession
+    }
+
+    private fun recoverQueue() {
+        scope.launch(Dispatchers.Main) {
+            val queue = queueRepository.getQueue()
+
+            val (lastSongUri, lastPosition) = restorePosition()
+            val songIndex = queue.indexOfFirst { it.uri.toString() == lastSongUri }
+
+            player.setMediaItems(
+                queue.map { it.toMediaItem() },
+                if (songIndex in queue.indices) songIndex else 0,
+                lastPosition
+            )
+            player.prepare()
+        }
     }
 
     private fun buildCustomCallback(): MediaSession.Callback {
@@ -154,6 +203,23 @@ class PlaybackService : MediaSessionService() {
         }
         super.onDestroy()
     }
+
+    private fun QueueItem.toMediaItem() =
+        MediaItem.Builder()
+            .setUri(uri.toString())
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                    .setArtist(this.artist)
+                    .setAlbumTitle(this.albumTitle)
+                    .setTitle(this.title)
+                    .build()
+            )
+            .setRequestMetadata(
+                MediaItem.RequestMetadata.Builder().setMediaUri(uri)
+                    .build() // to be able to retrieve the URI easily
+            )
+            .build()
 
     companion object {
         const val TAG = "MEDIA_SESSION"

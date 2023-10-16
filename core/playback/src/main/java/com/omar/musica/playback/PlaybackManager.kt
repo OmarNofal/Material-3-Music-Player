@@ -17,7 +17,10 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.omar.musica.model.Song
 import com.omar.musica.playback.state.PlaybackState
 import com.omar.musica.playback.state.PlayerState
+import com.omar.musica.store.QueueItem
+import com.omar.musica.store.QueueRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import timber.log.Timber
@@ -35,7 +38,8 @@ private const val TAG = "PlaybackManager"
  */
 @Singleton
 class PlaybackManager @Inject constructor(
-    @ApplicationContext context: Context
+    @ApplicationContext context: Context,
+    private val queueRepository: QueueRepository
 ) {
 
 
@@ -64,6 +68,7 @@ class PlaybackManager @Inject constructor(
                     if (mediaController?.playWhenReady == true) PlayerState.PLAYING
                     else PlayerState.PAUSED
                 }
+
                 Player.STATE_BUFFERING -> PlayerState.BUFFERING
                 else -> PlayerState.PAUSED
             }
@@ -108,7 +113,6 @@ class PlaybackManager @Inject constructor(
     fun playPreviousSong() {
         mediaController?.seekToPrevious()
     }
-
 
 
     fun seekToPosition(progress: Float) {
@@ -169,6 +173,7 @@ class PlaybackManager @Inject constructor(
         mediaControllerFuture.addListener(
             {
                 mediaController = mediaControllerFuture.get()
+                updateState()
                 attachListeners()
             },
             MoreExecutors.directExecutor()
@@ -178,8 +183,10 @@ class PlaybackManager @Inject constructor(
     private fun attachListeners() {
         mediaController?.addListener(object : Player.Listener {
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-                //if (reason == Player.TIMELINE_CHANGE_REASON_SOURCE_UPDATE) return
                 updateState()
+                if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
+                    savePlayerQueue()
+                }
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -211,6 +218,23 @@ class PlaybackManager @Inject constructor(
     }
 
 
+    fun savePlayerQueue() {
+        val queue = getQueueFromPlayer()
+        queueRepository.saveQueueFromQueueItems(queue)
+    }
+
+    private fun getQueueFromPlayer(): List<QueueItem> {
+        val safeMediaController = mediaController ?: return emptyList()
+        val count = safeMediaController.mediaItemCount
+        return List(count) { i ->
+            val mediaItem = safeMediaController.getMediaItemAt(i)
+            val metadata = mediaItem.mediaMetadata
+            val requestMetadata = mediaItem.requestMetadata
+
+            QueueItem(requestMetadata.mediaUri!!, metadata.title.toString(), metadata.artist.toString(), metadata.albumTitle.toString())
+        }
+    }
+
     private fun Song.toMediaItem() =
         MediaItem.Builder()
             .setUri(uriString)
@@ -223,7 +247,8 @@ class PlaybackManager @Inject constructor(
                     .build()
             )
             .setRequestMetadata(
-                RequestMetadata.Builder().setMediaUri(uriString.toUri()).build() // to be able to retrieve the URI easily
+                RequestMetadata.Builder().setMediaUri(uriString.toUri())
+                    .build() // to be able to retrieve the URI easily
             )
             .build()
 

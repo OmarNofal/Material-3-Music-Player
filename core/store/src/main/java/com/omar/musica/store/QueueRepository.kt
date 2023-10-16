@@ -25,11 +25,22 @@ class QueueRepository @Inject constructor(
     suspend fun getQueue(): List<QueueItem> =
         queueDao.getQueue().map { it.toQueueItem() }
 
-    fun saveQueue(songs: List<Song>) {
+    fun saveQueueFromSongs(songs: List<Song>) {
         scope.launch {
             queueDao.changeQueue(songs.map { it.toQueueEntity() })
         }
     }
+
+    fun saveQueueFromQueueItems(songs: List<QueueItem>) {
+        scope.launch {
+            queueDao.changeQueue(songs.map { it.toQueueEntity() })
+        }
+    }
+
+    private fun QueueItem.toQueueEntity() =
+        QueueEntity(
+            0, this.uri.toString(), title, artist, albumTitle
+        )
 
     private fun Song.toQueueEntity() =
         QueueEntity(0, this.uriString, this.title, artist, album)
