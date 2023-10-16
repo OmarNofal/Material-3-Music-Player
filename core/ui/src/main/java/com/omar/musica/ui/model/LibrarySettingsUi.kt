@@ -1,7 +1,9 @@
 package com.omar.musica.ui.model
 
 import androidx.compose.runtime.Stable
+import com.omar.musica.model.IsAscending
 import com.omar.musica.model.LibrarySettings
+import com.omar.musica.model.SortOption
 
 
 @Stable
@@ -13,7 +15,7 @@ data class LibrarySettingsUi(
     /**
      * The order of the songs on the main screen
      */
-    val songsSortOrder: String,
+    val songsSortOrder: Pair<SortOption, IsAscending>,
 
     /**
      * Whether to load the actual album art of the song or

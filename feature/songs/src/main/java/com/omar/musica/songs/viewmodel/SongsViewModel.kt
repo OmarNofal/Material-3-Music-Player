@@ -2,9 +2,9 @@ package com.omar.musica.songs.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.omar.musica.model.SortOption
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.songs.SongsScreenUiState
-import com.omar.musica.songs.ui.SortOption
 import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.UserPreferencesRepository
 import com.omar.musica.ui.model.SongUi
@@ -17,9 +17,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
@@ -31,12 +33,8 @@ class SongsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
-    private val sortOptionFlow = MutableStateFlow(SortOption.TITLE to true)
-
-    val librarySettingsState = userPreferencesRepository.librarySettingsFlow
-        .map { it.toLibrarySettingsUi() }
-        .stateIn(viewModelScope, started = SharingStarted.Eagerly, initialValue = runBlocking { userPreferencesRepository.librarySettingsFlow.first().toLibrarySettingsUi() })
-
+    private val sortOptionFlow = userPreferencesRepository.librarySettingsFlow
+        .map { it.songsSortOrder }.distinctUntilChanged()
 
     val state: StateFlow<SongsScreenUiState> =
         mediaRepository.songsFlow
@@ -73,7 +71,9 @@ class SongsViewModel @Inject constructor(
      * User changed the sorting order of the songs screen
      */
     fun onSortOptionChanged(sortOption: SortOption, isAscending: Boolean) {
-        sortOptionFlow.value = sortOption to isAscending
+        viewModelScope.launch {
+            userPreferencesRepository.changeLibrarySortOrder(sortOption, isAscending)
+        }
     }
 
     /**
@@ -88,8 +88,8 @@ class SongsViewModel @Inject constructor(
 
     private fun List<SongUi>.sortedByOptionAscending(sortOption: SortOption): List<SongUi> =
         when (sortOption) {
-            SortOption.TITLE -> this.sortedBy { it.title }
-            SortOption.ARTIST -> this.sortedBy { it.artist }
+            SortOption.TITLE -> this.sortedBy { it.title.lowercase() }
+            SortOption.ARTIST -> this.sortedBy { it.artist?.lowercase() }
             SortOption.FileSize -> this.sortedBy { it.size }
             SortOption.ALBUM -> this.sortedBy { it.album }
             SortOption.Duration -> this.sortedBy { it.length }
@@ -98,10 +98,10 @@ class SongsViewModel @Inject constructor(
 
     private fun List<SongUi>.sortedByOptionDescending(sortOption: SortOption): List<SongUi> =
         when (sortOption) {
-            SortOption.TITLE -> this.sortedByDescending { it.title }
-            SortOption.ARTIST -> this.sortedByDescending { it.artist }
+            SortOption.TITLE -> this.sortedByDescending { it.title.lowercase() }
+            SortOption.ARTIST -> this.sortedByDescending { it.artist?.lowercase() }
             SortOption.FileSize -> this.sortedByDescending { it.size }
-            SortOption.ALBUM -> this.sortedByDescending { it.album }
+            SortOption.ALBUM -> this.sortedByDescending { it.album?.lowercase() }
             SortOption.Duration -> this.sortedByDescending { it.length }
         }
 

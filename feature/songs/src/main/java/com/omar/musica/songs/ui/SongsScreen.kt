@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.omar.musica.model.SortOption
 import com.omar.musica.songs.SongsScreenUiState
 import com.omar.musica.songs.viewmodel.SongsViewModel
 import com.omar.musica.ui.common.MenuActionItem
@@ -63,12 +64,10 @@ fun SongsScreen(
     onSearchClicked: () -> Unit,
 ) {
     val songsUiState by viewModel.state.collectAsState()
-    val librarySettings by viewModel.librarySettingsState.collectAsState()
     val context = LocalContext.current
     SongsScreen(
         modifier,
         songsUiState,
-        librarySettings,
         viewModel::onSongClicked,
         viewModel::onPlayNext,
         { shareSongs(context, it) },
@@ -84,7 +83,6 @@ fun SongsScreen(
 internal fun SongsScreen(
     modifier: Modifier,
     uiState: SongsScreenUiState,
-    librarySettingsUi: LibrarySettingsUi,
     onSongClicked: (SongUi, Int) -> Unit,
     onPlayNext: (List<SongUi>) -> Unit,
     onShare: (List<SongUi>) -> Unit,

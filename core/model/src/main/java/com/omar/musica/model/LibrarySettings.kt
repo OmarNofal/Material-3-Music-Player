@@ -1,6 +1,8 @@
 package com.omar.musica.model
 
 
+typealias IsAscending = Boolean
+
 /**
  * Settings applied to the library and main screen.
  */
@@ -9,7 +11,7 @@ data class LibrarySettings(
     /**
      * The order of the songs on the main screen
      */
-    val songsSortOrder: String,
+    val songsSortOrder: Pair<SortOption, IsAscending>,
 
     /**
      * Whether to load the actual album art of the song or
@@ -24,7 +26,7 @@ data class LibrarySettings(
 ) {
 
     companion object {
-        val DEFAULT_LIBRARY_SETTINGS = LibrarySettings("", true, listOf())
+        val DEFAULT_LIBRARY_SETTINGS = LibrarySettings(SortOption.TITLE to true, true, listOf())
     }
 
 }

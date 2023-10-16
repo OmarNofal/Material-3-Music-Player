@@ -14,6 +14,7 @@ import com.omar.musica.model.AppTheme
 import com.omar.musica.model.DEFAULT_JUMP_DURATION_MILLIS
 import com.omar.musica.model.LibrarySettings
 import com.omar.musica.model.PlayerSettings
+import com.omar.musica.model.SortOption
 import com.omar.musica.model.UiSettings
 import com.omar.musica.model.UserPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -45,9 +46,10 @@ class UserPreferencesRepository @Inject constructor(
 
     val librarySettingsFlow = userSettingsFlow
         .map {
-        it.librarySettings }.distinctUntilChanged()
+            it.librarySettings
+        }.distinctUntilChanged()
 
-    val  playerSettingsFlow = userSettingsFlow
+    val playerSettingsFlow = userSettingsFlow
         .map {
             it.playerSettings
         }.distinctUntilChanged()
@@ -56,6 +58,12 @@ class UserPreferencesRepository @Inject constructor(
         .map {
             it.uiSettings
         }.distinctUntilChanged()
+
+    suspend fun changeLibrarySortOrder(sortOption: SortOption, isAscending: Boolean) {
+        context.datastore.edit {
+            it[SORT_ORDER_KEY] = "${sortOption}:$isAscending"
+        }
+    }
 
     suspend fun changeTheme(appTheme: AppTheme) {
         context.datastore.edit {
@@ -91,7 +99,7 @@ class UserPreferencesRepository @Inject constructor(
 
 
     private fun Preferences.getPlayerSettings(): PlayerSettings {
-        val  jumpDuration = this[JUMP_DURATION_KEY] ?: DEFAULT_JUMP_DURATION_MILLIS
+        val jumpDuration = this[JUMP_DURATION_KEY] ?: DEFAULT_JUMP_DURATION_MILLIS
         return PlayerSettings(jumpDuration)
     }
 
@@ -102,18 +110,24 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     private fun Preferences.getLibrarySettings(excludedFolders: List<String>): LibrarySettings {
-        val songsSortOrder = ""
+        val sortOptionParts = this[SORT_ORDER_KEY]?.split(":")
+        val songsSortOrder = if (sortOptionParts == null)
+            SortOption.TITLE to true else SortOption.valueOf(sortOptionParts[0]) to sortOptionParts[1].toBoolean()
         val cacheAlbumCoverArt = this[CACHE_ALBUM_COVER_ART_KEY] ?: true
         return LibrarySettings(songsSortOrder, cacheAlbumCoverArt, excludedFolders)
     }
 
-    private fun mapPrefsToModel(prefs: Preferences, blacklistedFolders: List<BlacklistedFolderEntity>) = UserPreferences(
+    private fun mapPrefsToModel(
+        prefs: Preferences,
+        blacklistedFolders: List<BlacklistedFolderEntity>
+    ) = UserPreferences(
         prefs.getLibrarySettings(blacklistedFolders.map { it.folderPath }),
         prefs.getUiSettings(),
         prefs.getPlayerSettings()
     )
 
     companion object {
+        val SORT_ORDER_KEY = stringPreferencesKey("SORT")
         val THEME_KEY = stringPreferencesKey("THEME")
         val DYNAMIC_COLOR_KEY = booleanPreferencesKey("DYNAMIC_COLOR")
         val MIN_DURATION_MILLIS_KEY = longPreferencesKey("MIN_DURATION_KEY")

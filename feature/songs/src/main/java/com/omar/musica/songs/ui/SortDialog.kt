@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.omar.musica.model.SortOption
 
 
 @Composable
@@ -107,9 +108,6 @@ fun SortOptionsDialog(
 
 }
 
-enum class SortOption {
-    TITLE, ALBUM, ARTIST, FileSize, Duration
-}
 
 fun SortOption.getString() = when (this) {
     SortOption.TITLE -> "Title"

@@ -1,7 +1,7 @@
 package com.omar.musica.songs
 
 import androidx.compose.runtime.Immutable
-import com.omar.musica.songs.ui.SortOption
+import com.omar.musica.model.SortOption
 import com.omar.musica.ui.model.SongUi
 
 
