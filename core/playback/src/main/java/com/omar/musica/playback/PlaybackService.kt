@@ -27,6 +27,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -52,6 +53,9 @@ class PlaybackService : MediaSessionService() {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private lateinit var playerSettings: StateFlow<PlayerSettings>
+
+
+
 
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     override fun onCreate() {
@@ -88,8 +92,8 @@ class PlaybackService : MediaSessionService() {
         recoverQueue()
         scope.launch(Dispatchers.Main) {
             while(isActive) {
-                saveCurrentPosition()
                 delay(5000)
+                saveCurrentPosition()
             }
         }
     }
@@ -197,11 +201,12 @@ class PlaybackService : MediaSessionService() {
 
 
     override fun onDestroy() {
+        super.onDestroy()
+        scope.cancel()
         mediaSession.run {
             player.release()
             release()
         }
-        super.onDestroy()
     }
 
     private fun QueueItem.toMediaItem() =
