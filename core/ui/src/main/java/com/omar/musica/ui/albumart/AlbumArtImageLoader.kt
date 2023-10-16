@@ -8,7 +8,6 @@ import java.lang.IllegalStateException
 
 
 fun Context.efficientAlbumArtImageLoader() = ImageLoader.Builder(this)
-    .transitionFactory(CrossfadeTransition.Factory())
         .components {
             add(AlbumKeyer())
             add(AlbumArtFetcher.Factory())

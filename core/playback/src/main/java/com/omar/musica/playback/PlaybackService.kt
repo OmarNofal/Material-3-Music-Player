@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -93,7 +94,7 @@ class PlaybackService : MediaSessionService() {
         recoverQueue()
         scope.launch(Dispatchers.Main) {
             while(isActive) {
-                delay(5000)
+                delay(10_000)
                 saveCurrentPosition()
             }
         }
@@ -208,7 +209,9 @@ class PlaybackService : MediaSessionService() {
     override fun onDestroy() {
         super.onDestroy()
         scope.cancel()
-        Log.d("MUSIC_SERVICE","Destroying playback aService")
+        runBlocking {
+            saveCurrentPosition()
+        }
         mediaSession.run {
             player.release()
             release()
