@@ -34,7 +34,9 @@ private const val TAG = "PlaybackManager"
  * It provides methods to manipulate the service, like changing the queue, pausing, rewinding, etc...
  */
 @Singleton
-class PlaybackManager @Inject constructor(@ApplicationContext context: Context) {
+class PlaybackManager @Inject constructor(
+    @ApplicationContext context: Context
+) {
 
 
     private var mediaController: MediaController? = null
@@ -62,7 +64,6 @@ class PlaybackManager @Inject constructor(@ApplicationContext context: Context) 
                     if (mediaController?.playWhenReady == true) PlayerState.PLAYING
                     else PlayerState.PAUSED
                 }
-
                 Player.STATE_BUFFERING -> PlayerState.BUFFERING
                 else -> PlayerState.PAUSED
             }
@@ -109,12 +110,6 @@ class PlaybackManager @Inject constructor(@ApplicationContext context: Context) 
     }
 
 
-    /**
-     * Starts the current song from the beginning
-     */
-    fun restartCurrentSong() {
-        mediaController?.seekToDefaultPosition()
-    }
 
     fun seekToPosition(progress: Float) {
         val controller = mediaController ?: return
@@ -133,14 +128,6 @@ class PlaybackManager @Inject constructor(@ApplicationContext context: Context) 
             prepare()
             play()
         }
-    }
-
-    /**
-     * Sets a song in the player and starts playing it
-     */
-    fun setSongAndPlay(song: Song) {
-        setSong(song)
-        mediaController?.playWhenReady = true
     }
 
     fun playNext(songs: List<Song>) {

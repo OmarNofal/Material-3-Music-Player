@@ -36,4 +36,10 @@ object DatabaseModule {
         appDatabase: MusicaDatabase
     ) = appDatabase.blacklistDao()
 
+    @Singleton
+    @Provides
+    fun provideQueueDao(
+        appDatabase: MusicaDatabase
+    ) = appDatabase.queueDao()
+
 }
