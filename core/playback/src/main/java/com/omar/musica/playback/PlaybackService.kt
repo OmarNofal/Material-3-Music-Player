@@ -3,6 +3,7 @@ package com.omar.musica.playback
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC
@@ -199,13 +200,26 @@ class PlaybackService : MediaSessionService() {
         player.seekTo(currentPosition - playerSettings.value.jumpInterval)
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+        return START_STICKY
+    }
 
     override fun onDestroy() {
         super.onDestroy()
         scope.cancel()
+        Log.d("MUSIC_SERVICE","Destroying playback aService")
         mediaSession.run {
             player.release()
             release()
+        }
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        if (!player.playWhenReady) {
+            onDestroy()
+            stopSelf()
         }
     }
 
@@ -225,6 +239,8 @@ class PlaybackService : MediaSessionService() {
                     .build() // to be able to retrieve the URI easily
             )
             .build()
+
+
 
     companion object {
         const val TAG = "MEDIA_SESSION"
