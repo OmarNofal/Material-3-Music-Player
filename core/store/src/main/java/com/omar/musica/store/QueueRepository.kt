@@ -10,6 +10,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,6 +26,10 @@ class QueueRepository @Inject constructor(
 
     suspend fun getQueue(): List<QueueItem> =
         queueDao.getQueue().map { it.toQueueItem() }
+
+    fun observeQueueUris(): Flow<List<String>> =
+        queueDao.getQueueFlow()
+            .map {it.map { queueItem -> queueItem.songUri } }
 
 
     fun saveQueueFromSongs(songs: List<Song>) {
