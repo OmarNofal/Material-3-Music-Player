@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.staticCompositionLocalOf
 import coil.ImageLoader
 import coil.transition.CrossfadeTransition
+import kotlinx.coroutines.Dispatchers
 import java.lang.IllegalStateException
 
 
@@ -14,6 +15,7 @@ fun Context.efficientAlbumArtImageLoader() = ImageLoader.Builder(this)
         }.build()
 
 fun Context.inefficientAlbumArtImageLoader() = ImageLoader.Builder(this)
+    .dispatcher(Dispatchers.IO.limitedParallelism(5))
     .components {
         add(SongKeyer())
         add(AlbumArtFetcher.Factory())

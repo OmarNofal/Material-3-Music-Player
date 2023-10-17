@@ -22,6 +22,7 @@ ksp = "1.9.0-1.0.13"
 lifecycle-runtime-ktx = "2.6.1"
 material = "1.9.0"
 media3 = "1.1.1"
+okio = "3.6.0"
 org-jetbrains-kotlin-android = "1.9.0"
 org-jetbrains-kotlin-jvm = "1.8.10"
 roomVersion = "2.6.0-beta01"
@@ -60,6 +61,7 @@ lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtim
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
+okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio"}
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomVersion" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomVersion" }
 room-coroutines = { group = "androidx.room", name = "room-coroutines", version.ref = "roomVersion" }

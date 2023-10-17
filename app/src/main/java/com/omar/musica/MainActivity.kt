@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
+import coil.ImageLoader
 import com.omar.musica.store.UserPreferencesRepository
 import com.omar.musica.ui.MusicaApp
 import com.omar.musica.ui.common.LocalUserPreferences

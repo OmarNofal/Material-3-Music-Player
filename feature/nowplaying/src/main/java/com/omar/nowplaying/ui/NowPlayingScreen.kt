@@ -4,7 +4,6 @@ import BlurTransformation
 import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
@@ -83,13 +82,10 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
 import com.omar.musica.playback.state.PlayerState
-import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
 import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
-import com.omar.musica.ui.common.SongAlbumArtImage
 import com.omar.musica.ui.common.millisToTime
 import com.omar.musica.ui.model.SongUi
 import com.omar.nowplaying.NowPlayingState
-import com.omar.nowplaying.R
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -639,43 +635,46 @@ fun CrossFadingAlbumArt(
         mutableStateOf(true)
     }
 
-    val painter = rememberAsyncImagePainter(
+    rememberAsyncImagePainter(
         model = model,
         contentScale = ContentScale.Crop,
         imageLoader = LocalInefficientThumbnailImageLoader.current,
         onState = {
-            val newPainter = when (it) {
-                is AsyncImagePainter.State.Success -> it.painter
-                is AsyncImagePainter.State.Error -> errorPainter
-                else -> if (isUsingFirstPainter) firstPainter else secondPainter
+            when (it) {
+                is AsyncImagePainter.State.Success -> {
+                    val newPainter = it.painter
+                    if (isUsingFirstPainter) {
+                        secondPainter = newPainter
+                    } else {
+                        firstPainter = newPainter
+                    }
+                    isUsingFirstPainter = !isUsingFirstPainter
+                }
+
+                is AsyncImagePainter.State.Error -> {
+                    if (isUsingFirstPainter) {
+                        secondPainter = errorPainter
+                    } else {
+                        firstPainter = errorPainter
+                    }
+                    isUsingFirstPainter = !isUsingFirstPainter
+                }
+
+                else -> {
+
+                }
             }
-            if (isUsingFirstPainter) {
-                secondPainter = newPainter
-            } else {
-                firstPainter = newPainter
-            }
-            isUsingFirstPainter = !isUsingFirstPainter
         }
     )
 
     Crossfade(targetState = isUsingFirstPainter, label = "") {
-        if (it) {
-            Image(
-                modifier = modifier,
-                painter = firstPainter,
-                contentDescription = null,
-                colorFilter = colorFilter,
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            Image(
-                modifier = modifier,
-                painter = secondPainter,
-                contentDescription = null,
-                colorFilter = colorFilter,
-                contentScale = contentScale
-            )
-        }
+        Image(
+            modifier = modifier,
+            painter = if (it) firstPainter else secondPainter,
+            contentDescription = null,
+            colorFilter = colorFilter,
+            contentScale = contentScale
+        )
     }
 }
 

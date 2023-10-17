@@ -6,14 +6,25 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import coil.ImageLoader
 import coil.decode.DataSource
+import coil.decode.ImageSource
 import coil.fetch.DrawableResult
 import coil.fetch.FetchResult
 import coil.fetch.Fetcher
+import coil.fetch.SourceResult
 import coil.key.Keyer
 import coil.request.Options
 import coil.size.pxOrElse
 import com.omar.musica.ui.model.SongUi
+import okio.Buffer
+import okio.BufferedSource
+import okio.Okio
+import okio.Source
+import okio.buffer
+import okio.source
 import timber.log.Timber
+import java.io.BufferedReader
+import java.io.ByteArrayInputStream
+import java.nio.ByteBuffer
 
 
 class AlbumKeyer : Keyer<SongUi> {
@@ -50,26 +61,13 @@ class AlbumArtFetcher(
         val metadataRetriever = MediaMetadataRetriever()
             .apply { setDataSource(options.context, data.uriString.toUri()) }
 
-
         val byteArr = metadataRetriever.embeddedPicture ?: return null
 
-        val bitmapOptions = BitmapFactory.Options()
-            .apply {
-                outWidth = options.size.width.pxOrElse { 0 }
-                outHeight = options.size.height.pxOrElse { 0 }
-                inJustDecodeBounds = false
-            }
-        val bitmap =
-            BitmapFactory.decodeByteArray(byteArr, 0, byteArr.size, bitmapOptions) ?: return null
-        try {
-            metadataRetriever.release()
-        } catch (e: Exception) {
-            /**This method can throw for some reason*/
-        }
-        return DrawableResult(
-            drawable = bitmap.toDrawable(options.context.resources),
-            isSampled = true,
-            dataSource = DataSource.MEMORY
+        val bufferedSource = ByteArrayInputStream(byteArr).source().buffer()
+        return SourceResult(
+            ImageSource(bufferedSource, options.context),
+            "image/*",
+            DataSource.MEMORY
         )
     }
 
