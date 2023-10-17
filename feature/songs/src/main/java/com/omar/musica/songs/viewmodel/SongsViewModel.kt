@@ -8,21 +8,17 @@ import com.omar.musica.songs.SongsScreenUiState
 import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.UserPreferencesRepository
 import com.omar.musica.ui.model.SongUi
-import com.omar.musica.ui.model.toLibrarySettingsUi
 import com.omar.musica.ui.model.toSongModel
 import com.omar.musica.ui.model.toSongModels
 import com.omar.musica.ui.model.toUiSongModels
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 
@@ -38,7 +34,7 @@ class SongsViewModel @Inject constructor(
 
     val state: StateFlow<SongsScreenUiState> =
         mediaRepository.songsFlow
-            .map { it.toUiSongModels() }
+            .map { it.songs.toUiSongModels() }
             .combine(sortOptionFlow) { songList, sortOptionPair ->
                 // Sort the list according to the sort option
                 val ascending = sortOptionPair.second

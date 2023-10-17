@@ -7,10 +7,10 @@ import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
 import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
 import com.omar.musica.model.Song
+import com.omar.musica.model.SongLibrary
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -90,17 +90,18 @@ class MediaRepository @Inject constructor(
             userPreferencesRepository.librarySettingsFlow.map { it.excludedFolders }
         ) { songs: List<Song>, excludedFolders: List<String> ->
 
-            songs.filter { song ->
+            val filteredSongs = songs.filter { song ->
                 !excludedFolders.any { folder ->
                     song.location.startsWith(folder)
                 }
             }
 
+            SongLibrary(filteredSongs)
         }
             .flowOn(Dispatchers.IO).stateIn(
                 scope = scope,
                 started = SharingStarted.WhileSubscribed(5000, 5000),
-                initialValue = listOf()
+                initialValue = SongLibrary(listOf())
             )
 
     suspend fun getAllSongs(): List<Song> = withContext(Dispatchers.IO) {
@@ -184,9 +185,6 @@ class MediaRepository @Inject constructor(
         }
     }
 
-
-    fun getSong(uri: Uri?) =
-        songsFlow.value.find { it.uriString == uri.toString() }
 
     @TargetApi(29)
     fun deleteSong(song: Song) {

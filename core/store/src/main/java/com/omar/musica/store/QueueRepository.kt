@@ -9,6 +9,7 @@ import com.omar.musica.model.Song
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,6 +25,7 @@ class QueueRepository @Inject constructor(
 
     suspend fun getQueue(): List<QueueItem> =
         queueDao.getQueue().map { it.toQueueItem() }
+
 
     fun saveQueueFromSongs(songs: List<Song>) {
         scope.launch {

@@ -35,7 +35,7 @@ class SearchViewModel @Inject constructor(
         get() = _state
 
     val songs = mediaRepository.songsFlow
-        .map { it.toUiSongModels() }
+        .map { it.songs.toUiSongModels() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), listOf())
 
     init {

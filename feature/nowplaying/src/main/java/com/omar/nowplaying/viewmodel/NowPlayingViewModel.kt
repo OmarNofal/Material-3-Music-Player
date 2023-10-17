@@ -46,13 +46,13 @@ class NowPlayingViewModel @Inject constructor(
             playbackManager.state,
             songProgressFlow,
             mediaRepository.songsFlow
-        ) { playbackManagerState, _, songs ->
+        ) { playbackManagerState, _, library ->
 
             Timber.d("New Uri: ${playbackManagerState.currentSongUri}")
 
             val song = when (currentPlayingSong?.uriString) {
                 playbackManagerState.currentSongUri.toString() -> currentPlayingSong
-                else -> songs.find { it.uriString == playbackManagerState.currentSongUri.toString() }
+                else -> library.songs.find { it.uriString == playbackManagerState.currentSongUri.toString() }
                     ?.toUiSongModel()
             }.also { currentPlayingSong = it }
 

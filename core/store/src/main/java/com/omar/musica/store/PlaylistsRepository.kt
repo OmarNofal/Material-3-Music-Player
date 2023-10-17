@@ -51,10 +51,10 @@ class PlaylistsRepository @Inject constructor(
         combine(
             mediaRepository.songsFlow,
             playlistsDao.getPlaylistWithSongsFlow(playlistId)
-        ) { songs, playlistWithSongs ->
+        ) { library, playlistWithSongs ->
 
             // Convert the songs to a map to enable fast retrieval
-            val songsSet = songs.associateBy { it.uriString }
+            val songsSet = library.songs.associateBy { it.uriString }
 
             // The uris of the song
             val playlistSongsUriStrings = playlistWithSongs.songUris
