@@ -20,12 +20,12 @@ class QueueViewModel @Inject constructor(
 ) : ViewModel() {
 
 
-    val queueState = queueRepository.observeQueueUris()
+    val queueScreenState = queueRepository.observeQueueUris()
         .combine(mediaRepository.songsFlow) { uris, library ->
             val songs = library.getSongsByUris(uris)
-            QueueState.Loaded(songs.toUiSongModels())
+            QueueScreenState.Loaded(songs.toUiSongModels())
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(500, 500), QueueState.Loading)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(500, 500), QueueScreenState.Loading)
 
 
 
@@ -33,7 +33,7 @@ class QueueViewModel @Inject constructor(
 
 
 
-sealed interface QueueState {
-    data class Loaded(val songs: List<SongUi>): QueueState
-    data object Loading: QueueState
+sealed interface QueueScreenState {
+    data class Loaded(val songs: List<SongUi>): QueueScreenState
+    data object Loading: QueueScreenState
 }
