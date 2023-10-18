@@ -17,18 +17,15 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.omar.musica.model.Song
 import com.omar.musica.playback.state.PlaybackState
 import com.omar.musica.playback.state.PlayerState
+import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.QueueItem
 import com.omar.musica.store.QueueRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-
-
-private const val TAG = "PlaybackManager"
 
 
 /**
@@ -39,7 +36,8 @@ private const val TAG = "PlaybackManager"
 @Singleton
 class PlaybackManager @Inject constructor(
     @ApplicationContext context: Context,
-    private val queueRepository: QueueRepository
+    private val queueRepository: QueueRepository,
+    private val mediaRepository: MediaRepository
 ) {
 
 
@@ -61,7 +59,7 @@ class PlaybackManager @Inject constructor(
             ?: 0.0f) / (mediaController?.duration?.toFloat() ?: 1.0f)
 
 
-    val playbackState: PlayerState
+    private val playbackState: PlayerState
         get() {
             return when (mediaController?.playbackState) {
                 Player.STATE_READY -> {
@@ -141,19 +139,15 @@ class PlaybackManager @Inject constructor(
         mediaController?.prepare()
     }
 
-    private fun setSong(song: Song) {
-        val mediaItem = song.toMediaItem()
-        mediaController?.playWhenReady = false
-        mediaController?.stop()
-        mediaController?.setMediaItem(mediaItem)
-        mediaController?.prepare()
-    }
 
     private fun updateState() {
         val controller = mediaController ?: return
         val currentMediaItem = controller.currentMediaItem ?: return updateToEmptyState()
         val songUri = currentMediaItem.requestMetadata.mediaUri ?: return updateToEmptyState()
-        _state.value = PlaybackState(songUri, playbackState)
+        _state.value = PlaybackState(
+            mediaRepository.songsFlow.value.getSongByUri(songUri.toString()),
+            playbackState
+        )
     }
 
     private fun updateToEmptyState() {
@@ -231,7 +225,12 @@ class PlaybackManager @Inject constructor(
             val metadata = mediaItem.mediaMetadata
             val requestMetadata = mediaItem.requestMetadata
 
-            QueueItem(requestMetadata.mediaUri!!, metadata.title.toString(), metadata.artist.toString(), metadata.albumTitle.toString())
+            QueueItem(
+                requestMetadata.mediaUri!!,
+                metadata.title.toString(),
+                metadata.artist.toString(),
+                metadata.albumTitle.toString()
+            )
         }
     }
 

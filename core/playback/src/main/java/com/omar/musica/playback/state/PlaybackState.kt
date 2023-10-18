@@ -1,10 +1,11 @@
 package com.omar.musica.playback.state
 
 import android.net.Uri
+import com.omar.musica.model.Song
 
 
 data class PlaybackState(
-    val currentSongUri: Uri?,
+    val currentSong: Song?,
     val playbackState: PlayerState,
 ) {
 
