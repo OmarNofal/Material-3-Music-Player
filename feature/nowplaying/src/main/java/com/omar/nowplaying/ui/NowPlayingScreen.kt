@@ -125,6 +125,7 @@ fun NowPlayingScreen(
             isExpanded = isExpanded,
             onExpandNowPlaying = onExpandNowPlaying,
             progressProvider = progressProvider,
+            songProgressProvider = viewModel::currentSongProgress,
             onUserSeek = viewModel::onUserSeek,
             onPrevious = viewModel::previousSong,
             onTogglePlayback = viewModel::togglePlayback,
@@ -142,6 +143,7 @@ internal fun NowPlayingScreen(
     isExpanded: Boolean,
     onExpandNowPlaying: () -> Unit,
     progressProvider: () -> Float,
+    songProgressProvider: () -> Float,
     onUserSeek: (Float) -> Unit,
     onPrevious: () -> Unit,
     onTogglePlayback: () -> Unit,
@@ -170,6 +172,7 @@ internal fun NowPlayingScreen(
                     Modifier.fillMaxSize(),
                     progressProvider,
                     uiState,
+                    songProgressProvider,
                     onUserSeek,
                     onPrevious,
                     onTogglePlayback,
@@ -189,6 +192,7 @@ internal fun NowPlayingScreen(
                         }
                         .graphicsLayer { alpha = (1 - progressProvider() * 2) },
                     nowPlayingState = uiState,
+                    songProgressProvider = songProgressProvider,
                     enabled = !isExpanded, // if the view is expanded then disable the header
                     onTogglePlayback
                 )
@@ -204,6 +208,7 @@ fun FullScreenNowPlaying(
     modifier: Modifier,
     progressProvider: () -> Float,
     uiState: NowPlayingState.Playing,
+    songProgressProvider: () -> Float,
     onUserSeek: (Float) -> Unit,
     onPrevious: () -> Unit,
     onTogglePlayback: () -> Unit,
@@ -288,7 +293,7 @@ fun FullScreenNowPlaying(
                 PlayerScreen(
                     modifier = playerScreenModifier,
                     song = song,
-                    songProgressProvider = { uiState.songProgress },
+                    songProgressProvider = songProgressProvider,
                     playbackState = uiState.playbackState,
                     screenSize = screenSize,
                     onUserSeek = onUserSeek,
@@ -321,7 +326,7 @@ fun PlayerScreenSkeleton(
     onJumpBackward: () -> Unit,
     onOpenQueue: () -> Unit,
 ) {
-    val initialModifier = remember (screenSize) {
+    val initialModifier = remember(screenSize) {
         if (screenSize == NowPlayingScreenSize.LANDSCAPE) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
     }
 
@@ -437,6 +442,18 @@ fun SongProgressInfo(
 ) {
 
 
+    var currentProgress by remember {
+        mutableFloatStateOf(0.0f)
+    }
+
+    // Periodically get the progress
+    LaunchedEffect(key1 = Unit) {
+        while(isActive) {
+            currentProgress = songProgressProvider()
+            delay(1000)
+        }
+    }
+
     val songLength = remember(songDuration) {
         songDuration.millisToTime()
     }
@@ -464,8 +481,8 @@ fun SongProgressInfo(
     val isPressed by sliderInteractionSource.collectIsDraggedAsState()
 
     val progressShown =
-        remember(useSongProgress, isPressed, userSetSliderValue, songProgressProvider) {
-            if (useSongProgress && !isPressed) songProgressProvider() else userSetSliderValue
+        remember(useSongProgress, isPressed, userSetSliderValue, currentProgress) {
+            if (useSongProgress && !isPressed) currentProgress else userSetSliderValue
         }
 
     val timestampShown = remember(songDuration, progressShown) {

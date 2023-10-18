@@ -17,8 +17,7 @@ sealed interface NowPlayingState {
     data class Playing(
         @Stable
         val song: SongUi,
-        val playbackState: PlayerState,
-        val songProgress: Float, // 0 to 1
+        val playbackState: PlayerState
     ) : NowPlayingState
 
 }

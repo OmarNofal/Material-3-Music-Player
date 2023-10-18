@@ -17,12 +17,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 import com.omar.musica.playback.state.PlayerState
 import com.omar.nowplaying.NowPlayingState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -30,6 +37,7 @@ import com.omar.nowplaying.NowPlayingState
 fun NowPlayingBarHeader(
     modifier: Modifier,
     nowPlayingState: NowPlayingState,
+    songProgressProvider: () -> Float,
     enabled: Boolean,
     onTogglePlayback: () -> Unit,
 ) {
@@ -76,14 +84,34 @@ fun NowPlayingBarHeader(
                     if (state.playbackState == PlayerState.PLAYING) Icons.Rounded.Pause else Icons.Rounded.PlayArrow
                 Icon(imageVector = icon, contentDescription = null)
             }
-            CircularProgressIndicator(
+            SongCircularProgressIndicator(
                 modifier = Modifier.padding(end = 4.dp),
-                progress = nowPlayingState.songProgress,
-                strokeCap = StrokeCap.Round
+                songProgressProvider
             )
         }
     }
 
+}
+
+@Composable
+fun SongCircularProgressIndicator(
+    modifier: Modifier,
+    songProgressProvider: () -> Float,
+) {
+    var progress: Float by remember {
+        mutableStateOf(0.0f)
+    }
+    LaunchedEffect(key1 = Unit) {
+        while (isActive) {
+            progress = songProgressProvider()
+            delay(1000)
+        }
+    }
+    CircularProgressIndicator(
+        modifier = modifier,
+        progress = progress,
+        strokeCap = StrokeCap.Round
+    )
 }
 
 enum class BarState {

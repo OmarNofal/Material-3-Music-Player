@@ -4,18 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.MediaRepository
-import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.model.toUiSongModel
 import com.omar.nowplaying.NowPlayingState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -26,48 +21,22 @@ class NowPlayingViewModel @Inject constructor(
 ) : ViewModel() {
 
 
-    /**
-     * Used to remind the state to update the song progress
-     */
-    private val songProgressFlow = flow {
-        while (true) {
-            emit(Unit)
-            delay(1000)
-        }
-    }.cancellable()
-
-
-    // Used to cache and prevent searching again
-    private var currentPlayingSong: SongUi? = null
-
     private val _state: StateFlow<NowPlayingState> =
-
         combine(
             playbackManager.state,
-            songProgressFlow,
             mediaRepository.songsFlow
-        ) { playbackManagerState, _, library ->
+        ) { playbackManagerState, library ->
+            val song = library.getSongByUri(playbackManagerState.currentSongUri.toString())
+                ?.toUiSongModel() ?: return@combine NowPlayingState.NotPlaying
 
-            Timber.d("New Uri: ${playbackManagerState.currentSongUri}")
-
-            val song = when (currentPlayingSong?.uriString) {
-                playbackManagerState.currentSongUri.toString() -> currentPlayingSong
-                else -> library.songs.find { it.uriString == playbackManagerState.currentSongUri.toString() }
-                    ?.toUiSongModel()
-            }.also { currentPlayingSong = it }
-
-            val currentProgress = playbackManager.currentSongProgress
-            val playbackState = playbackManagerState.playbackState
-
-            if (song == null) return@combine NowPlayingState.NotPlaying
-
-            NowPlayingState.Playing(song, playbackState, currentProgress)
+            NowPlayingState.Playing(song, playbackManagerState.playbackState)
         }.stateIn(viewModelScope, SharingStarted.Eagerly, NowPlayingState.NotPlaying)
 
 
     val state: StateFlow<NowPlayingState>
         get() = _state
 
+    fun currentSongProgress() = playbackManager.currentSongProgress
 
     fun togglePlayback() {
         playbackManager.togglePlayback()
