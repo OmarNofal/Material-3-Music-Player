@@ -1,5 +1,7 @@
 package com.omar.nowplaying.ui
 
+
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
@@ -98,18 +100,19 @@ fun SongCircularProgressIndicator(
     modifier: Modifier,
     songProgressProvider: () -> Float,
 ) {
-    var progress: Float by remember {
-        mutableStateOf(0.0f)
+    val progress = remember {
+        Animatable(0.0f)
     }
     LaunchedEffect(key1 = Unit) {
         while (isActive) {
-            progress = songProgressProvider()
+            val newProgress = songProgressProvider()
+            progress.animateTo(newProgress)
             delay(1000)
         }
     }
     CircularProgressIndicator(
         modifier = modifier,
-        progress = progress,
+        progress = progress.value,
         strokeCap = StrokeCap.Round
     )
 }

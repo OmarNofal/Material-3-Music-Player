@@ -54,7 +54,7 @@ fun NavGraphBuilder.songsGraph(
                     fadeOut(tween(200)) +
                             slideOutVertically(
                                 animationSpec = tween(200, easing = FastOutSlowInEasing),
-                                targetOffsetY = { -it / 4}
+                                targetOffsetY = { -it / 6}
                             )
             },
             popEnterTransition = {
@@ -64,7 +64,7 @@ fun NavGraphBuilder.songsGraph(
                     fadeIn(tween(200)) +
                             slideInVertically (
                                 animationSpec = tween(200, easing = FastOutSlowInEasing),
-                                initialOffsetY = { it -> -it / 4}
+                                initialOffsetY = { it -> -it / 6}
                             )
             }
         ) {
