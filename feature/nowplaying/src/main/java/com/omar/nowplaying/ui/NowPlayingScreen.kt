@@ -65,6 +65,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -75,6 +76,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -109,6 +111,13 @@ fun NowPlayingScreen(
     progressProvider: () -> Float,
     viewModel: NowPlayingViewModel = hiltViewModel()
 ) {
+
+    val focusManager = LocalFocusManager.current
+    LaunchedEffect(key1 = isExpanded) {
+        if (isExpanded) {
+            focusManager.clearFocus(true)
+        }
+    }
 
     BackHandler(isExpanded) {
         onCollapseNowPlaying()
