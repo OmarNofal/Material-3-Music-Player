@@ -6,6 +6,8 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
@@ -46,23 +48,23 @@ fun NavGraphBuilder.songsGraph(
                 EnterTransition.None
             },
             exitTransition = {
-                if (initialState.destination.route != SEARCH_ROUTE) {
-                    fadeOut()
+                if (targetState.destination.route != SEARCH_ROUTE) {
+                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(200))
                 } else
-                    fadeOut(tween(300)) +
-                            slideOutOfContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Up,
-                                tween(300, easing = FastOutSlowInEasing)
+                    fadeOut(tween(200)) +
+                            slideOutVertically(
+                                animationSpec = tween(200, easing = FastOutSlowInEasing),
+                                targetOffsetY = { -it / 4}
                             )
             },
             popEnterTransition = {
                 if (initialState.destination.route != SEARCH_ROUTE) {
-                    fadeIn()
+                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(200))
                 } else
-                    fadeIn(tween(300)) +
-                            slideIntoContainer(
-                                AnimatedContentTransitionScope.SlideDirection.Down,
-                                tween(300, easing = FastOutSlowInEasing)
+                    fadeIn(tween(200)) +
+                            slideInVertically (
+                                animationSpec = tween(200, easing = FastOutSlowInEasing),
+                                initialOffsetY = { it -> -it / 4}
                             )
             }
         ) {
@@ -84,17 +86,18 @@ fun NavGraphBuilder.songsGraph(
         composable(
             SEARCH_ROUTE,
             enterTransition = {
-                fadeIn(tween(300)) +
+                fadeIn(tween(200)) +
                         slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up,
-                            tween(300, easing = FastOutSlowInEasing),
-                            initialOffset = { it -> it }
+                            tween(200, easing = FastOutSlowInEasing),
+                            initialOffset = { it -> it / 2 }
                         )
             },
             popExitTransition = {
-                fadeOut(tween(300)) +
+                fadeOut(tween(200)) +
                         slideOutOfContainer(
                             AnimatedContentTransitionScope.SlideDirection.Down,
-                            tween(300, easing = FastOutSlowInEasing)
+                            tween(200, easing = FastOutSlowInEasing),
+                            targetOffset = { it -> it / 2}
                         )
             }
         )

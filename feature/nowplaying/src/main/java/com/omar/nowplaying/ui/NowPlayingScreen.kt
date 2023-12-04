@@ -450,7 +450,7 @@ fun SongProgressInfo(
     LaunchedEffect(key1 = Unit) {
         while(isActive) {
             currentProgress = songProgressProvider()
-            delay(1000)
+            delay(500)
         }
     }
 
@@ -464,7 +464,7 @@ fun SongProgressInfo(
 
     // When the user removes his finger from the slider,
     // the slider will return to the initial position it was on,
-    // it is subtle but annoying, so we add a delay of 500ms
+    // it is subtle but annoying, so we add a delay
     // to give time for the player to change the position of the song.
     var useSongProgress by remember {
         mutableStateOf(true)
@@ -472,7 +472,7 @@ fun SongProgressInfo(
 
     LaunchedEffect(key1 = useSongProgress) {
         if (!useSongProgress) {
-            delay(500)
+            delay(1000)
             if (isActive) useSongProgress = true
         }
     }
