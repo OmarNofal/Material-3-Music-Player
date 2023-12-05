@@ -100,7 +100,7 @@ class MediaRepository @Inject constructor(
         }
             .flowOn(Dispatchers.IO).stateIn(
                 scope = scope,
-                started = SharingStarted.WhileSubscribed(5000, 5000),
+                started = SharingStarted.Eagerly,
                 initialValue = SongLibrary(listOf())
             )
 
