@@ -2,6 +2,7 @@ package com.omar.nowplaying.ui
 
 import BlurTransformation
 import android.app.Activity
+import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
@@ -16,6 +17,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,10 +44,13 @@ import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -92,8 +97,13 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.omar.musica.playback.state.PlayerState
 import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
+import com.omar.musica.ui.common.LocalUserPreferences
 import com.omar.musica.ui.common.millisToTime
+import com.omar.musica.ui.model.AppThemeUi
+import com.omar.musica.ui.model.PlayerThemeUi
 import com.omar.musica.ui.model.SongUi
+import com.omar.musica.ui.theme.DarkColorScheme
+import com.omar.musica.ui.theme.LightColorScheme
 import com.omar.nowplaying.NowPlayingState
 import com.omar.nowplaying.queue.QueueScreen
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
@@ -161,52 +171,63 @@ internal fun NowPlayingScreen(
     onJumpBackward: () -> Unit
 ) {
 
+    val playerTheme = LocalUserPreferences.current.uiSettings.playerThemeUi
+    val shouldUseDynamicColor = LocalUserPreferences.current.uiSettings.isUsingDynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val isDarkTheme = when(LocalUserPreferences.current.uiSettings.theme) {
+        AppThemeUi.DARK -> true
+        AppThemeUi.LIGHT -> false
+        else -> isSystemInDarkTheme()
+    }
+
     // Since we use a darker background image for the NowPlaying screen
     // we need to make the status bar icons lighter
-    if (isExpanded)
+    if (isExpanded && (isDarkTheme || playerTheme == PlayerThemeUi.BLUR))
         DarkStatusBarEffect()
 
-    Surface(
-        modifier = modifier
+
+    // We use another material theme here to force dark theme colors when the player theme is
+    // set to BLUR.
+    MaterialTheme(
+        typography = MaterialTheme.typography,
+        colorScheme = if (playerTheme == PlayerThemeUi.BLUR) {
+            if (shouldUseDynamicColor) dynamicDarkColorScheme(LocalContext.current) else DarkColorScheme
+        } else MaterialTheme.colorScheme
     ) {
 
-        CompositionLocalProvider(
-            // since we darken the background color, use lighter text and icon color
-            LocalContentColor provides Color(0xFFEEEEEE)
+        Surface(
+            modifier = modifier,
+            tonalElevation = 4.dp
         ) {
-            Box(modifier = Modifier.fillMaxSize()) {
+                Box(modifier = Modifier.fillMaxSize()) {
 
+                    FullScreenNowPlaying(
+                        Modifier.fillMaxSize(),
+                        progressProvider,
+                        uiState,
+                        songProgressProvider,
+                        onUserSeek,
+                        onPrevious,
+                        onTogglePlayback,
+                        onNext,
+                        onJumpForward,
+                        onJumpBackward
+                    )
 
-                FullScreenNowPlaying(
-                    Modifier.fillMaxSize(),
-                    progressProvider,
-                    uiState,
-                    songProgressProvider,
-                    onUserSeek,
-                    onPrevious,
-                    onTogglePlayback,
-                    onNext,
-                    onJumpForward,
-                    onJumpBackward
-                )
+                    NowPlayingBarHeader(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(barHeight)
+                            .pointerInput(Unit) {
+                                detectTapGestures { onExpandNowPlaying() }
+                            }
+                            .graphicsLayer { alpha = (1 - progressProvider() * 2) },
+                        nowPlayingState = uiState,
+                        songProgressProvider = songProgressProvider,
+                        enabled = !isExpanded, // if the view is expanded then disable the header
+                        onTogglePlayback
+                    )
 
-
-
-                NowPlayingBarHeader(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(barHeight)
-                        .pointerInput(Unit) {
-                            detectTapGestures { onExpandNowPlaying() }
-                        }
-                        .graphicsLayer { alpha = (1 - progressProvider() * 2) },
-                    nowPlayingState = uiState,
-                    songProgressProvider = songProgressProvider,
-                    enabled = !isExpanded, // if the view is expanded then disable the header
-                    onTogglePlayback
-                )
-
-            }
+                }
         }
     }
 }
@@ -235,18 +256,20 @@ fun FullScreenNowPlaying(
         contentAlignment = Alignment.Center
     ) {
 
-        CrossFadingAlbumArt(
-            modifier = Modifier.fillMaxSize(),
-            song = song,
-            errorPainterType = ErrorPainterType.SOLID_COLOR,
-            blurTransformation = remember { BlurTransformation(radius = 40, scale = 0.15f) },
-            colorFilter = remember {
-                ColorFilter.tint(
-                    Color(0xFF999999),
-                    BlendMode.Multiply
-                )
-            }
-        )
+        val playerTheme = LocalUserPreferences.current.uiSettings.playerThemeUi
+        if (playerTheme == PlayerThemeUi.BLUR)
+            CrossFadingAlbumArt(
+                modifier = Modifier.fillMaxSize(),
+                song = song,
+                errorPainterType = ErrorPainterType.SOLID_COLOR,
+                blurTransformation = remember { BlurTransformation(radius = 40, scale = 0.15f) },
+                colorFilter = remember {
+                    ColorFilter.tint(
+                        Color(0xFF999999),
+                        BlendMode.Multiply
+                    )
+                }
+            )
 
 
         val activity = LocalContext.current as Activity

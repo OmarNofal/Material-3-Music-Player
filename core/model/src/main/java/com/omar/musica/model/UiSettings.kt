@@ -13,4 +13,10 @@ data class UiSettings(
      * Android 12+ dynamic theming
      */
     val isUsingDynamicColor: Boolean,
+
+    val playerTheme: PlayerTheme,
 )
+
+enum class PlayerTheme {
+    SOLID, BLUR
+}

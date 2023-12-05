@@ -14,6 +14,7 @@ import com.omar.musica.model.AppTheme
 import com.omar.musica.model.DEFAULT_JUMP_DURATION_MILLIS
 import com.omar.musica.model.LibrarySettings
 import com.omar.musica.model.PlayerSettings
+import com.omar.musica.model.PlayerTheme
 import com.omar.musica.model.SortOption
 import com.omar.musica.model.UiSettings
 import com.omar.musica.model.UserPreferences
@@ -87,6 +88,12 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    suspend fun changePlayerTheme(playerTheme: PlayerTheme) {
+        context.datastore.edit {
+            it[PLAYER_THEME_KEY] = playerTheme.toString()
+        }
+    }
+
     suspend fun toggleCacheAlbumArt() {
         context.datastore.edit {
             it[CACHE_ALBUM_COVER_ART_KEY] = !(it[CACHE_ALBUM_COVER_ART_KEY] ?: true)
@@ -122,7 +129,8 @@ class UserPreferencesRepository @Inject constructor(
     private fun Preferences.getUiSettings(): UiSettings {
         val theme = AppTheme.valueOf(this[THEME_KEY] ?: "SYSTEM")
         val isUsingDynamicColor = this[DYNAMIC_COLOR_KEY] ?: true
-        return UiSettings(theme, isUsingDynamicColor)
+        val playerTheme = PlayerTheme.valueOf(this[PLAYER_THEME_KEY] ?: "BLUR")
+        return UiSettings(theme, isUsingDynamicColor, playerTheme)
     }
 
     private fun Preferences.getLibrarySettings(excludedFolders: List<String>): LibrarySettings {
@@ -146,6 +154,7 @@ class UserPreferencesRepository @Inject constructor(
         val SORT_ORDER_KEY = stringPreferencesKey("SORT")
         val THEME_KEY = stringPreferencesKey("THEME")
         val DYNAMIC_COLOR_KEY = booleanPreferencesKey("DYNAMIC_COLOR")
+        val PLAYER_THEME_KEY = stringPreferencesKey("PLAYER_THEME")
         val MIN_DURATION_MILLIS_KEY = longPreferencesKey("MIN_DURATION_KEY")
         val CACHE_ALBUM_COVER_ART_KEY = booleanPreferencesKey("CACHE_ALBUM_COVER_ART")
         val JUMP_DURATION_KEY = intPreferencesKey("JUMP_DURATION_KEY")

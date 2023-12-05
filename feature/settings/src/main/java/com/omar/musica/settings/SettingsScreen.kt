@@ -23,6 +23,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.BlurCircular
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.Info
@@ -59,6 +60,7 @@ import com.omar.musica.settings.common.GeneralSettingsItem
 import com.omar.musica.settings.common.SettingInfo
 import com.omar.musica.settings.common.SwitchSettingsItem
 import com.omar.musica.ui.model.AppThemeUi
+import com.omar.musica.ui.model.PlayerThemeUi
 import com.omar.musica.ui.model.UserPreferencesUi
 import getPath
 
@@ -177,6 +179,40 @@ fun SettingsList(
                 )
             }
         }
+
+        item {
+            Divider(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = 32.dp)
+            )
+        }
+
+        item {
+            var playerThemeDialogVisible by remember {
+                mutableStateOf(false)
+            }
+            PlayerThemeDialog(
+                playerThemeDialogVisible,
+                userPreferences.uiSettings.playerThemeUi,
+                onThemeSelected = {
+                    playerThemeDialogVisible = false
+                    settingsCallbacks.onPlayerThemeChanged(it)
+                },
+                onDismissRequest = { playerThemeDialogVisible = false },
+            )
+            GeneralSettingsItem(modifier = Modifier
+                .fillMaxWidth()
+                .clickable { playerThemeDialogVisible = true }
+                .padding(horizontal = 32.dp, vertical = 16.dp),
+                title = "Player Theme",
+                subtitle = when(userPreferences.uiSettings.playerThemeUi) {
+                    PlayerThemeUi.SOLID -> "Solid"
+                    PlayerThemeUi.BLUR -> "Blur"
+                }
+            )
+        }
+
 
         item {
             SectionTitle(modifier = sectionTitleModifier, title = "Library")
@@ -418,6 +454,52 @@ fun AppThemeDialog(
         }
     )
 }
+
+@Composable
+fun PlayerThemeDialog(
+    visible: Boolean,
+    currentSelected: PlayerThemeUi,
+    onDismissRequest: () -> Unit,
+    onThemeSelected: (PlayerThemeUi) -> Unit,
+) {
+    if (!visible) return
+    val optionsStrings = listOf("Solid", "Blur")
+    val options = listOf(PlayerThemeUi.SOLID, PlayerThemeUi.BLUR)
+    val selectedOptionIndex by remember {
+        mutableStateOf(
+            options.indexOf(currentSelected).coerceAtLeast(0)
+        )
+    }
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        dismissButton = { TextButton(onClick = onDismissRequest) { Text(text = "Cancel") } },
+        confirmButton = { },
+        icon = { Icon(Icons.Rounded.BlurCircular, contentDescription = null) },
+        title = { Text(text = "Player Theme") },
+        text = {
+            Column {
+                optionsStrings.forEachIndexed { index, option ->
+                    val onSelected = {
+                        if (index == selectedOptionIndex) {
+                            Unit
+                        } else {
+                            onThemeSelected(options[index])
+                        }
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(
+                            selected = selectedOptionIndex == index,
+                            onClick = { onSelected() }
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(text = option, modifier = Modifier.clickable { onSelected() })
+                    }
+                }
+            }
+        }
+    )
+}
+
 
 @Composable
 fun SectionTitle(

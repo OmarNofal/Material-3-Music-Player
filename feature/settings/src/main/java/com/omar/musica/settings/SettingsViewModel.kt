@@ -3,10 +3,13 @@ package com.omar.musica.settings
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.omar.musica.model.PlayerTheme
 import com.omar.musica.store.UserPreferencesRepository
 import com.omar.musica.ui.model.AppThemeUi
+import com.omar.musica.ui.model.PlayerThemeUi
 import com.omar.musica.ui.model.UserPreferencesUi
 import com.omar.musica.ui.model.toAppTheme
+import com.omar.musica.ui.model.toPlayerTheme
 import com.omar.musica.ui.model.toUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -61,6 +64,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    override fun onPlayerThemeChanged(playerTheme: PlayerThemeUi) {
+        viewModelScope.launch {
+            userPreferencesRepository.changePlayerTheme(playerTheme.toPlayerTheme())
+        }
+    }
+
 }
 
 @Stable
@@ -76,6 +85,8 @@ interface ISettingsViewModel {
     fun onJumpDurationChanged(durationMillis: Int)
 
     fun toggleDynamicColorScheme()
+
+    fun onPlayerThemeChanged(playerTheme: PlayerThemeUi)
 }
 
 sealed interface SettingsState {

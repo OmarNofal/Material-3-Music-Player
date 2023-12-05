@@ -86,9 +86,7 @@ class PlaybackService : MediaSessionService() {
         player.repeatMode = Player.REPEAT_MODE_ALL
         playerSettings = userPreferencesRepository.playerSettingsFlow
             .stateIn(
-                scope, started = SharingStarted.Eagerly, PlayerSettings(
-                    DEFAULT_JUMP_DURATION_MILLIS
-                )
+                scope, started = SharingStarted.Eagerly, PlayerSettings(DEFAULT_JUMP_DURATION_MILLIS)
             )
 
         recoverQueue()

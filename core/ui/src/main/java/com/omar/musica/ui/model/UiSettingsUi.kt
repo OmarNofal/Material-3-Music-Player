@@ -2,6 +2,7 @@ package com.omar.musica.ui.model
 
 import androidx.compose.runtime.Stable
 import com.omar.musica.model.AppTheme
+import com.omar.musica.model.PlayerTheme
 import com.omar.musica.model.UiSettings
 
 
@@ -19,7 +20,22 @@ data class UiSettingsUi(
      * Android 12+ dynamic theming
      */
     val isUsingDynamicColor: Boolean,
+
+    val playerThemeUi: PlayerThemeUi
 )
+
+@Stable
+enum class PlayerThemeUi {
+    SOLID, BLUR
+}
+
+fun PlayerThemeUi.toPlayerTheme() =
+    PlayerTheme.valueOf(this.toString())
+
+fun PlayerTheme.toPlayerThemeUi() =
+    PlayerThemeUi.valueOf(this.toString())
+
+
 
 @Stable
 enum class AppThemeUi {
@@ -33,4 +49,4 @@ fun AppThemeUi.toAppTheme() =
     AppTheme.valueOf(this.toString())
 
 fun UiSettings.toUiSettingsUi() =
-    UiSettingsUi(theme.toAppThemeUi(), isUsingDynamicColor)
+    UiSettingsUi(theme.toAppThemeUi(), isUsingDynamicColor, playerTheme.toPlayerThemeUi())

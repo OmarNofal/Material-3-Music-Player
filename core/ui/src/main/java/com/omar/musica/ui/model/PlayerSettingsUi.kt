@@ -2,6 +2,7 @@ package com.omar.musica.ui.model
 
 import androidx.compose.runtime.Stable
 import com.omar.musica.model.PlayerSettings
+import com.omar.musica.model.PlayerTheme
 
 
 @Stable
@@ -14,6 +15,7 @@ data class PlayerSettingsUi(
      */
     val jumpInterval: Int
 )
+
 
 
 fun PlayerSettings.toPlayerSettingsUi() =
