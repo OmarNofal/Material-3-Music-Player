@@ -24,14 +24,14 @@ fun NavGraphBuilder.playlistsGraph() {
                     "settings_route" -> AnimatedContentTransitionScope.SlideDirection.End
                     else -> AnimatedContentTransitionScope.SlideDirection.Start
                 }
-                slideIntoContainer(slidingDirection, animationSpec = tween(200))
+                slideIntoContainer(slidingDirection, animationSpec = tween(100))
             },
             exitTransition = {
                 val slidingDirection = when(targetState.destination.route) {
                     "settings_route" -> AnimatedContentTransitionScope.SlideDirection.Start
                     else -> AnimatedContentTransitionScope.SlideDirection.End
                 }
-                slideOutOfContainer(slidingDirection, animationSpec = tween(200))
+                slideOutOfContainer(slidingDirection, animationSpec = tween(100))
             }
         ) {
             PlaylistsScreen(modifier = Modifier.fillMaxSize())

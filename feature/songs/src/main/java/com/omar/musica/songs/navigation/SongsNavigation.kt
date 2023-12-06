@@ -49,7 +49,7 @@ fun NavGraphBuilder.songsGraph(
             },
             exitTransition = {
                 if (targetState.destination.route != SEARCH_ROUTE) {
-                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(200))
+                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(100))
                 } else
                     fadeOut(tween(200)) +
                             slideOutVertically(
@@ -59,7 +59,7 @@ fun NavGraphBuilder.songsGraph(
             },
             popEnterTransition = {
                 if (initialState.destination.route != SEARCH_ROUTE) {
-                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(200))
+                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(100))
                 } else
                     fadeIn(tween(200)) +
                             slideInVertically (

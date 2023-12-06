@@ -310,7 +310,7 @@ fun FullScreenNowPlaying(
             targetState = isShowingQueue, label = "",
             transitionSpec = {
                 if (this.targetState)
-                    scaleIn(initialScale = 0.8f) + fadeIn() togetherWith fadeOut()
+                    fadeIn() togetherWith fadeOut()
                 else
                     scaleIn(initialScale = 1.2f) + fadeIn() togetherWith fadeOut()
             }

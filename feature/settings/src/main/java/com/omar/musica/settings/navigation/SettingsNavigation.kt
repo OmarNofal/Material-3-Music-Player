@@ -2,7 +2,6 @@ package com.omar.musica.settings.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
@@ -28,14 +27,14 @@ fun NavGraphBuilder.settingsGraph() {
                     "songs_route" -> 400
                     else -> 200
                 }
-                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(200))
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(100))
             },
             exitTransition = {
                 val animationDuration = when (targetState.destination.route) {
                     "songs_route" -> 400
-                    else -> 200
+                    else -> 100
                 }
-                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(200))
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(100))
             }
         ) {
             SettingsScreen(Modifier.fillMaxSize())
