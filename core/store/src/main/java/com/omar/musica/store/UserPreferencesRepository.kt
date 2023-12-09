@@ -88,6 +88,12 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    suspend fun toggleBlackBackgroundForDarkTheme() {
+        context.datastore.edit {
+            it[BLACK_BACKGROUND_FOR_DARK_THEME_KEY] = !(it[BLACK_BACKGROUND_FOR_DARK_THEME_KEY] ?: false)
+        }
+    }
+
     suspend fun changePlayerTheme(playerTheme: PlayerTheme) {
         context.datastore.edit {
             it[PLAYER_THEME_KEY] = playerTheme.toString()
@@ -130,7 +136,8 @@ class UserPreferencesRepository @Inject constructor(
         val theme = AppTheme.valueOf(this[THEME_KEY] ?: "SYSTEM")
         val isUsingDynamicColor = this[DYNAMIC_COLOR_KEY] ?: true
         val playerTheme = PlayerTheme.valueOf(this[PLAYER_THEME_KEY] ?: "BLUR")
-        return UiSettings(theme, isUsingDynamicColor, playerTheme)
+        val blackBackgroundForDarkTheme = this[BLACK_BACKGROUND_FOR_DARK_THEME_KEY] ?: false
+        return UiSettings(theme, isUsingDynamicColor, playerTheme, blackBackgroundForDarkTheme)
     }
 
     private fun Preferences.getLibrarySettings(excludedFolders: List<String>): LibrarySettings {
@@ -155,6 +162,7 @@ class UserPreferencesRepository @Inject constructor(
         val THEME_KEY = stringPreferencesKey("THEME")
         val DYNAMIC_COLOR_KEY = booleanPreferencesKey("DYNAMIC_COLOR")
         val PLAYER_THEME_KEY = stringPreferencesKey("PLAYER_THEME")
+        val BLACK_BACKGROUND_FOR_DARK_THEME_KEY = booleanPreferencesKey("BLACK_BACKGROUND_FOR_DARK_THEME")
         val MIN_DURATION_MILLIS_KEY = longPreferencesKey("MIN_DURATION_KEY")
         val CACHE_ALBUM_COVER_ART_KEY = booleanPreferencesKey("CACHE_ALBUM_COVER_ART")
         val JUMP_DURATION_KEY = intPreferencesKey("JUMP_DURATION_KEY")

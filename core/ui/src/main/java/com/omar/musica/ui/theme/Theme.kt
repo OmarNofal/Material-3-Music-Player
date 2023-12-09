@@ -1,8 +1,10 @@
 package com.omar.musica.ui.theme
 
 import android.app.Activity
+import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -46,6 +48,11 @@ val LightColorScheme = lightColorScheme(
     */
 )
 
+val amoledColorScheme = darkColorScheme(
+    surface = Color.Black,
+    background = Color.Black
+)
+
 @Composable
 fun MusicaTheme(
     userPreferences: UserPreferencesUi,
@@ -60,10 +67,17 @@ fun MusicaTheme(
     val colorScheme = when {
         userPreferences.uiSettings.isUsingDynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            if (darkTheme) {
+                if (userPreferences.uiSettings.blackBackgroundForDarkTheme)
+                    dynamicAmoledTheme(context)
+                else
+                    dynamicDarkColorScheme(context)
+            } else {
+                dynamicLightColorScheme(context)
+            }
         }
 
-        darkTheme -> DarkColorScheme
+        darkTheme -> if (userPreferences.uiSettings.blackBackgroundForDarkTheme) amoledColorScheme else DarkColorScheme
         else -> LightColorScheme
     }
     val view = LocalView.current
@@ -104,4 +118,9 @@ fun MusicaTheme(
             content = content
         )
     }
+}
+
+private fun dynamicAmoledTheme(context: Context): ColorScheme {
+    val darkColorScheme = dynamicDarkColorScheme(context)
+    return darkColorScheme.copy(background = Color.Black, surface = Color.Black)
 }

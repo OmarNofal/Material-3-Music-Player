@@ -70,6 +70,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    override fun toggleBlackBackgroundForDarkTheme() {
+        viewModelScope.launch {
+            userPreferencesRepository.toggleBlackBackgroundForDarkTheme()
+        }
+    }
+
 }
 
 @Stable
@@ -87,6 +93,8 @@ interface ISettingsViewModel {
     fun toggleDynamicColorScheme()
 
     fun onPlayerThemeChanged(playerTheme: PlayerThemeUi)
+
+    fun toggleBlackBackgroundForDarkTheme()
 }
 
 sealed interface SettingsState {

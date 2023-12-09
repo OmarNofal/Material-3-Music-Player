@@ -21,7 +21,9 @@ data class UiSettingsUi(
      */
     val isUsingDynamicColor: Boolean,
 
-    val playerThemeUi: PlayerThemeUi
+    val playerThemeUi: PlayerThemeUi,
+
+    val blackBackgroundForDarkTheme: Boolean
 )
 
 @Stable
@@ -49,4 +51,4 @@ fun AppThemeUi.toAppTheme() =
     AppTheme.valueOf(this.toString())
 
 fun UiSettings.toUiSettingsUi() =
-    UiSettingsUi(theme.toAppThemeUi(), isUsingDynamicColor, playerTheme.toPlayerThemeUi())
+    UiSettingsUi(theme.toAppThemeUi(), isUsingDynamicColor, playerTheme.toPlayerThemeUi(), blackBackgroundForDarkTheme)

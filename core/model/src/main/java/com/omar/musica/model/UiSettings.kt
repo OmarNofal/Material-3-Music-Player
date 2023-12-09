@@ -15,6 +15,8 @@ data class UiSettings(
     val isUsingDynamicColor: Boolean,
 
     val playerTheme: PlayerTheme,
+
+    val blackBackgroundForDarkTheme: Boolean
 )
 
 enum class PlayerTheme {

@@ -5,6 +5,7 @@ import android.app.Activity
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -196,7 +197,7 @@ internal fun NowPlayingScreen(
 
         Surface(
             modifier = modifier,
-            tonalElevation = 4.dp
+            tonalElevation = if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 4.dp
         ) {
                 Box(modifier = Modifier.fillMaxSize()) {
 
@@ -257,7 +258,9 @@ fun FullScreenNowPlaying(
     ) {
 
         val playerTheme = LocalUserPreferences.current.uiSettings.playerThemeUi
-        if (playerTheme == PlayerThemeUi.BLUR)
+        AnimatedVisibility(visible = playerTheme == PlayerThemeUi.BLUR,
+            enter = fadeIn(), exit = fadeOut()
+        ) {
             CrossFadingAlbumArt(
                 modifier = Modifier.fillMaxSize(),
                 song = song,
@@ -270,6 +273,7 @@ fun FullScreenNowPlaying(
                     )
                 }
             )
+        }
 
 
         val activity = LocalContext.current as Activity

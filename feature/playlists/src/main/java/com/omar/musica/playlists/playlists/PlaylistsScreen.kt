@@ -22,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.playlists.rememberCreatePlaylistDialog
@@ -56,7 +57,7 @@ fun PlaylistsScreen(
         topBar = {
 
             TopAppBar(
-                title = { Text(text = "Playlists") },
+                title = { Text(text = "Playlists", fontWeight = FontWeight.SemiBold) },
                 actions = {
                     IconButton(onClick = { createPlaylistsDialog.launch() }) {
                         Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
@@ -77,6 +78,10 @@ fun PlaylistsScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
+
+                item {
+                    Divider(Modifier.fillMaxWidth())
+                }
 
                 val list = (state as PlaylistsScreenState.Success).playlists
 

@@ -1,6 +1,7 @@
 package com.omar.musica.settings.common
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -49,9 +50,10 @@ fun GeneralSettingsItem(
 
     Row(
         modifier,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column {
+        Column(Modifier.weight(1f)) {
             Text(text = title, fontSize = 16.sp)
             if (subtitle == null) return@Column
             Text(
@@ -100,8 +102,8 @@ fun SwitchSettingsItem(
         subtitle = subtitle,
         info = info,
     ) {
-        Spacer(modifier = Modifier.weight(1f))
-        Switch(checked = toggled, onCheckedChange = { onToggle() })
+        Spacer(modifier = Modifier.width(16.dp))
+        Switch(modifier = Modifier.padding(end = 16.dp), checked = toggled, onCheckedChange = { onToggle() })
     }
 
 }

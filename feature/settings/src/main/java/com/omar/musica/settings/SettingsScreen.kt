@@ -161,6 +161,23 @@ fun SettingsList(
                 subtitle = text
             )
         }
+        item {
+            Divider(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = 32.dp)
+            )
+        }
+        item {
+            SwitchSettingsItem(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                title = "Use Black Background for Dark Theme",
+                subtitle = "Preserves battery on AMOLED screens",
+                toggled = userPreferences.uiSettings.blackBackgroundForDarkTheme,
+                onToggle = { settingsCallbacks.toggleBlackBackgroundForDarkTheme() }
+            )
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             item {
                 Divider(

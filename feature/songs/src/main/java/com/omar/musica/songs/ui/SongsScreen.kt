@@ -149,7 +149,7 @@ internal fun SongsScreen(
                         songs.sumOf { it.length }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Divider(Modifier.fillMaxSize())
+                    Divider(Modifier.fillMaxWidth())
                 }
             }
 
