@@ -134,6 +134,25 @@ class PlaybackManager @Inject constructor(
         }
     }
 
+    /** Randomize the order of the list of songs and play */
+    fun shuffle(playlist: List<Song>) {
+        val shuffled = playlist.shuffled()
+        stopPlayback()
+        mediaController?.apply {
+            setMediaItems(shuffled.toMediaItems(), 0, 0)
+            prepare()
+            play()
+        }
+    }
+
+    fun shuffleNext(playlist: List<Song>) {
+        val shuffled = playlist.shuffled()
+        val currentIndex = mediaController?.currentMediaItemIndex ?: 0
+        mediaController?.apply {
+            addMediaItems(currentIndex + 1, shuffled.toMediaItems())
+        }
+    }
+
     fun playNext(songs: List<Song>) {
         val mediaItems = songs.toMediaItems()
         val currentIndex = mediaController?.currentMediaItemIndex ?: 0
@@ -141,6 +160,11 @@ class PlaybackManager @Inject constructor(
         mediaController?.prepare()
     }
 
+    fun addToQueue(songs: List<Song>) {
+        val mediaItems = songs.toMediaItems()
+        mediaController?.addMediaItems(mediaItems)
+        mediaController?.prepare()
+    }
 
     private fun updateState() {
         val controller = mediaController ?: return

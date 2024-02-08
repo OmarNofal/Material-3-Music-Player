@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.Flow
 interface PlaylistDao {
 
     @Query(
-        "SELECT P.*, S.song_uri FROM $PLAYLIST_ENTITY P JOIN $PLAYLIST_SONG_ENTITY S " +
+        "SELECT P.*, S.song_uri FROM $PLAYLIST_ENTITY P LEFT OUTER JOIN $PLAYLIST_SONG_ENTITY S " +
                 "ON P.${PLAYLIST_ID_COLUMN} = S.${PLAYLIST_ID_COLUMN} WHERE P.$PLAYLIST_ID_COLUMN = :playlistId"
     )
     fun getPlaylistWithSongsFlow(playlistId: Int): Flow<PlaylistWithSongsUri>

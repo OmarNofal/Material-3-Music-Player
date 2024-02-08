@@ -22,7 +22,7 @@ import com.omar.musica.songs.ui.SongsScreen
 
 const val SONGS_NAVIGATION_GRAPH = "songs_graph"
 const val SONGS_ROUTE = "songs_route"
-private const val SEARCH_ROUTE = "search_route"
+const val SEARCH_ROUTE = "search_route"
 
 
 fun NavController.navigateToSongs(navOptions: NavOptions? = null) {
@@ -49,7 +49,7 @@ fun NavGraphBuilder.songsGraph(
             },
             exitTransition = {
                 if (targetState.destination.route != SEARCH_ROUTE) {
-                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(100))
+                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(200))
                 } else
                     fadeOut(tween(200)) +
                             slideOutVertically(
@@ -59,7 +59,7 @@ fun NavGraphBuilder.songsGraph(
             },
             popEnterTransition = {
                 if (initialState.destination.route != SEARCH_ROUTE) {
-                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(100))
+                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(200))
                 } else
                     fadeIn(tween(200)) +
                             slideInVertically (

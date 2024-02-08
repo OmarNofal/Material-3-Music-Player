@@ -5,10 +5,16 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
+import com.omar.musica.playlists.navigation.PLAYLIST_DETAILS_ROUTE
+import com.omar.musica.settings.navigation.SETTINGS_ROUTE
+import com.omar.musica.songs.navigation.SEARCH_ROUTE
+import com.omar.musica.songs.navigation.SONGS_ROUTE
 import com.omar.nowplaying.NowPlayingState
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 
 @Composable
@@ -50,6 +56,11 @@ class MusicaAppState(
      * Whether we should show the NowPlaying Screen or not.
      */
     val shouldShowNowPlayingScreen = nowPlayingViewModel.state.map { it is NowPlayingState.Playing }
+
+    val shouldShowBottomBar = navHostController.currentBackStackEntryFlow.onEach { delay(200) }.map {
+        val route = it.destination.route ?: return@map true
+        return@map !(route.contains(PLAYLIST_DETAILS_ROUTE) || route.contains(SEARCH_ROUTE))
+    }
 
 
 }

@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LibraryMusic
+import androidx.compose.material.icons.rounded.PlaylistPlay
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -67,14 +69,14 @@ fun PlaylistRow(
 
 @Composable
 fun PlaylistImage() {
-    AsyncImage(
+    Icon(imageVector = Icons.Rounded.PlaylistPlay, contentDescription = "", modifier = Modifier.size(36.dp))
+/*AsyncImage(
         modifier = Modifier
-            .size(48.dp)
-            .clip(RoundedCornerShape(6.dp)),
+            .size(36.dp),
         model = null,
         imageLoader = LocalEfficientThumbnailImageLoader.current,
         contentDescription = "Playlist Photo",
         contentScale = ContentScale.Crop,
-        error = rememberVectorPainter(image = Icons.Rounded.LibraryMusic)
-    )
+        error = rememberVectorPainter(image = Icons.Rounded.PlaylistPlay)
+    )*/
 }

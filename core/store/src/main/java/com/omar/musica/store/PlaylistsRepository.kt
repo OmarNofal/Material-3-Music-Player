@@ -47,6 +47,18 @@ class PlaylistsRepository @Inject constructor(
         }
     }
 
+    fun deletePlaylist(id: Int) {
+        coroutineScope.launch {
+            playlistsDao.deletePlaylistWithSongs(id)
+        }
+    }
+
+    fun renamePlaylist(id: Int, newName: String) {
+        coroutineScope.launch {
+            playlistsDao.renamePlaylist(id, newName)
+        }
+    }
+
     fun getPlaylistWithSongsFlow(playlistId: Int): Flow<Playlist> =
         combine(
             mediaRepository.songsFlow,

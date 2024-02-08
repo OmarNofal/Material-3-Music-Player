@@ -9,16 +9,21 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.ManageSearch
 import androidx.compose.material.icons.rounded.PlaylistAdd
+import androidx.compose.material.icons.rounded.SearchOff
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,10 +41,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -136,7 +143,7 @@ internal fun SearchScreen(
         multiSelectState.clear()
     }
 
-    Surface(tonalElevation = 2.dp) {
+    Surface(modifier = Modifier.fillMaxSize(), tonalElevation = 2.dp) {
 
         Scaffold(
             modifier.fillMaxSize(),
@@ -165,56 +172,68 @@ internal fun SearchScreen(
 
             val songInfoDialog = rememberSongDialog()
 
-
-
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = paddingValues.calculateTopPadding())
+            AnimatedContent(
+                targetState = state.searchQuery.isBlank() to (state.songs.isEmpty()),
+                label = ""
             ) {
 
-                item {
-                    if (state.songs.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            modifier = Modifier.padding(start = 16.dp),
-                            text = "Songs",
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 12.sp
+                if (it.first) {
+                    EmptyQueryScreen(modifier = Modifier.fillMaxSize())
+                } else if (it.second) {
+                    NoResultsScreen(modifier = Modifier.fillMaxSize())
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = paddingValues.calculateTopPadding())
+                    ) {
+
+                        item {
+                            if (state.songs.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    modifier = Modifier.padding(start = 16.dp),
+                                    text = "Songs",
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+
+                        selectableSongsList(
+                            state.songs,
+                            multiSelectState,
+                            multiSelectEnabled,
+                            animateItemPlacement = false, // for some reason if it is true, the application will crash on, no idea why
+                            menuActionsBuilder = { song: SongUi ->
+                                mutableListOf<MenuActionItem>()
+                                    .apply {
+                                        playNext { onPlayNext(listOf(song)) }
+                                        addToPlaylists { addToPlaylistDialog.launch(listOf(song)) }
+                                        share { onShare(listOf(song)) }
+                                        songInfo { songInfoDialog.open(song) }
+                                        deleteAction {
+                                            if (api30AndUp) {
+                                                deleteRequestLauncher.launch(
+                                                    getIntentSenderRequest(
+                                                        context,
+                                                        song.uriString.toUri()
+                                                    )
+                                                )
+                                            } else {
+                                                onDelete(listOf(song))
+                                            }
+                                        }
+                                    }
+                            },
+                            onSongClicked = onSongClicked
                         )
+
                     }
                 }
 
-                selectableSongsList(
-                    state.songs,
-                    multiSelectState,
-                    multiSelectEnabled,
-                    animateItemPlacement = false, // for some reason if it is true, the application will crash on, no idea why
-                    menuActionsBuilder = { song: SongUi ->
-                        mutableListOf<MenuActionItem>()
-                            .apply {
-                                playNext { onPlayNext(listOf(song)) }
-                                addToPlaylists { addToPlaylistDialog.launch(listOf(song)) }
-                                share { onShare(listOf(song)) }
-                                songInfo { songInfoDialog.open(song) }
-                                deleteAction {
-                                    if (api30AndUp) {
-                                        deleteRequestLauncher.launch(
-                                            getIntentSenderRequest(
-                                                context,
-                                                song.uriString.toUri()
-                                            )
-                                        )
-                                    } else {
-                                        onDelete(listOf(song))
-                                    }
-                                }
-                            }
-                    },
-                    onSongClicked = onSongClicked
-                )
-
             }
+
         }
 
     }
@@ -269,7 +288,9 @@ fun SearchScreenTopBar(
                         }
                     }
                     PlainTooltipBox(tooltip = { Text(text = "Add to Playlists") }) {
-                        IconButton(modifier = Modifier.tooltipAnchor(), onClick = { onAddToPlaylists() }) {
+                        IconButton(
+                            modifier = Modifier.tooltipAnchor(),
+                            onClick = { onAddToPlaylists() }) {
                             Icon(Icons.Rounded.PlaylistAdd, contentDescription = "Add to Playlists")
                         }
                     }
@@ -311,5 +332,43 @@ fun SearchScreenTopBar(
 }
 
 
+@Composable
+private fun EmptyQueryScreen(
+    modifier: Modifier
+) {
+    IconWithTextScreen(
+        modifier = modifier,
+        iconVector = Icons.Rounded.ManageSearch,
+        text = "Search all songs on this device"
+    )
+}
 
 
+@Composable
+private fun NoResultsScreen(
+    modifier: Modifier
+) {
+    IconWithTextScreen(
+        modifier = modifier,
+        iconVector = Icons.Rounded.SearchOff,
+        text = "No songs matching the query"
+    )
+}
+
+
+@Composable
+private fun IconWithTextScreen(
+    modifier: Modifier,
+    iconVector: ImageVector,
+    text: String
+) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Column(
+            modifier = Modifier.padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(imageVector = iconVector, contentDescription = "", modifier = Modifier.size(72.dp))
+            Text(text = text, fontWeight = FontWeight.Light, fontSize = 16.sp)
+        }
+    }
+}

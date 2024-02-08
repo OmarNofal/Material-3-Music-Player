@@ -40,7 +40,7 @@ class QueueRepository @Inject constructor(
 
     fun saveQueueFromQueueItems(songs: List<QueueItem>) {
         scope.launch {
-            queueDao.changeQueue(songs.map { it.toQueueEntity() })
+            queueDao.changeQueue(songs.distinctBy { it.uri }.map { it.toQueueEntity() })
         }
     }
 

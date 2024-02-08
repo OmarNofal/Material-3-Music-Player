@@ -27,14 +27,14 @@ fun NavGraphBuilder.settingsGraph() {
                     "songs_route" -> 400
                     else -> 200
                 }
-                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(100))
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(200))
             },
             exitTransition = {
                 val animationDuration = when (targetState.destination.route) {
                     "songs_route" -> 400
                     else -> 100
                 }
-                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(100))
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(200))
             }
         ) {
             SettingsScreen(Modifier.fillMaxSize())

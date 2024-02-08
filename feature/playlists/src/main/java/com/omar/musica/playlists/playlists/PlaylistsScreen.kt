@@ -1,5 +1,6 @@
 package com.omar.musica.playlists.playlists
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,6 +32,7 @@ import com.omar.musica.playlists.rememberCreatePlaylistDialog
 @Composable
 fun PlaylistsScreen(
     modifier: Modifier,
+    onNavigateToPlaylist: (Int) -> Unit,
     playlistsViewModel: PlaylistsViewModel = hiltViewModel()
 ) {
 
@@ -39,6 +41,7 @@ fun PlaylistsScreen(
     PlaylistsScreen(
         modifier = modifier,
         state = state,
+        onNavigateToPlaylist
     )
 
 }
@@ -47,7 +50,8 @@ fun PlaylistsScreen(
 @Composable
 fun PlaylistsScreen(
     modifier: Modifier,
-    state: PlaylistsScreenState
+    state: PlaylistsScreenState,
+    onPlaylistClicked: (Int) -> Unit
 ) {
 
     val createPlaylistsDialog = rememberCreatePlaylistDialog()
@@ -87,14 +91,14 @@ fun PlaylistsScreen(
 
                 items(list) {
                     PlaylistRow(
-                        Modifier.fillMaxWidth(),
+                        Modifier.fillMaxWidth().clickable { onPlaylistClicked(it.id) },
                         it
                     )
                     if (it != list.last()) {
                         Divider(
                             Modifier
                                 .fillMaxWidth()
-                                .padding(start = (12 + 48 + 8).dp)
+                                .padding(start = (12 + 36 + 8).dp)
                         )
                     }
                 }

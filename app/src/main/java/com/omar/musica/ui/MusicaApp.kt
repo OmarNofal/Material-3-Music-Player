@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
@@ -37,10 +38,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.util.Consumer
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -88,8 +91,8 @@ fun MusicaApp(
     }
 
 
-    val barHeight = 64.dp
-    val barHeightPx = with(density) { barHeight.toPx() }
+    val nowPlayingBarHeight = 64.dp
+    val barHeightPx = with(density) { nowPlayingBarHeight.toPx() }
 
     var boxMinOffset by remember { mutableFloatStateOf(0.0f) }
 
@@ -105,18 +108,20 @@ fun MusicaApp(
         nowPlayingVisibilityProvider = scrollProvider,
     )
 
-
+    val shouldShowBottomBar by appState.shouldShowBottomBar.collectAsState(initial = true)
     val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = false)
 
-    val context = LocalContext.current
-    LaunchedEffect(key1 = Unit) {
-        delay(500)
-        val activity = (context as? Activity) ?: return@LaunchedEffect
-        val action = activity.intent.action
-        if (action == PlaybackService.VIEW_MEDIA_SCREEN_ACTION && shouldShowNowPlayingBar) {
-            anchorState.animateTo(BarState.EXPANDED)
-        }
-    }
+    val bottomNavBarOffset by animateDpAsState(
+        targetValue = if (shouldShowBottomBar) 0.dp else 80.dp,
+        label = "BottomBar Offset"
+    )
+
+
+    var layoutHeightPx = remember { 0 }
+    val bottomNavBarHeightPx =
+        with(density) { 80.dp.toPx() }
+
+
 
     // App itself
     Box(modifier = modifier) {
@@ -124,18 +129,24 @@ fun MusicaApp(
         // DrawContentFirst
         NavHost(
             modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(
+                    bottom = calculateBottomPaddingForContent(
+                        shouldShowNowPlayingBar,
+                        80.dp - bottomNavBarOffset,
+                        nowPlayingBarHeight
+                    )
+                )
                 .fillMaxSize()
-                .padding(bottom = 80.dp + if (shouldShowNowPlayingBar) barHeight else 0.dp)
                 .navigationBarsPadding(),
             navController = navController,
             startDestination = SONGS_NAVIGATION_GRAPH
         ) {
             songsGraph(navController, enableBackPress = !appState.isNowPlayingExpanded)
 
-            playlistsGraph()
+            playlistsGraph(navController)
 
             settingsGraph()
-
         }
 
         val navigationBarInsets = WindowInsets.navigationBars
@@ -148,7 +159,7 @@ fun MusicaApp(
         ) {
 
             NowPlayingScreen(
-                barHeight = barHeight,
+                barHeight = nowPlayingBarHeight,
                 modifier = Modifier
                     .fillMaxSize()
                     .offset {
@@ -164,18 +175,18 @@ fun MusicaApp(
                     }
 
                     .onSizeChanged { layoutSize ->
-                        anchorState.updateAnchors(
-                            DraggableAnchors {
-                                // 5
-                                val bottomNavBarHeightPx =
-                                    with(density) { 80.dp.toPx() }
-                                val offset =
-                                    (-barHeightPx + layoutSize.height - bottomNavBarHeightPx)
-                                boxMinOffset = offset
-                                BarState.COLLAPSED at offset
-                                BarState.EXPANDED at 0.0f
-                            }
-                        )
+                        layoutHeightPx = layoutSize.height
+                        boxMinOffset = anchorState
+                            .update(
+                                layoutHeightPx,
+                                barHeightPx.toInt(),
+                                with(density) {
+                                    bottomNavBarHeightPx.toInt() - bottomNavBarOffset
+                                        .toPx()
+                                        .toInt()
+                                }
+                            )
+                            .toFloat()
                     }
                     .anchoredDraggable(anchorState, Orientation.Vertical),
                 onCollapseNowPlaying = {
@@ -195,8 +206,17 @@ fun MusicaApp(
         }
 
 
+        LaunchedEffect(key1 = shouldShowBottomBar) {
+            anchorState.update(
+                layoutHeightPx,
+                barHeightPx.toInt(),
+                with(density) { bottomNavBarHeightPx.toInt() - bottomNavBarOffset.toPx().toInt() }
+            )
+        }
+
         // Finally draw the bottom nav bar
         val backStackState by appState.navHostController.currentBackStackEntryAsState()
+
         MusicaBottomNavBar(
             modifier = Modifier
                 .fillMaxWidth()
@@ -204,34 +224,81 @@ fun MusicaApp(
                 .graphicsLayer { alpha = 1 - scrollProvider() }
                 .offset {
                     val navigationBarHeight = 80.dp.toPx()
-                    IntOffset(0, (navigationBarHeight * scrollProvider()).toInt())
+                    IntOffset(0, (navigationBarHeight * scrollProvider()).toInt()) +
+                            IntOffset(
+                                0,
+                                bottomNavBarOffset
+                                    .toPx()
+                                    .toInt()
+                            )
                 },
             topLevelDestinations = topLevelDestinations,
             currentDestination = backStackState?.destination,
             onDestinationSelected = {
-                navController.navigateToTopLevelDestination(
-                    it
-                )
+                navController.navigateToTopLevelDestination(it)
             }
         )
 
+        ViewNowPlayingScreenListenerEffect(
+            navController = navController,
+            onViewNowPlayingScreen = { scope.launch { anchorState.animateTo(BarState.EXPANDED) } }
+        )
 
     }
+}
 
 
+@Composable
+fun ViewNowPlayingScreenListenerEffect(
+    navController: NavController,
+    onViewNowPlayingScreen: () -> Unit
+) {
+    val context = LocalContext.current
+    LaunchedEffect(key1 = Unit) {
+        delay(500)
+        val activity = (context as? Activity) ?: return@LaunchedEffect
+        val action = activity.intent.action
+        if (action == PlaybackService.VIEW_MEDIA_SCREEN_ACTION) {
+            onViewNowPlayingScreen()
+        }
+    }
 
     DisposableEffect(navController) {
         val listener = Consumer<Intent> {
             if (it.action == PlaybackService.VIEW_MEDIA_SCREEN_ACTION) {
-                scope.launch {
-                    anchorState.animateTo(BarState.EXPANDED)
-                }
+                onViewNowPlayingScreen()
             }
         }
         val activity = (context as? ComponentActivity) ?: return@DisposableEffect onDispose { }
         activity.addOnNewIntentListener(listener)
         onDispose { activity.removeOnNewIntentListener(listener) }
     }
+}
 
 
+@OptIn(ExperimentalFoundationApi::class)
+fun AnchoredDraggableState<BarState>.update(
+    layoutHeightPx: Int,
+    barHeightPx: Int,
+    bottomBarHeightPx: Int
+): Int {
+    var offset = 0
+    updateAnchors(
+        DraggableAnchors {
+            offset =
+                (-barHeightPx + layoutHeightPx - bottomBarHeightPx)
+            BarState.COLLAPSED at offset.toFloat()
+            BarState.EXPANDED at 0.0f
+        },
+        BarState.COLLAPSED
+    )
+    return offset
+}
+
+fun calculateBottomPaddingForContent(
+    shouldShowNowPlayingBar: Boolean,
+    bottomBarHeight: Dp,
+    nowPlayingBarHeight: Dp
+): Dp {
+    return bottomBarHeight + (if (shouldShowNowPlayingBar) nowPlayingBarHeight else 0.dp)
 }
