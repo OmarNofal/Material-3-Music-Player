@@ -1,5 +1,6 @@
 package com.omar.musica.ui.common
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.Spring
@@ -49,12 +50,11 @@ import timber.log.Timber
 
 
 @Composable
-fun SelectableSongRow(
+fun SongRow(
     modifier: Modifier,
     song: SongUi,
     menuOptions: List<MenuActionItem>? = null,
-    multiSelectOn: Boolean = false,
-    isSelected: Boolean = false
+    songRowState: SongRowState
 ) {
 
     val efficientThumbnailLoading = LocalUserPreferences.current.librarySettings.cacheAlbumCoverArt
@@ -67,6 +67,62 @@ fun SelectableSongRow(
                 top = 12.dp,
                 bottom = 12.dp
             ),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        SongInfoRow(
+            modifier = Modifier.weight(1f),
+            song = song,
+            efficientThumbnailLoading = efficientThumbnailLoading
+        )
+
+        Box(
+            Modifier
+                .fillMaxHeight()
+                .width(48.dp), contentAlignment = Alignment.Center
+        ) {
+
+            if (menuOptions != null) {
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = songRowState == SongRowState.MENU_SHOWN,
+                    enter = EnterTransition.None,
+                    exit = ExitTransition.None
+                ) {
+                    SongOverflowMenu(menuOptions = menuOptions)
+                }
+            }
+
+            androidx.compose.animation.AnimatedVisibility(
+                visible = songRowState == SongRowState.SELECTION_STATE_SELECTED,
+                enter = scaleIn(spring(Spring.DampingRatioMediumBouncy)),
+                exit = scaleOut()
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.tertiary
+                )
+            }
+
+        }
+
+
+    }
+
+}
+
+enum class SongRowState {
+    MENU_SHOWN, SELECTION_STATE_NOT_SELECTED, SELECTION_STATE_SELECTED, EMPTY
+}
+
+@Composable
+fun SongInfoRow(
+    modifier: Modifier,
+    song: SongUi,
+    efficientThumbnailLoading: Boolean
+) {
+    Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
 
@@ -120,44 +176,8 @@ fun SelectableSongRow(
                     fontWeight = FontWeight.Normal
                 )
             }
-
-
         }
-
-
-        Box(
-            Modifier
-                .fillMaxHeight()
-                .width(48.dp), contentAlignment = Alignment.Center
-        ) {
-
-            if (menuOptions != null) {
-                androidx.compose.animation.AnimatedVisibility(
-                    visible = !multiSelectOn,
-                    enter = EnterTransition.None,
-                    exit = ExitTransition.None
-                ) {
-                    SongOverflowMenu(menuOptions = menuOptions)
-                }
-            }
-
-            androidx.compose.animation.AnimatedVisibility(
-                visible = multiSelectOn && isSelected,
-                enter = scaleIn(spring(Spring.DampingRatioMediumBouncy)),
-                exit = scaleOut()
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.CheckCircle,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.tertiary
-                )
-            }
-
-        }
-
-
     }
-
 }
 
 @Composable

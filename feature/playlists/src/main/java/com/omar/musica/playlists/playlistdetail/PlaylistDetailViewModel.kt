@@ -1,10 +1,8 @@
 package com.omar.musica.playlists.playlistdetail
 
-import androidx.compose.runtime.MutableState
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.omar.musica.database.dao.PlaylistDao
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.PlaylistsRepository
 import com.omar.musica.ui.model.SongUi
@@ -14,25 +12,25 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @HiltViewModel
 class PlaylistDetailViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val playlistDao: PlaylistsRepository,
-    private val playbackManager: PlaybackManager,
-): ViewModel() {
+    private val playbackManager: PlaybackManager
+) : ViewModel(), PlaylistActions {
 
-    private val _state = MutableStateFlow<PlaylistDetailScreenState>(PlaylistDetailScreenState.Loading)
+    private val _state =
+        MutableStateFlow<PlaylistDetailScreenState>(PlaylistDetailScreenState.Loading)
     val state: StateFlow<PlaylistDetailScreenState> get() = _state
 
     private var collectionJob: Job
 
-    private val id: String = savedStateHandle.get<String>("id") ?: throw IllegalArgumentException("Playlist Id not given")
+    private val id: String = savedStateHandle.get<String>("id")
+        ?: throw IllegalArgumentException("Playlist Id not given")
 
     init {
 
@@ -62,17 +60,17 @@ class PlaylistDetailViewModel @Inject constructor(
         playbackManager.setPlaylistAndPlayAtIndex(songs.toSongModels(), index)
     }
 
-    fun onRemoveSong(song: SongUi) {
-
+    override fun removeSongs(songUris: List<String>) {
+        playlistDao.removeSongsFromPlaylist(id.toInt(), songUris)
     }
 
-    fun onDeletePlaylist() {
+    override fun delete() {
         collectionJob.cancel()
         playlistDao.deletePlaylist(id.toInt())
         _state.value = PlaylistDetailScreenState.Deleted
     }
 
-    fun onPlayNext() {
+    override fun playNext() {
         val state = _state.value
         if (state !is PlaylistDetailScreenState.Loaded) return
 
@@ -80,7 +78,7 @@ class PlaylistDetailViewModel @Inject constructor(
         playbackManager.playNext(songs.toSongModels())
     }
 
-    fun addToQueue() {
+    override fun addToQueue() {
         val state = _state.value
         if (state !is PlaylistDetailScreenState.Loaded) return
 
@@ -88,7 +86,7 @@ class PlaylistDetailViewModel @Inject constructor(
         playbackManager.addToQueue(songs.toSongModels())
     }
 
-    fun onShuffle() {
+    override fun shuffle() {
         val state = _state.value
         if (state !is PlaylistDetailScreenState.Loaded) return
 
@@ -96,7 +94,7 @@ class PlaylistDetailViewModel @Inject constructor(
         playbackManager.shuffle(songs.toSongModels())
     }
 
-    fun onShuffleNext() {
+    override fun shuffleNext() {
         val state = _state.value
         if (state !is PlaylistDetailScreenState.Loaded) return
 
@@ -104,11 +102,11 @@ class PlaylistDetailViewModel @Inject constructor(
         playbackManager.shuffleNext(songs.toSongModels())
     }
 
-    fun onRename(newName: String) {
+    override fun rename(newName: String) {
         playlistDao.renamePlaylist(id.toInt(), newName)
     }
 
-    fun onPlay() {
+    override fun play() {
         val state = _state.value
         if (state !is PlaylistDetailScreenState.Loaded) return
 
@@ -116,5 +114,18 @@ class PlaylistDetailViewModel @Inject constructor(
         playbackManager.setPlaylistAndPlayAtIndex(songs.toSongModels())
     }
 
+
+}
+
+interface PlaylistActions {
+
+    fun play()
+    fun shuffle()
+    fun playNext()
+    fun shuffleNext()
+    fun rename(newName: String)
+    fun addToQueue()
+    fun delete()
+    fun removeSongs(songUris: List<String>)
 
 }

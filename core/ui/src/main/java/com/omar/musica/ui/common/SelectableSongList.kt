@@ -29,7 +29,14 @@ fun LazyListScope.selectableSongsList(
             menuActionsBuilder(song)
         }
 
-        SelectableSongRow(
+        val rowState = if (multiSelectEnabled && multiSelectState.selected.contains(song)) {
+            SongRowState.SELECTION_STATE_SELECTED
+        } else if (multiSelectEnabled) {
+            SongRowState.SELECTION_STATE_NOT_SELECTED
+        } else
+            SongRowState.MENU_SHOWN
+
+        SongRow(
             modifier = Modifier
                 .then(if (animateItemPlacement) Modifier.animateItemPlacement() else Modifier)
                 .fillMaxWidth()
@@ -45,8 +52,7 @@ fun LazyListScope.selectableSongsList(
                 },
             song = song,
             menuOptions = menuActions,
-            multiSelectOn = multiSelectEnabled,
-            isSelected = multiSelectState.selected.contains(song),
+            rowState
         )
         if (song != songs.last()) {
             Divider(

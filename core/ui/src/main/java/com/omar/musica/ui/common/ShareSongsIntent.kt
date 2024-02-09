@@ -3,8 +3,19 @@ package com.omar.musica.ui.common
 import android.content.Context
 import android.content.Intent
 import androidx.core.net.toUri
+import com.omar.musica.ui.actions.SongShareAction
 import com.omar.musica.ui.model.SongUi
 
+
+object SongsSharer : SongShareAction {
+
+    override fun share(context: Context, songs: List<SongUi>) {
+        if (songs.isEmpty()) return
+        if (songs.size == 1) shareSingleSong(context, songs[0])
+        else shareMultipleSongs(context, songs)
+    }
+
+}
 
 fun shareSongs(context: Context, songs: List<SongUi>) {
     if (songs.isEmpty()) return

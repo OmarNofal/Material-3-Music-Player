@@ -12,10 +12,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +23,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -36,24 +33,20 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.PlaylistAdd
-import androidx.compose.material.icons.rounded.PlaylistRemove
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -71,6 +64,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -79,10 +73,23 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.omar.musica.ui.common.LocalCommonSongsAction
+import com.omar.musica.ui.common.MenuActionItem
 import com.omar.musica.ui.common.MultiSelectState
 import com.omar.musica.ui.common.SongAlbumArtImage
+import com.omar.musica.ui.common.addToQueue
+import com.omar.musica.ui.common.buildCommonMultipleSongsActions
+import com.omar.musica.ui.common.buildCommonSongActions
+import com.omar.musica.ui.common.delete
+import com.omar.musica.ui.common.edit
 import com.omar.musica.ui.common.millisToTime
+import com.omar.musica.ui.common.playNext
+import com.omar.musica.ui.common.removeFromPlaylist
+import com.omar.musica.ui.common.rename
 import com.omar.musica.ui.common.selectableSongsList
+import com.omar.musica.ui.common.shuffleNext
+import com.omar.musica.ui.common.topbar.OverflowMenu
+import com.omar.musica.ui.common.topbar.SelectionTopAppBarScaffold
 import com.omar.musica.ui.model.SongUi
 import kotlinx.coroutines.launch
 
@@ -94,9 +101,7 @@ fun PlaylistDetailScreen(
     playlistDetailViewModel: PlaylistDetailViewModel = hiltViewModel()
 ) {
 
-
     val state by playlistDetailViewModel.state.collectAsState()
-
 
     LaunchedEffect(key1 = state) {
         if (state is PlaylistDetailScreenState.Deleted) {
@@ -111,16 +116,10 @@ fun PlaylistDetailScreen(
     PlaylistDetailScreen(
         modifier = modifier,
         state = state,
+        playlistActions = playlistDetailViewModel,
         onBackPressed = onBackPressed,
-        onPlayPlaylist = playlistDetailViewModel::onPlay,
-        onShuffle = playlistDetailViewModel::onShuffle,
         onSongClicked = playlistDetailViewModel::onSongClicked,
-        onPlayNext = playlistDetailViewModel::onPlayNext,
-        onAddToQueue = playlistDetailViewModel::addToQueue,
-        onShuffleNext = playlistDetailViewModel::onShuffleNext,
         onEdit = {},
-        onRename = playlistDetailViewModel::onRename,
-        onDelete = playlistDetailViewModel::onDeletePlaylist
     )
 
 }
@@ -131,16 +130,10 @@ fun PlaylistDetailScreen(
 internal fun PlaylistDetailScreen(
     modifier: Modifier,
     state: PlaylistDetailScreenState,
+    playlistActions: PlaylistActions,
     onBackPressed: () -> Unit,
-    onPlayPlaylist: () -> Unit,
-    onShuffle: () -> Unit,
     onSongClicked: (SongUi) -> Unit,
-    onPlayNext: () -> Unit,
-    onAddToQueue: () -> Unit,
-    onShuffleNext: () -> Unit,
     onEdit: () -> Unit,
-    onRename: (String) -> Unit,
-    onDelete: () -> Unit
 ) {
 
     if (state is PlaylistDetailScreenState.Loading) return
@@ -152,53 +145,65 @@ internal fun PlaylistDetailScreen(
     val listState = rememberLazyListState()
     val shouldShowTopBarTitle by rememberShouldShowTopBar(listState = listState)
 
-    val deletePlaylistDialog = rememberDeletePlaylistDialog(playlistName = state.name, onDelete = onDelete)
+    val deletePlaylistDialog =
+        rememberDeletePlaylistDialog(playlistName = state.name, onDelete = playlistActions::delete)
+
+    val context = LocalContext.current
+    val commonSongsActions = LocalCommonSongsAction.current
 
     var inRenameMode by remember { mutableStateOf(false) }
     BackHandler(inRenameMode) {
         inRenameMode = false
     }
 
+    val multiSelectState = remember {
+        MultiSelectState()
+    }
+
+    val multiSelectEnabled by remember {
+        derivedStateOf { multiSelectState.selected.size > 0 }
+    }
+
+    BackHandler(multiSelectEnabled) {
+        multiSelectState.clear()
+    }
+
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
-                scrollBehavior = topBarScrollBehavior,
-
-                title = {
-                    AnimatedVisibility(
-                        visible = shouldShowTopBarTitle,
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
-                        Text(text = state.name, fontWeight = FontWeight.SemiBold)
+            SelectionTopAppBarScaffold(
+                modifier = Modifier.fillMaxWidth(),
+                multiSelectState = multiSelectState,
+                isMultiSelectEnabled = multiSelectEnabled,
+                actionItems = buildCommonMultipleSongsActions(
+                    multiSelectState.selected,
+                    context,
+                    commonSongsActions.playbackActions,
+                    commonSongsActions.addToPlaylistDialog,
+                    commonSongsActions.shareAction
+                ).apply {
+                    removeFromPlaylist {
+                        playlistActions.removeSongs(multiSelectState.selected.map { it.uriString })
+                        multiSelectState.clear()
                     }
                 },
-                navigationIcon = {
-                    IconButton(onClick = { onBackPressed() }) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = null)
-                    }
-                },
-
-                actions = {
-                    var isExpanded by remember {
-                        mutableStateOf(false)
-                    }
-                    PlaylistDropdownMenu(
-                        expanded = isExpanded,
-                        { isExpanded = false },
-                        onPlayNext,
-                        onAddToQueue,
-                        onShuffleNext,
-                        onEdit,
-                        { inRenameMode = true; scope.launch { listState.animateScrollToItem(0) } },
-                        onDelete = { deletePlaylistDialog.launch() }
-                    )
-                    IconButton(onClick = { isExpanded = true }) {
-                        Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = "")
-                    }
-                }
-            )
+                numberOfVisibleIcons = 2,
+                scrollBehavior = topBarScrollBehavior
+            ) {
+                PlaylistDetailTopBar(
+                    name = state.name,
+                    showName = shouldShowTopBarTitle,
+                    onBackPressed = onBackPressed,
+                    playlistActions = playlistActions,
+                    onRename = {
+                        scope.launch { listState.animateScrollToItem(0) }
+                        inRenameMode = true
+                    },
+                    onDelete = { deletePlaylistDialog.launch() },
+                    onEdit = { },
+                    scrollBehavior = topBarScrollBehavior
+                )
+            }
         },
 
         ) { paddingValues ->
@@ -221,10 +226,10 @@ internal fun PlaylistDetailScreen(
                     state.songs.sumOf { it.length },
                     state.songs.firstOrNull(),
                     inRenameMode = inRenameMode,
-                    onRename = { inRenameMode = false; onRename(it) },
+                    onRename = { inRenameMode = false; playlistActions.rename(it) },
                     onEnableRenameMode = { inRenameMode = true },
-                    onPlayPlaylist,
-                    onShuffle
+                    playlistActions::play,
+                    playlistActions::shuffle
                 )
             }
 
@@ -255,10 +260,28 @@ internal fun PlaylistDetailScreen(
 
             selectableSongsList(
                 state.songs,
-                MultiSelectState(),
-                multiSelectEnabled = false,
+                multiSelectState,
+                multiSelectEnabled = multiSelectEnabled,
                 animateItemPlacement = true,
-                menuActionsBuilder = { null },
+                menuActionsBuilder = { song ->
+                    with(commonSongsActions) {
+                        buildCommonSongActions(
+                            song = song,
+                            context = context,
+                            songPlaybackActions = this.playbackActions,
+                            songInfoDialog = this.songInfoDialog,
+                            addToPlaylistDialog = this.addToPlaylistDialog,
+                            shareAction = this.shareAction,
+                            songDeleteAction = this.deleteAction
+                        ).apply {
+                            add(
+                                3,
+                                MenuActionItem(Icons.Rounded.Delete, "Remove from Playlist") {
+                                    playlistActions.removeSongs(listOf(song.uriString))
+                                })
+                        }
+                    }
+                },
                 onSongClicked = { song, _ -> onSongClicked(song) }
             )
 
@@ -308,10 +331,12 @@ private fun PlaylistHeader(
                     if (inRenameMode) {
 
                         var textFieldValue by remember {
-                            mutableStateOf(TextFieldValue(
-                                text = name,
-                                selection = TextRange(name.length, name.length)
-                            ))
+                            mutableStateOf(
+                                TextFieldValue(
+                                    text = name,
+                                    selection = TextRange(name.length, name.length)
+                                )
+                            )
                         }
 
                         val focusRequester = remember { FocusRequester() }
@@ -320,8 +345,7 @@ private fun PlaylistHeader(
                             modifier = Modifier
                                 .padding(top = 2.dp)
                                 .focusRequester(focusRequester)
-                                .border(1.dp, color = MaterialTheme.colorScheme.primary)
-                            ,
+                                .border(1.dp, color = MaterialTheme.colorScheme.primary),
                             value = textFieldValue,
                             textStyle = TextStyle(
                                 fontWeight = FontWeight.Bold,
@@ -360,7 +384,11 @@ private fun PlaylistHeader(
             }
             Spacer(modifier = Modifier.heightIn(6.dp, Dp.Unspecified))
             Row(modifier = Modifier.fillMaxWidth()) {
-                Button(modifier = Modifier.weight(0.7f), onClick = onPlay, enabled = numberOfSongs > 0) {
+                Button(
+                    modifier = Modifier.weight(0.7f),
+                    onClick = onPlay,
+                    enabled = numberOfSongs > 0
+                ) {
                     Icon(imageVector = Icons.Rounded.PlayArrow, contentDescription = "Play")
                 }
                 Spacer(modifier = Modifier.width(4.dp))
@@ -403,7 +431,11 @@ fun EmptyPlaylist(
 ) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(modifier = Modifier.size(72.dp), imageVector = Icons.Filled.PlaylistAdd, contentDescription = null)
+            Icon(
+                modifier = Modifier.size(72.dp),
+                imageVector = Icons.Filled.PlaylistAdd,
+                contentDescription = null
+            )
             Text(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 text = "Your playlist is empty!\nAdd songs from the main page.",
@@ -414,40 +446,62 @@ fun EmptyPlaylist(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PlaylistDropdownMenu(
-    expanded: Boolean,
-    onDismissRequest: () -> Unit,
-    onPlayNext: () -> Unit,
-    onAddToQueue: () -> Unit,
-    onShuffleNext: () -> Unit,
-    onEdit: () -> Unit,
+fun PlaylistDetailTopBar(
+    modifier: Modifier = Modifier,
+    name: String,
+    showName: Boolean,
+    onBackPressed: () -> Unit,
+    playlistActions: PlaylistActions,
     onRename: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onEdit: () -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
-    DropdownMenu(
-        modifier = Modifier
-            .widthIn(128.dp)
-            .clip(RoundedCornerShape(4.dp)),
-        expanded = expanded, onDismissRequest = onDismissRequest
-    ) {
-        DropdownMenuItem(
-            text = { Text(text = "Play Next") },
-            onClick = { onPlayNext(); onDismissRequest() })
-        DropdownMenuItem(
-            text = { Text(text = "Add to Playing Queue") },
-            onClick = { onAddToQueue(); onDismissRequest() })
-        DropdownMenuItem(
-            text = { Text(text = "Shuffle Next") },
-            onClick = { onShuffleNext(); onDismissRequest() })
-        DropdownMenuItem(text = { Text(text = "Edit") }, onClick = { onEdit(); onDismissRequest() })
-        DropdownMenuItem(
-            text = { Text(text = "Rename") },
-            onClick = { onRename(); onDismissRequest() })
-        DropdownMenuItem(
-            text = { Text(text = "Delete") },
-            onClick = { onDelete(); onDismissRequest() })
+
+    TopAppBar(
+        modifier = modifier,
+        title = {
+            AnimatedVisibility(
+                visible = showName,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Text(text = name, fontWeight = FontWeight.SemiBold)
+            }
+        },
+        scrollBehavior = scrollBehavior,
+        navigationIcon = {
+            IconButton(onClick = onBackPressed) {
+                Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = null)
+            }
+        },
+        actions = {
+            val actionItems =
+                remember { buildPlaylistActions(playlistActions, onRename, onEdit, onDelete) }
+            OverflowMenu(actionItems = actionItems)
+        }
+    )
+
+}
+
+fun buildPlaylistActions(
+    playlistActions: PlaylistActions,
+    renameAction: () -> Unit,
+    editAction: () -> Unit,
+    deleteAction: () -> Unit,
+): MutableList<MenuActionItem> {
+
+    return mutableListOf<MenuActionItem>().apply {
+        playNext(playlistActions::playNext)
+        addToQueue(playlistActions::addToQueue)
+        shuffleNext(playlistActions::shuffleNext)
+        rename(renameAction)
+        edit(editAction)
+        delete(deleteAction)
     }
+
 }
 
 private fun Context.showToast(text: String) {

@@ -93,7 +93,7 @@ fun SettingsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues), contentAlignment = Alignment.Center
+                .padding(top = paddingValues.calculateTopPadding()), contentAlignment = Alignment.Center
         ) {
 
             if (state is SettingsState.Loading) {

@@ -6,7 +6,6 @@ import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.songs.SearchScreenUiState
 import com.omar.musica.store.MediaRepository
 import com.omar.musica.ui.model.SongUi
-import com.omar.musica.ui.model.toSongModel
 import com.omar.musica.ui.model.toSongModels
 import com.omar.musica.ui.model.toUiSongModels
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val mediaRepository: MediaRepository,
+    mediaRepository: MediaRepository,
     private val playbackManager: PlaybackManager
 ) : ViewModel() {
 
@@ -74,11 +73,6 @@ class SearchViewModel @Inject constructor(
 
     fun onPlayNext(songs: List<SongUi>) {
         playbackManager.playNext(songs.toSongModels())
-    }
-
-    fun onDelete(songs: List<SongUi>) {
-        if (songs.isEmpty()) return
-        mediaRepository.deleteSong(songs[0].toSongModel())
     }
 
 }

@@ -12,10 +12,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
-import coil.ImageLoader
+import com.omar.musica.playback.PlaybackManager
+import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.UserPreferencesRepository
 import com.omar.musica.ui.MusicaApp
+import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.LocalUserPreferences
+import com.omar.musica.ui.common.rememberCommonSongsActions
 import com.omar.musica.ui.model.toUiModel
 import com.omar.musica.ui.theme.MusicaTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,6 +33,12 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var userPreferencesRepository: UserPreferencesRepository
+
+    @Inject
+    lateinit var playbackManager: PlaybackManager
+
+    @Inject
+    lateinit var mediaRepository: MediaRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,12 +57,15 @@ class MainActivity : ComponentActivity() {
                     initial = initialUserPreferences
                 )
 
-
             MusicaTheme(
                 userPreferences = userPreferences,
             ) {
+
+                val commonSongsActions = rememberCommonSongsActions(playbackManager, mediaRepository)
+
                 CompositionLocalProvider(
-                    LocalUserPreferences provides userPreferences
+                    LocalUserPreferences provides userPreferences,
+                    LocalCommonSongsAction provides commonSongsActions
                 ) {
                     Surface(
                         modifier = Modifier

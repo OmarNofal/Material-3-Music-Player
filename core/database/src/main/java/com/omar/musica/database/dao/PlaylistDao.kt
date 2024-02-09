@@ -65,6 +65,10 @@ interface PlaylistDao {
     )
     suspend fun renamePlaylist(playlistId: Int, newName: String)
 
+    @Query(
+        "DELETE FROM $PLAYLIST_SONG_ENTITY WHERE $PLAYLIST_ID_COLUMN = :playlistId AND $SONG_URI_STRING_COLUMN IN (:songUris)"
+    )
+    suspend fun removeSongsFromPlaylist(playlistId: Int, songUris: List<String>)
 
     @Query(
         "SELECT P.*, COUNT(S.$SONG_URI_STRING_COLUMN) as 'numberOfSongs' FROM $PLAYLIST_ENTITY P LEFT OUTER JOIN $PLAYLIST_SONG_ENTITY S " +

@@ -52,23 +52,17 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.omar.musica.songs.SearchScreenUiState
 import com.omar.musica.songs.viewmodel.SearchViewModel
-import com.omar.musica.ui.common.MenuActionItem
+import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.MultiSelectState
-import com.omar.musica.ui.common.addToPlaylists
-import com.omar.musica.ui.common.deleteAction
-import com.omar.musica.ui.common.playNext
-import com.omar.musica.ui.common.rememberSongDialog
+import com.omar.musica.ui.common.buildCommonSongActions
 import com.omar.musica.ui.common.selectableSongsList
-import com.omar.musica.ui.common.share
 import com.omar.musica.ui.common.shareSongs
 import com.omar.musica.ui.common.showSongsAddedToNextToast
-import com.omar.musica.ui.common.songInfo
 import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.playlist.rememberAddToPlaylistDialog
 
@@ -97,7 +91,6 @@ fun SearchScreen(
         enableBackPress = enableBackPress,
         onSongClicked = searchViewModel::onSongClicked,
         onPlayNext = searchViewModel::onPlayNext,
-        onDelete = searchViewModel::onDelete,
         onSearchQueryChanged = searchViewModel::onSearchQueryChanged,
         searchFocusRequester = searchFocusRequester,
         onShare = { shareSongs(context, it) },
@@ -114,7 +107,6 @@ internal fun SearchScreen(
     enableBackPress: Boolean = true,
     onSongClicked: (SongUi, Int) -> Unit,
     onPlayNext: (List<SongUi>) -> Unit,
-    onDelete: (List<SongUi>) -> Unit,
     onShare: (List<SongUi>) -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     searchFocusRequester: FocusRequester,
@@ -137,11 +129,14 @@ internal fun SearchScreen(
         derivedStateOf { multiSelectState.selected.size > 0 }
     }
 
-    val addToPlaylistDialog = rememberAddToPlaylistDialog()
 
     BackHandler(multiSelectEnabled && enableBackPress) {
         multiSelectState.clear()
     }
+
+    val addToPlaylistDialog = rememberAddToPlaylistDialog()
+
+    val commonSongsActions = LocalCommonSongsAction.current
 
     Surface(modifier = Modifier.fillMaxSize(), tonalElevation = 2.dp) {
 
@@ -168,9 +163,6 @@ internal fun SearchScreen(
                 )
             }
         ) { paddingValues ->
-            val deleteRequestLauncher = deleteRequestLauncher()
-
-            val songInfoDialog = rememberSongDialog()
 
             AnimatedContent(
                 targetState = state.searchQuery.isBlank() to (state.songs.isEmpty()),
@@ -206,25 +198,17 @@ internal fun SearchScreen(
                             multiSelectEnabled,
                             animateItemPlacement = false, // for some reason if it is true, the application will crash on, no idea why
                             menuActionsBuilder = { song: SongUi ->
-                                mutableListOf<MenuActionItem>()
-                                    .apply {
-                                        playNext { onPlayNext(listOf(song)) }
-                                        addToPlaylists { addToPlaylistDialog.launch(listOf(song)) }
-                                        share { onShare(listOf(song)) }
-                                        songInfo { songInfoDialog.open(song) }
-                                        deleteAction {
-                                            if (api30AndUp) {
-                                                deleteRequestLauncher.launch(
-                                                    getIntentSenderRequest(
-                                                        context,
-                                                        song.uriString.toUri()
-                                                    )
-                                                )
-                                            } else {
-                                                onDelete(listOf(song))
-                                            }
-                                        }
-                                    }
+                                with(commonSongsActions) {
+                                    buildCommonSongActions(
+                                        song = song,
+                                        context = context,
+                                        songPlaybackActions = this.playbackActions,
+                                        songInfoDialog = this.songInfoDialog,
+                                        addToPlaylistDialog = this.addToPlaylistDialog,
+                                        shareAction = this.shareAction,
+                                        songDeleteAction = this.deleteAction
+                                    )
+                                }
                             },
                             onSongClicked = onSongClicked
                         )
