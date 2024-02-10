@@ -7,9 +7,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -19,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.model.SortOption
@@ -28,9 +35,11 @@ import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.MultiSelectState
 import com.omar.musica.ui.common.SongsSharer
 import com.omar.musica.ui.common.SongsSummary
+import com.omar.musica.ui.common.buildCommonMultipleSongsActions
 import com.omar.musica.ui.common.buildCommonSongActions
 import com.omar.musica.ui.common.selectableSongsList
 import com.omar.musica.ui.common.showSongsAddedToNextToast
+import com.omar.musica.ui.common.topbar.SelectionTopAppBarScaffold
 import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.playlist.rememberAddToPlaylistDialog
 
@@ -88,7 +97,34 @@ internal fun SongsScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            SongsTopAppBar(
+
+            SelectionTopAppBarScaffold(
+                modifier = Modifier.fillMaxWidth(),
+                multiSelectState = multiSelectState,
+                isMultiSelectEnabled = multiSelectEnabled,
+                actionItems = buildCommonMultipleSongsActions(
+                    multiSelectState.selected,
+                    context,
+                    commonSongActions.playbackActions,
+                    commonSongActions.addToPlaylistDialog,
+                    commonSongActions.shareAction
+                ),
+                numberOfVisibleIcons = 2,
+                scrollBehavior = scrollBehavior
+            ) {
+                TopAppBar(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = { Text(text = "Songs", fontWeight = FontWeight.SemiBold) },
+                    actions = {
+                        IconButton(onSearchClicked) {
+                            Icon(Icons.Rounded.Search, contentDescription = null)
+                        }
+                    },
+                    scrollBehavior = scrollBehavior
+                )
+            }
+
+            /*SongsTopAppBar(
                 Modifier,
                 onSearchClicked,
                 { SongsSharer.share(context, it) },
@@ -101,7 +137,7 @@ internal fun SongsScreen(
                 context.showSongsAddedToNextToast(multiSelectState.selected.size)
                 onPlayNext(multiSelectState.selected)
                 multiSelectState.clear()
-            }
+            }*/
         },
     ) { paddingValues ->
         LazyColumn(

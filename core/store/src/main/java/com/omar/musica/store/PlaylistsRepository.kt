@@ -65,6 +65,13 @@ class PlaylistsRepository @Inject constructor(
         }
     }
 
+    suspend fun getPlaylistSongs(id: Int): List<Song> {
+        val songUris = playlistsDao.getPlaylistSongs(id)
+        val songLibrary = mediaRepository.songsFlow.value
+        return songLibrary.getSongsByUris(songUris)
+    }
+
+
     fun getPlaylistWithSongsFlow(playlistId: Int): Flow<Playlist> =
         combine(
             mediaRepository.songsFlow,

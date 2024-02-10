@@ -1,11 +1,14 @@
 package com.omar.musica.playlists.playlists
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -21,12 +24,27 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.omar.musica.model.PlaylistInfo
+import com.omar.musica.playback.PlaylistPlaybackActions
+import com.omar.musica.playlists.playlistdetail.rememberDeletePlaylistDialog
 import com.omar.musica.playlists.rememberCreatePlaylistDialog
+import com.omar.musica.ui.common.MenuActionItem
+import com.omar.musica.ui.common.addToQueue
+import com.omar.musica.ui.common.delete
+import com.omar.musica.ui.common.play
+import com.omar.musica.ui.common.playNext
+import com.omar.musica.ui.common.rename
+import com.omar.musica.ui.common.shuffle
+import com.omar.musica.ui.common.shuffleNext
+import com.omar.musica.ui.common.topbar.OverflowMenu
 
 
 @Composable
@@ -41,7 +59,10 @@ fun PlaylistsScreen(
     PlaylistsScreen(
         modifier = modifier,
         state = state,
-        onNavigateToPlaylist
+        onNavigateToPlaylist,
+        playlistsViewModel::onDelete,
+        playlistsViewModel::onRename,
+        playlistsViewModel,
     )
 
 }
@@ -51,10 +72,14 @@ fun PlaylistsScreen(
 fun PlaylistsScreen(
     modifier: Modifier,
     state: PlaylistsScreenState,
-    onPlaylistClicked: (Int) -> Unit
+    onPlaylistClicked: (Int) -> Unit,
+    onDeletePlaylist: (Int) -> Unit,
+    onRenamePlaylist: (Int, String) -> Unit,
+    playlistPlaybackActions: PlaylistPlaybackActions,
 ) {
 
     val createPlaylistsDialog = rememberCreatePlaylistDialog()
+
 
     Scaffold(
         modifier = modifier,
@@ -90,9 +115,26 @@ fun PlaylistsScreen(
                 val list = (state as PlaylistsScreenState.Success).playlists
 
                 items(list) {
+
+                    var currentRenameId by remember { mutableStateOf<Int?>(null) }
+                    BackHandler(currentRenameId != null) {
+                        currentRenameId = null
+                    }
+
+
+                    val deletePlaylistDialog = rememberDeletePlaylistDialog(playlistName = it.name)
+                    { onDeletePlaylist(it.id) }
+
                     PlaylistRow(
-                        Modifier.fillMaxWidth().clickable { onPlaylistClicked(it.id) },
-                        it
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable { onPlaylistClicked(it.id) },
+                        it,
+                        playlistPlaybackActions = playlistPlaybackActions,
+                        inRenameMode = currentRenameId == it.id,
+                        onEnableRenameMode = { currentRenameId = it.id },
+                        { name -> onRenamePlaylist(it.id, name); currentRenameId = null },
+                        { deletePlaylistDialog.launch() }
                     )
                     if (it != list.last()) {
                         Divider(
@@ -108,4 +150,50 @@ fun PlaylistsScreen(
     }
 
 
+}
+
+@Composable
+fun PlaylistRow(
+    modifier: Modifier,
+    playlistInfo: PlaylistInfo,
+    playlistPlaybackActions: PlaylistPlaybackActions,
+    inRenameMode: Boolean,
+    onEnableRenameMode: () -> Unit,
+    onRename: (String) -> Unit,
+    onDelete: () -> Unit
+) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        PlaylistInfoRow(
+            modifier = Modifier.weight(1f),
+            playlistInfo = playlistInfo,
+            inRenameMode, onRename, onEnableRenameMode
+        )
+        OverflowMenu(
+            actionItems = buildSinglePlaylistActions(
+                playlistInfo.id,
+                playlistPlaybackActions,
+                onEnableRenameMode, onDelete
+            ), showIcons = false
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+    }
+
+}
+
+fun buildSinglePlaylistActions(
+    playlistId: Int,
+    playlistPlaybackActions: PlaylistPlaybackActions,
+    onRename: () -> Unit,
+    onDelete: () -> Unit
+): MutableList<MenuActionItem> {
+    val list = mutableListOf<MenuActionItem>()
+    return list.apply {
+        play { playlistPlaybackActions.playPlaylist(playlistId) }
+        playNext { playlistPlaybackActions.addPlaylistToNext(playlistId) }
+        addToQueue { playlistPlaybackActions.addPlaylistToNext(playlistId) }
+        shuffle { playlistPlaybackActions.shufflePlaylist(playlistId) }
+        shuffleNext { playlistPlaybackActions.shufflePlaylistNext(playlistId) }
+        rename(onRename)
+        delete(onDelete)
+    }
 }

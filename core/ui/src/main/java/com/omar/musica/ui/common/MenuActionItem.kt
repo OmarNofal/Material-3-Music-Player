@@ -7,6 +7,7 @@ import androidx.compose.material.icons.rounded.AddToQueue
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.PlaylistRemove
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Shuffle
@@ -31,6 +32,12 @@ fun MutableList<MenuActionItem>.delete(callback: () -> Unit) =
 
 fun MutableList<MenuActionItem>.playNext(callback: () -> Unit) =
     add(MenuActionItem(Icons.Rounded.SkipNext, "Play Next", callback))
+
+fun MutableList<MenuActionItem>.play(callback: () -> Unit) =
+    add(MenuActionItem(Icons.Rounded.PlayArrow, "Play", callback))
+
+fun MutableList<MenuActionItem>.shuffle(callback: () -> Unit) =
+    add(MenuActionItem(Icons.Rounded.Shuffle, "Shuffle", callback))
 
 fun MutableList<MenuActionItem>.shuffleNext(callback: () -> Unit) =
     add(MenuActionItem(Icons.Rounded.Shuffle, "Shuffle Next", callback))

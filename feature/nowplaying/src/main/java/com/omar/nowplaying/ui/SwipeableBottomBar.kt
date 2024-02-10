@@ -20,10 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
@@ -65,16 +62,16 @@ fun NowPlayingBarHeader(
             errorPainterType = ErrorPainterType.PLACEHOLDER
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(4.dp))
 
         Text(
             modifier = Modifier
                 .weight(1f)
-                .basicMarquee(),
+                .basicMarquee(Int.MAX_VALUE),
             text = "${song.title} • ${song.album.orEmpty()}"
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
         Box(contentAlignment = Alignment.Center) {
             IconButton(

@@ -7,31 +7,28 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.PlaylistPlay
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.omar.musica.model.PlaylistInfo
-import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
+import com.omar.musica.ui.common.RenamableTextView
 
 
 @Composable
-fun PlaylistRow(
+fun PlaylistInfoRow(
     modifier: Modifier,
     playlistInfo: PlaylistInfo,
+    inRenameMode: Boolean,
+    onRename: (String) -> Unit,
+    onEnableRenameMode: () -> Unit,
 ) {
 
     Row(
@@ -47,12 +44,14 @@ fun PlaylistRow(
         PlaylistImage()
         Spacer(modifier = Modifier.width(8.dp))
         Column {
-            Text(
+            RenamableTextView(
+                modifier = Modifier,
                 text = playlistInfo.name,
                 fontWeight = FontWeight.Normal,
-                fontSize = 16.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                fontSize = 16,
+                inRenameMode = inRenameMode,
+                onEnableRenameMode = onEnableRenameMode,
+                onRename = onRename,
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -70,13 +69,4 @@ fun PlaylistRow(
 @Composable
 fun PlaylistImage() {
     Icon(imageVector = Icons.Rounded.PlaylistPlay, contentDescription = "", modifier = Modifier.size(36.dp))
-/*AsyncImage(
-        modifier = Modifier
-            .size(36.dp),
-        model = null,
-        imageLoader = LocalEfficientThumbnailImageLoader.current,
-        contentDescription = "Playlist Photo",
-        contentScale = ContentScale.Crop,
-        error = rememberVectorPainter(image = Icons.Rounded.PlaylistPlay)
-    )*/
 }

@@ -70,16 +70,7 @@ fun SongsTopAppBar(
         )
 
     } else
+    {}
 
-        TopAppBar(
-            modifier = modifier,
-            title = { Text(text = "Songs", fontWeight = FontWeight.SemiBold) },
-            actions = {
-                IconButton(onSearchClicked) {
-                    Icon(Icons.Rounded.Search, contentDescription = null)
-                }
-            },
-            scrollBehavior = scrollBehavior
-        )
 
 }

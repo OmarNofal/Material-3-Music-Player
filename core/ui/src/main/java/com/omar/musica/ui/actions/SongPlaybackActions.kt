@@ -1,6 +1,9 @@
 package com.omar.musica.ui.actions
 
+import android.content.Context
 import com.omar.musica.playback.PlaybackManager
+import com.omar.musica.ui.common.showSongsAddedToNextToast
+import com.omar.musica.ui.common.showSongsAddedToQueueToast
 import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.model.toSongModels
 
@@ -16,19 +19,23 @@ interface SongPlaybackActions {
 
 
 class SongPlaybackActionsImpl(
+    private val context: Context,
     private val playbackManager: PlaybackManager
 ) : SongPlaybackActions {
 
     override fun playNext(songs: List<SongUi>) {
         playbackManager.playNext(songs.toSongModels())
+        context.showSongsAddedToNextToast(songs.size)
     }
 
     override fun addToQueue(songs: List<SongUi>) {
         playbackManager.addToQueue(songs.toSongModels())
+        context.showSongsAddedToQueueToast(songs.size)
     }
 
     override fun shuffleNext(songs: List<SongUi>) {
         playbackManager.shuffleNext(songs.toSongModels())
+        context.showSongsAddedToNextToast(songs.size)
     }
 
     override fun shuffle(songs: List<SongUi>) {

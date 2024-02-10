@@ -26,6 +26,11 @@ interface PlaylistDao {
     )
     fun getPlaylistWithSongsFlow(playlistId: Int): Flow<PlaylistWithSongsUri>
 
+    @Query(
+        "SELECT S.song_uri FROM $PLAYLIST_SONG_ENTITY S WHERE $PLAYLIST_ID_COLUMN = :playlistId"
+    )
+    suspend fun getPlaylistSongs(playlistId: Int): List<String>
+
     @Insert
     suspend fun createPlaylist(playlistEntity: PlaylistEntity)
 

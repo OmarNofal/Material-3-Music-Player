@@ -1,6 +1,12 @@
 package com.omar.musica.ui.common.topbar
 
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
@@ -38,20 +44,29 @@ fun SelectionTopAppBarScaffold(
     scrollBehavior: TopAppBarScrollBehavior? = null,
     content: @Composable () -> Unit // the TopAppBar which is visible when user is not in selection mode
 ) {
-    if (isMultiSelectEnabled) {
-        SelectionToolbar(
-            modifier = modifier,
-            numberOfSelected = multiSelectState.selected.size,
-            actionItems = actionItems,
-            numberOfVisibleIcons = numberOfVisibleIcons,
-            onNavigationIconClicked = { multiSelectState.clear() },
-            scrollBehavior = scrollBehavior
-        )
-    } else {
-        content()
+    AnimatedContent(
+        targetState = isMultiSelectEnabled, label = "",
+        transitionSpec = {
+            if (targetState) {
+                scaleIn(initialScale = 0.8f) + fadeIn() togetherWith scaleOut(targetScale = 1.2f) + fadeOut()
+            } else {
+                scaleIn(initialScale = 1.2f) + fadeIn() togetherWith scaleOut(targetScale = 0.8f) + fadeOut()
+            }
+        }
+    ) {
+        if (it)
+            SelectionToolbar(
+                modifier = modifier,
+                numberOfSelected = multiSelectState.selected.size,
+                actionItems = actionItems,
+                numberOfVisibleIcons = numberOfVisibleIcons,
+                onNavigationIconClicked = { multiSelectState.clear() },
+                scrollBehavior = scrollBehavior
+            )
+        else
+            content()
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,7 +110,8 @@ fun SelectionToolbar(
 
 @Composable
 fun OverflowMenu(
-    actionItems: List<MenuActionItem>
+    actionItems: List<MenuActionItem>,
+    showIcons: Boolean = true
 ) {
     var visible by remember { mutableStateOf(false) }
     Box {
@@ -110,7 +126,12 @@ fun OverflowMenu(
         ) {
             actionItems.forEach {
                 DropdownMenuItem(
-                    leadingIcon = { Icon(imageVector = it.icon, contentDescription = null) },
+                    leadingIcon =
+                        if (showIcons)
+                        { { Icon(imageVector = it.icon, contentDescription = null) } }
+                        else {
+                          null
+                        },
                     text = { Text(text = it.title) },
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
                     onClick = { visible = false; it.callback() }

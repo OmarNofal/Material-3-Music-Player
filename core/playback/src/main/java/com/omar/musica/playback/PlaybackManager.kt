@@ -14,15 +14,21 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
+import com.omar.musica.model.Playlist
 import com.omar.musica.model.Song
 import com.omar.musica.playback.state.PlaybackState
 import com.omar.musica.playback.state.PlayerState
 import com.omar.musica.store.MediaRepository
+import com.omar.musica.store.PlaylistsRepository
 import com.omar.musica.store.QueueItem
 import com.omar.musica.store.QueueRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -37,10 +43,11 @@ import javax.inject.Singleton
 class PlaybackManager @Inject constructor(
     @ApplicationContext context: Context,
     private val queueRepository: QueueRepository,
-    private val mediaRepository: MediaRepository
-) {
+    private val mediaRepository: MediaRepository,
+    private val playlistsRepository: PlaylistsRepository
+): PlaylistPlaybackActions {
 
-
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private var mediaController: MediaController? = null
 
     init {
@@ -166,6 +173,51 @@ class PlaybackManager @Inject constructor(
         mediaController?.prepare()
     }
 
+    override fun playPlaylist(playlistId: Int) {
+        coroutineScope.launch(Dispatchers.IO) {
+            val songs = playlistsRepository.getPlaylistSongs(playlistId)
+            withContext(Dispatchers.Main) {
+                setPlaylistAndPlayAtIndex(songs)
+            }
+        }
+    }
+
+    override fun addPlaylistToNext(playlistId: Int) {
+        coroutineScope.launch(Dispatchers.IO) {
+            val songs = playlistsRepository.getPlaylistSongs(playlistId)
+            withContext(Dispatchers.Main) {
+                playNext(songs)
+            }
+        }
+    }
+
+    override fun addPlaylistToQueue(playlistId: Int) {
+        coroutineScope.launch(Dispatchers.IO) {
+            val songs = playlistsRepository.getPlaylistSongs(playlistId)
+            withContext(Dispatchers.Main) {
+                addToQueue(songs)
+            }
+        }
+    }
+
+    override fun shufflePlaylist(playlistId: Int) {
+        coroutineScope.launch(Dispatchers.IO) {
+            val songs = playlistsRepository.getPlaylistSongs(playlistId)
+            withContext(Dispatchers.Main) {
+                shuffle(songs)
+            }
+        }
+    }
+
+    override fun shufflePlaylistNext(playlistId: Int) {
+        coroutineScope.launch(Dispatchers.IO) {
+            val songs = playlistsRepository.getPlaylistSongs(playlistId)
+            withContext(Dispatchers.Main) {
+                shuffleNext(songs)
+            }
+        }
+    }
+
     private fun updateState() {
         val controller = mediaController ?: return
         val currentMediaItem = controller.currentMediaItem ?: return updateToEmptyState()
@@ -279,5 +331,16 @@ class PlaybackManager @Inject constructor(
 
     private fun List<Song>.toMediaItems() = map { it.toMediaItem() }
 
+
+}
+
+
+interface PlaylistPlaybackActions {
+
+    fun shufflePlaylistNext(playlistId: Int)
+    fun shufflePlaylist(playlistId: Int)
+    fun addPlaylistToQueue(playlistId: Int)
+    fun addPlaylistToNext(playlistId: Int)
+    fun playPlaylist(playlistId: Int)
 
 }

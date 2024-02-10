@@ -1,7 +1,6 @@
 package com.omar.musica.playlists.playlistdetail
 
 import android.content.Context
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -62,6 +61,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -76,6 +76,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.MenuActionItem
 import com.omar.musica.ui.common.MultiSelectState
+import com.omar.musica.ui.common.RenamableTextView
 import com.omar.musica.ui.common.SongAlbumArtImage
 import com.omar.musica.ui.common.addToQueue
 import com.omar.musica.ui.common.buildCommonMultipleSongsActions
@@ -87,6 +88,7 @@ import com.omar.musica.ui.common.playNext
 import com.omar.musica.ui.common.removeFromPlaylist
 import com.omar.musica.ui.common.rename
 import com.omar.musica.ui.common.selectableSongsList
+import com.omar.musica.ui.common.showShortToast
 import com.omar.musica.ui.common.shuffleNext
 import com.omar.musica.ui.common.topbar.OverflowMenu
 import com.omar.musica.ui.common.topbar.SelectionTopAppBarScaffold
@@ -169,7 +171,13 @@ internal fun PlaylistDetailScreen(
     }
 
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.pointerInput(Unit) {
+            detectTapGestures(
+                onPress = {
+                    if (inRenameMode) inRenameMode = false
+                }
+            )
+        },
         topBar = {
             SelectionTopAppBarScaffold(
                 modifier = Modifier.fillMaxWidth(),
@@ -327,54 +335,16 @@ private fun PlaylistHeader(
         ) {
 
             Column {
-                Box {
-                    if (inRenameMode) {
-
-                        var textFieldValue by remember {
-                            mutableStateOf(
-                                TextFieldValue(
-                                    text = name,
-                                    selection = TextRange(name.length, name.length)
-                                )
-                            )
-                        }
-
-                        val focusRequester = remember { FocusRequester() }
-
-                        BasicTextField(
-                            modifier = Modifier
-                                .padding(top = 2.dp)
-                                .focusRequester(focusRequester)
-                                .border(1.dp, color = MaterialTheme.colorScheme.primary),
-                            value = textFieldValue,
-                            textStyle = TextStyle(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 24.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            ),
-                            onValueChange = { textFieldValue = it },
-                            singleLine = true,
-                            maxLines = 1,
-                            keyboardActions = KeyboardActions(onDone = { onRename(textFieldValue.text) })
-                        )
-
-                        LaunchedEffect(key1 = Unit) {
-                            focusRequester.requestFocus()
-                        }
-
-                    } else {
-                        Text(
-                            modifier = Modifier.pointerInput(Unit) {
-                                detectTapGestures(
-                                    onLongPress = { onEnableRenameMode() }
-                                )
-                            },
-                            text = name,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp
-                        )
-                    }
-                }
+                RenamableTextView(
+                    modifier = Modifier,
+                    inRenameMode = inRenameMode,
+                    text = name,
+                    fontSize = 24,
+                    fontWeight = FontWeight.Bold,
+                    onEnableRenameMode = onEnableRenameMode,
+                    onRename = onRename,
+                    enableLongPressToEdit = true
+                )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = "$numberOfSongs songs • ${songsDuration.millisToTime()}",
@@ -460,6 +430,7 @@ fun PlaylistDetailTopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
 
+    val context = LocalContext.current
     TopAppBar(
         modifier = modifier,
         title = {
@@ -479,7 +450,15 @@ fun PlaylistDetailTopBar(
         },
         actions = {
             val actionItems =
-                remember { buildPlaylistActions(playlistActions, onRename, onEdit, onDelete) }
+                remember {
+                    buildPlaylistActions(
+                        context,
+                        playlistActions,
+                        onRename,
+                        onEdit,
+                        onDelete
+                    )
+                }
             OverflowMenu(actionItems = actionItems)
         }
     )
@@ -487,6 +466,7 @@ fun PlaylistDetailTopBar(
 }
 
 fun buildPlaylistActions(
+    context: Context,
     playlistActions: PlaylistActions,
     renameAction: () -> Unit,
     editAction: () -> Unit,
@@ -494,16 +474,12 @@ fun buildPlaylistActions(
 ): MutableList<MenuActionItem> {
 
     return mutableListOf<MenuActionItem>().apply {
-        playNext(playlistActions::playNext)
-        addToQueue(playlistActions::addToQueue)
-        shuffleNext(playlistActions::shuffleNext)
+        playNext { playlistActions.playNext(); context.showShortToast("Playlist will play next") }
+        addToQueue { playlistActions.addToQueue(); context.showShortToast("Playlist added to queue") }
+        shuffleNext { playlistActions.shuffleNext(); context.showShortToast("Playlist will play next") }
         rename(renameAction)
         edit(editAction)
         delete(deleteAction)
     }
 
-}
-
-private fun Context.showToast(text: String) {
-    Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
 }

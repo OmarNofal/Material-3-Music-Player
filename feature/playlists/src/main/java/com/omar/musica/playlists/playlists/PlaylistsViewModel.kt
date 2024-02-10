@@ -2,6 +2,8 @@ package com.omar.musica.playlists.playlists
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.omar.musica.playback.PlaybackManager
+import com.omar.musica.playback.PlaylistPlaybackActions
 import com.omar.musica.store.PlaylistsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,8 +15,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlaylistsViewModel @Inject constructor(
-    playlistsRepository: PlaylistsRepository
-): ViewModel() {
+    val playlistsRepository: PlaylistsRepository,
+    playbackManager: PlaybackManager
+): ViewModel(), PlaylistPlaybackActions by playbackManager {
 
 
     val state: StateFlow<PlaylistsScreenState> =
@@ -24,5 +27,13 @@ class PlaylistsViewModel @Inject constructor(
             }
             .stateIn(viewModelScope, SharingStarted.Eagerly, PlaylistsScreenState.Loading)
 
+
+    fun onDelete(id: Int) {
+        playlistsRepository.deletePlaylist(id)
+    }
+
+    fun onRename(id: Int, name: String) {
+        playlistsRepository.renamePlaylist(id, name)
+    }
 
 }

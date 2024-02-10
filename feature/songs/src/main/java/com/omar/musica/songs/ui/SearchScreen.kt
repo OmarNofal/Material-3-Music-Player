@@ -1,14 +1,7 @@
 package com.omar.musica.songs.ui
 
-import android.os.Build
 import androidx.activity.compose.BackHandler
-import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -20,16 +13,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ManageSearch
-import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.SearchOff
-import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.PlainTooltipBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -59,16 +47,11 @@ import com.omar.musica.songs.SearchScreenUiState
 import com.omar.musica.songs.viewmodel.SearchViewModel
 import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.MultiSelectState
+import com.omar.musica.ui.common.buildCommonMultipleSongsActions
 import com.omar.musica.ui.common.buildCommonSongActions
 import com.omar.musica.ui.common.selectableSongsList
-import com.omar.musica.ui.common.shareSongs
-import com.omar.musica.ui.common.showSongsAddedToNextToast
+import com.omar.musica.ui.common.topbar.SelectionTopAppBarScaffold
 import com.omar.musica.ui.model.SongUi
-import com.omar.musica.ui.playlist.rememberAddToPlaylistDialog
-
-
-@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
-private val api30AndUp = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
 
 
 @Composable
@@ -78,36 +61,31 @@ fun SearchScreen(
     onBackPressed: () -> Unit,
     enableBackPress: Boolean = true,
 ) {
-
     val state by searchViewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.STARTED)
 
     val searchFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
-    val context = LocalContext.current
     SearchScreen(
         modifier = modifier,
         state = state,
         enableBackPress = enableBackPress,
         onSongClicked = searchViewModel::onSongClicked,
-        onPlayNext = searchViewModel::onPlayNext,
         onSearchQueryChanged = searchViewModel::onSearchQueryChanged,
         searchFocusRequester = searchFocusRequester,
-        onShare = { shareSongs(context, it) },
         onBackPressed = { focusManager.clearFocus(); onBackPressed() }
     )
 
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SearchScreen(
     modifier: Modifier,
     state: SearchScreenUiState,
     enableBackPress: Boolean = true,
     onSongClicked: (SongUi, Int) -> Unit,
-    onPlayNext: (List<SongUi>) -> Unit,
-    onShare: (List<SongUi>) -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     searchFocusRequester: FocusRequester,
     onBackPressed: () -> Unit
@@ -129,12 +107,9 @@ internal fun SearchScreen(
         derivedStateOf { multiSelectState.selected.size > 0 }
     }
 
-
     BackHandler(multiSelectEnabled && enableBackPress) {
         multiSelectState.clear()
     }
-
-    val addToPlaylistDialog = rememberAddToPlaylistDialog()
 
     val commonSongsActions = LocalCommonSongsAction.current
 
@@ -143,24 +118,45 @@ internal fun SearchScreen(
         Scaffold(
             modifier.fillMaxSize(),
             topBar = {
-                SearchScreenTopBar(
+                SelectionTopAppBarScaffold(
                     modifier = Modifier.fillMaxWidth(),
-                    state = state,
-                    onSearchQueryChanged = onSearchQueryChanged,
-                    focusRequester = searchFocusRequester,
-                    onBackPressed = onBackPressed,
-                    multiSelectState = multiSelectState,
-                    multiSelectEnabled = multiSelectEnabled,
-                    onPlayNext = {
-                        context.showSongsAddedToNextToast(multiSelectState.selected.size)
-                        onPlayNext(multiSelectState.selected)
-                        multiSelectState.clear()
+                    multiSelectState,
+                    multiSelectEnabled,
+                    buildCommonMultipleSongsActions(
+                        multiSelectState.selected,
+                        context,
+                        commonSongsActions.playbackActions,
+                        commonSongsActions.addToPlaylistDialog,
+                        commonSongsActions.shareAction
+                    ),
+                    2,
+                ) {
+                    TopAppBar(modifier = Modifier.fillMaxWidth(), title = {
+                        TextField(
+                            modifier = Modifier.focusRequester(searchFocusRequester),
+                            value = state.searchQuery,
+                            onValueChange = onSearchQueryChanged,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                            ),
+                            singleLine = true,
+                            maxLines = 1,
+                            placeholder = { Text(text = "Search your entire library") }
+                        )
                     },
-                    onAddToPlaylists = {
-                        addToPlaylistDialog.launch(multiSelectState.selected)
-                    },
-                    onShare = onShare
-                )
+                        navigationIcon = {
+                            IconButton(onClick = onBackPressed) {
+                                Icon(
+                                    imageVector = Icons.Rounded.ArrowBack,
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    )
+                }
             }
         ) { paddingValues ->
 
@@ -223,98 +219,6 @@ internal fun SearchScreen(
     }
 
 }
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SearchScreenTopBar(
-    modifier: Modifier,
-    state: SearchScreenUiState,
-    multiSelectState: MultiSelectState,
-    multiSelectEnabled: Boolean,
-    focusRequester: FocusRequester,
-    onBackPressed: () -> Unit,
-    onPlayNext: () -> Unit,
-    onAddToPlaylists: () -> Unit,
-    onShare: (List<SongUi>) -> Unit,
-    onSearchQueryChanged: (String) -> Unit
-) {
-    AnimatedContent(
-        targetState = multiSelectEnabled, label = "",
-        transitionSpec = {
-            if (targetState) {
-                scaleIn(initialScale = 0.8f) + fadeIn() togetherWith scaleOut(targetScale = 1.2f) + fadeOut()
-            } else {
-                scaleIn(initialScale = 1.2f) + fadeIn() togetherWith scaleOut(targetScale = 0.8f) + fadeOut()
-            }
-        }
-    ) {
-        if (it) {
-            TopAppBar(
-                modifier = modifier,
-                title = {
-                    Text(
-                        text = "${multiSelectState.selected.size} selected",
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
-                actions = {
-                    PlainTooltipBox(tooltip = { Text(text = "Play Next") }) {
-                        IconButton(modifier = Modifier.tooltipAnchor(), onClick = onPlayNext) {
-                            Icon(Icons.Rounded.SkipNext, contentDescription = "Play Next")
-                        }
-                    }
-                    PlainTooltipBox(tooltip = { Text(text = "Share") }) {
-                        IconButton(
-                            modifier = Modifier.tooltipAnchor(),
-                            onClick = { onShare(multiSelectState.selected) }) {
-                            Icon(Icons.Rounded.Share, contentDescription = "Play Next")
-                        }
-                    }
-                    PlainTooltipBox(tooltip = { Text(text = "Add to Playlists") }) {
-                        IconButton(
-                            modifier = Modifier.tooltipAnchor(),
-                            onClick = { onAddToPlaylists() }) {
-                            Icon(Icons.Rounded.PlaylistAdd, contentDescription = "Add to Playlists")
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { multiSelectState.selected.clear() }) {
-                        Icon(
-                            imageVector = Icons.Rounded.Close,
-                            contentDescription = "End Multi selection mode"
-                        )
-                    }
-                }
-            )
-        } else {
-            TopAppBar(modifier = modifier, title = {
-                TextField(
-                    modifier = Modifier.focusRequester(focusRequester),
-                    value = state.searchQuery,
-                    onValueChange = onSearchQueryChanged,
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                    ),
-                    singleLine = true,
-                    maxLines = 1,
-                    placeholder = { Text(text = "Search your entire library") }
-                )
-            },
-                navigationIcon = {
-                    IconButton(onClick = onBackPressed) {
-                        Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = null)
-                    }
-                }
-            )
-        }
-    }
-}
-
 
 @Composable
 private fun EmptyQueryScreen(
