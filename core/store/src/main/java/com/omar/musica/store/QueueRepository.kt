@@ -29,7 +29,7 @@ class QueueRepository @Inject constructor(
 
     fun observeQueueUris(): Flow<List<String>> =
         queueDao.getQueueFlow()
-            .map {it.map { queueItem -> queueItem.songUri } }
+            .map { it.map { queueItem -> queueItem.songUri } }
 
 
     fun saveQueueFromSongs(songs: List<Song>) {

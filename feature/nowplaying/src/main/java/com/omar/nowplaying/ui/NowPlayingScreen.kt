@@ -44,20 +44,17 @@ import androidx.compose.material.icons.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -71,7 +68,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -104,7 +100,6 @@ import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.PlayerThemeUi
 import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.theme.DarkColorScheme
-import com.omar.musica.ui.theme.LightColorScheme
 import com.omar.nowplaying.NowPlayingState
 import com.omar.nowplaying.queue.QueueScreen
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
@@ -173,8 +168,9 @@ internal fun NowPlayingScreen(
 ) {
 
     val playerTheme = LocalUserPreferences.current.uiSettings.playerThemeUi
-    val shouldUseDynamicColor = LocalUserPreferences.current.uiSettings.isUsingDynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val isDarkTheme = when(LocalUserPreferences.current.uiSettings.theme) {
+    val shouldUseDynamicColor =
+        LocalUserPreferences.current.uiSettings.isUsingDynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val isDarkTheme = when (LocalUserPreferences.current.uiSettings.theme) {
         AppThemeUi.DARK -> true
         AppThemeUi.LIGHT -> false
         else -> isSystemInDarkTheme()
@@ -199,36 +195,45 @@ internal fun NowPlayingScreen(
             modifier = modifier,
             tonalElevation = if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 4.dp
         ) {
-                Box(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.fillMaxSize()) {
 
-                    FullScreenNowPlaying(
-                        Modifier.fillMaxSize(),
-                        progressProvider,
-                        uiState,
-                        songProgressProvider,
-                        onUserSeek,
-                        onPrevious,
-                        onTogglePlayback,
-                        onNext,
-                        onJumpForward,
-                        onJumpBackward
-                    )
-
-                    NowPlayingBarHeader(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(barHeight)
-                            .pointerInput(Unit) {
-                                detectTapGestures { onExpandNowPlaying() }
-                            }
-                            .graphicsLayer { alpha = (1 - progressProvider() * 2) },
-                        nowPlayingState = uiState,
-                        songProgressProvider = songProgressProvider,
-                        enabled = !isExpanded, // if the view is expanded then disable the header
-                        onTogglePlayback
-                    )
-
+                var isShowingQueue by remember {
+                    mutableStateOf(false)
                 }
+
+                FullScreenNowPlaying(
+                    Modifier.fillMaxSize(),
+                    isShowingQueue,
+                    { isShowingQueue = false },
+                    { isShowingQueue = true },
+                    progressProvider,
+                    uiState,
+                    songProgressProvider,
+                    onUserSeek,
+                    onPrevious,
+                    onTogglePlayback,
+                    onNext,
+                    onJumpForward,
+                    onJumpBackward
+                )
+                LaunchedEffect(key1 = isExpanded) {
+                    if (!isExpanded) isShowingQueue = false
+                }
+                NowPlayingBarHeader(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(barHeight)
+                        .pointerInput(Unit) {
+                            detectTapGestures { onExpandNowPlaying() }
+                        }
+                        .graphicsLayer { alpha = (1 - progressProvider() * 2) },
+                    nowPlayingState = uiState,
+                    songProgressProvider = songProgressProvider,
+                    enabled = !isExpanded, // if the view is expanded then disable the header
+                    onTogglePlayback
+                )
+
+            }
         }
     }
 }
@@ -237,6 +242,9 @@ internal fun NowPlayingScreen(
 @Composable
 fun FullScreenNowPlaying(
     modifier: Modifier,
+    isShowingQueue: Boolean,
+    onCloseQueue: () -> Unit,
+    onOpenQueue: () -> Unit,
     progressProvider: () -> Float,
     uiState: NowPlayingState.Playing,
     songProgressProvider: () -> Float,
@@ -258,7 +266,8 @@ fun FullScreenNowPlaying(
     ) {
 
         val playerTheme = LocalUserPreferences.current.uiSettings.playerThemeUi
-        AnimatedVisibility(visible = playerTheme == PlayerThemeUi.BLUR,
+        AnimatedVisibility(
+            visible = playerTheme == PlayerThemeUi.BLUR,
             enter = fadeIn(), exit = fadeOut()
         ) {
             CrossFadingAlbumArt(
@@ -297,10 +306,6 @@ fun FullScreenNowPlaying(
 
         }
 
-        var isShowingQueue by remember {
-            mutableStateOf(false)
-        }
-
         val playerScreenModifier = remember(paddingModifier) {
             Modifier
                 .fillMaxSize()
@@ -320,10 +325,12 @@ fun FullScreenNowPlaying(
             }
         ) {
             if (it) {
-                QueueScreen(modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer { alpha = progressProvider() * 2 },
-                    onClose = { isShowingQueue = false })
+                QueueScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { alpha = progressProvider() * 2 },
+                    onClose = onCloseQueue
+                )
             } else {
 
                 PlayerScreen(
@@ -338,7 +345,7 @@ fun FullScreenNowPlaying(
                     onNext = onNext,
                     onJumpForward = onJumpForward,
                     onJumpBackward = onJumpBackward,
-                    onOpenQueue = { isShowingQueue = true }
+                    onOpenQueue = onOpenQueue
                 )
             }
         }
@@ -484,7 +491,7 @@ fun SongProgressInfo(
 
     // Periodically get the progress
     LaunchedEffect(key1 = Unit) {
-        while(isActive) {
+        while (isActive) {
             currentProgress = songProgressProvider()
             delay(500)
         }

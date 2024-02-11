@@ -2,6 +2,7 @@ package com.omar.nowplaying.queue
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.QueueRepository
 import com.omar.musica.ui.model.SongUi
@@ -16,24 +17,29 @@ import javax.inject.Inject
 @HiltViewModel
 class QueueViewModel @Inject constructor(
     queueRepository: QueueRepository,
-    mediaRepository: MediaRepository
+    mediaRepository: MediaRepository,
+    private val playbackManager: PlaybackManager
 ) : ViewModel() {
 
 
-    val queueScreenState = queueRepository.observeQueueUris()
-        .combine(mediaRepository.songsFlow) { uris, library ->
-            val songs = library.getSongsByUris(uris)
-            QueueScreenState.Loaded(songs.toUiSongModels())
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(500, 500), QueueScreenState.Loading)
-
+    val queueScreenState = combine(
+        queueRepository.observeQueueUris(), mediaRepository.songsFlow, playbackManager.state
+    ) { uris, library, playerState ->
+        val songs = library.getSongsByUris(uris)
+        val currentSongIndex = uris.indexOf(playerState.currentSong?.uriString)
+        QueueScreenState.Loaded(songs.toUiSongModels(), currentSongIndex)
+    }.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(500, 500), QueueScreenState.Loading
+    )
 
 
 }
 
 
-
 sealed interface QueueScreenState {
-    data class Loaded(val songs: List<SongUi>): QueueScreenState
-    data object Loading: QueueScreenState
+    data class Loaded(
+        val songs: List<SongUi>, val currentSongIndex: Int
+    ) : QueueScreenState
+
+    data object Loading : QueueScreenState
 }
