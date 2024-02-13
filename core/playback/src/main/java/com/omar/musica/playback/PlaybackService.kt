@@ -3,8 +3,6 @@ package com.omar.musica.playback
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC
 import androidx.media3.common.C.USAGE_MEDIA
@@ -57,52 +55,31 @@ class PlaybackService : MediaSessionService() {
     private lateinit var playerSettings: StateFlow<PlayerSettings>
 
 
-
-
-    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
 
-        player = ExoPlayer.Builder(applicationContext)
-            .setAudioAttributes(
-                AudioAttributes.Builder().setContentType(AUDIO_CONTENT_TYPE_MUSIC)
-                    .setUsage(USAGE_MEDIA).build(),
-                true
-            )
-            .setHandleAudioBecomingNoisy(true)
-            .setUseLazyPreparation(false)
-            .build()
+        player = buildPlayer()
+        mediaSession = buildMediaSession()
 
-
-
-
-        mediaSession = MediaSession
-            .Builder(applicationContext, player)
-            .setCallback(buildCustomCallback())
-            .setCustomLayout(buildCommandButtons())
-            .setSessionActivity(buildPendingIntent())
-            .build()
-
-        player.repeatMode = Player.REPEAT_MODE_ALL
         playerSettings = userPreferencesRepository.playerSettingsFlow
             .stateIn(
-                scope, started = SharingStarted.Eagerly, PlayerSettings(DEFAULT_JUMP_DURATION_MILLIS)
+                scope,
+                started = SharingStarted.Eagerly,
+                PlayerSettings(DEFAULT_JUMP_DURATION_MILLIS)
             )
 
         recoverQueue()
         scope.launch(Dispatchers.Main) {
-            while(isActive) {
+            while (isActive) {
                 delay(10_000)
                 saveCurrentPosition()
             }
         }
     }
 
-
     private fun buildPendingIntent(): PendingIntent {
-        val intent = Intent(this, Class.forName("com.omar.musica.MainActivity")).apply {
-            action = VIEW_MEDIA_SCREEN_ACTION
-        }
+        val intent = Intent(this, Class.forName("com.omar.musica.MainActivity"))
+        intent.action = VIEW_MEDIA_SCREEN_ACTION
         return PendingIntent.getActivity(this, 1, intent, PendingIntent.FLAG_IMMUTABLE)
     }
 
@@ -120,11 +97,11 @@ class PlaybackService : MediaSessionService() {
         val rewindCommandButton = CommandButton.Builder()
             .setEnabled(true)
             .setDisplayName("Jump Backward")
-            .setSessionCommand(SessionCommand(CUSTOM_COMMAND_JUMP_BACKWARD, Bundle()))
+            .setSessionCommand(SessionCommand(Commands.JUMP_BACKWARD, Bundle()))
             .setIconResId(R.drawable.outline_fast_rewind_24).build()
         val fastForwardCommandButton = CommandButton.Builder()
             .setEnabled(true)
-            .setSessionCommand(SessionCommand(CUSTOM_COMMAND_JUMP_FORWARD, Bundle()))
+            .setSessionCommand(SessionCommand(Commands.JUMP_FORWARD, Bundle()))
             .setDisplayName("Jump Forward")
             .setIconResId(R.drawable.outline_fast_forward_24).build()
         return listOf(rewindCommandButton, fastForwardCommandButton)
@@ -133,6 +110,31 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession {
         Timber.i(TAG, "Controller request: ${controllerInfo.packageName}")
         return mediaSession
+    }
+
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+    private fun buildMediaSession(): MediaSession {
+        return MediaSession
+            .Builder(applicationContext, player)
+            .setCallback(buildCustomCallback())
+            .setCustomLayout(buildCommandButtons())
+            .setSessionActivity(buildPendingIntent())
+            .build()
+    }
+
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+    private fun buildPlayer(): ExoPlayer {
+        return ExoPlayer.Builder(applicationContext)
+            .setAudioAttributes(
+                AudioAttributes.Builder().setContentType(AUDIO_CONTENT_TYPE_MUSIC)
+                    .setUsage(USAGE_MEDIA).build(),
+                true
+            )
+            .setHandleAudioBecomingNoisy(true)
+            .setUseLazyPreparation(false)
+            .build().apply {
+                repeatMode = Player.REPEAT_MODE_ALL
+            }
     }
 
     private fun recoverQueue() {
@@ -170,17 +172,15 @@ class PlaybackService : MediaSessionService() {
                 )
             }
 
-
             override fun onCustomCommand(
                 session: MediaSession,
                 controller: MediaSession.ControllerInfo,
                 customCommand: SessionCommand,
                 args: Bundle
-
             ): ListenableFuture<SessionResult> {
-                if (CUSTOM_COMMAND_JUMP_FORWARD == customCommand.customAction) {
+                if (Commands.JUMP_FORWARD == customCommand.customAction) {
                     seekForward()
-                } else if (CUSTOM_COMMAND_JUMP_BACKWARD == customCommand.customAction) {
+                } else if (Commands.JUMP_BACKWARD == customCommand.customAction) {
                     seekBackward()
                 }
                 return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
@@ -230,9 +230,9 @@ class PlaybackService : MediaSessionService() {
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                    .setArtist(this.artist)
-                    .setAlbumTitle(this.albumTitle)
-                    .setTitle(this.title)
+                    .setArtist(artist)
+                    .setAlbumTitle(albumTitle)
+                    .setTitle(title)
                     .build()
             )
             .setRequestMetadata(
@@ -242,12 +242,9 @@ class PlaybackService : MediaSessionService() {
             .build()
 
 
-
     companion object {
         const val TAG = "MEDIA_SESSION"
         const val VIEW_MEDIA_SCREEN_ACTION = "MEDIA_SCREEN_ACTION"
-        const val CUSTOM_COMMAND_JUMP_FORWARD = "JUMP_FORWARD"
-        const val CUSTOM_COMMAND_JUMP_BACKWARD = "JUMP_BACKWARD"
     }
 
 }

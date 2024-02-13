@@ -1,4 +1,4 @@
-package com.omar.musica.ui.common
+package com.omar.musica.ui
 
 
 

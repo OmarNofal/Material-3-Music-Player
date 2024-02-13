@@ -23,10 +23,4 @@ data class LibrarySettings(
      * Files in these folders should not appear in the app
      */
     val excludedFolders: List<String>
-) {
-
-    companion object {
-        val DEFAULT_LIBRARY_SETTINGS = LibrarySettings(SortOption.TITLE to true, true, listOf())
-    }
-
-}
+)

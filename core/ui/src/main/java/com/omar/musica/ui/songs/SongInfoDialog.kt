@@ -1,4 +1,4 @@
-package com.omar.musica.ui.common
+package com.omar.musica.ui.songs
 
 import android.os.Environment
 import androidx.compose.foundation.layout.Column
@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.omar.musica.ui.R
 import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
+import com.omar.musica.ui.millisToTime
 import com.omar.musica.ui.model.SongUi
 import kotlin.math.pow
 

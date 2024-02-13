@@ -37,7 +37,7 @@ private const val TAG = "MediaRepository"
 @Singleton
 class MediaRepository @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val userPreferencesRepository: UserPreferencesRepository
+    userPreferencesRepository: UserPreferencesRepository
 ) {
 
 
@@ -51,6 +51,7 @@ class MediaRepository @Inject constructor(
         callbackFlow {
 
             Timber.d(TAG, "Initializing callback flow to get all songs")
+
             var lastChangedUri: Uri? = null
             val observer = object : ContentObserver(null) {
                 override fun onChange(selfChange: Boolean, uri: Uri?) {
@@ -97,8 +98,7 @@ class MediaRepository @Inject constructor(
             }
 
             SongLibrary(filteredSongs)
-        }
-            .flowOn(Dispatchers.IO).stateIn(
+        }.flowOn(Dispatchers.IO).stateIn(
                 scope = scope,
                 started = SharingStarted.Eagerly,
                 initialValue = SongLibrary(listOf())
@@ -127,7 +127,6 @@ class MediaRepository @Inject constructor(
                 null, null, null, null
             ) ?: throw Exception("Invalid cursor")
 
-
             val results = mutableListOf<Song>()
             cursor.use { c ->
                 while (c.moveToNext() && isActive) {
@@ -146,22 +145,6 @@ class MediaRepository @Inject constructor(
                         cursor.getInt(idColumn).toLong()
                     )
 
-                    val albumArtUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) null
-                    else
-                        contentResolver.query(
-                            MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                            arrayOf(MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART),
-                            "${MediaStore.Audio.Albums._ID}=?",
-                            arrayOf(c.getLong(albumIdColumn).toString()),
-                            null
-                        ).use {
-                            if (it == null) return@use null
-                            if (!it.moveToFirst()) return@use null
-                            val columnIndex = it.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART)
-                            it.getStringOrNull(columnIndex)
-                        }
-
-
                     try {
                         Song(
                             title = c.getString(titleColumn),
@@ -172,11 +155,10 @@ class MediaRepository @Inject constructor(
                             size = c.getLong(sizeColumn),
                             fileName = cursor.getString(fileNameColumn),
                             uriString = fileUri.toString(),
-                            albumId = cursor.getLong(albumIdColumn),
-                            albumArtUri = albumArtUri
+                            albumId = cursor.getLong(albumIdColumn)
                         ).apply { Timber.d(this.toString()) }.also(results::add)
                     } catch (e: Exception) {
-                        Timber.e(e) // ignore the song for now if any problems occured
+                        Timber.e(e) // ignore the song for now if any problems occurred
                     }
                 }
             }

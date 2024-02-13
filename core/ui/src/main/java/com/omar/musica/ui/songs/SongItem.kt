@@ -1,6 +1,5 @@
-package com.omar.musica.ui.common
+package com.omar.musica.ui.songs
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.Spring
@@ -45,6 +44,10 @@ import coil.compose.AsyncImage
 import com.omar.musica.ui.R
 import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
 import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
+import com.omar.musica.ui.common.LocalUserPreferences
+import com.omar.musica.ui.millisToTime
+import com.omar.musica.ui.menu.MenuActionItem
+import com.omar.musica.ui.menu.SongDropdownMenu
 import com.omar.musica.ui.model.SongUi
 import timber.log.Timber
 

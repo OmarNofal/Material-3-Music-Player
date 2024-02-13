@@ -1,6 +1,6 @@
 package com.omar.nowplaying.ui
 
-import BlurTransformation
+import com.omar.musica.ui.albumart.BlurTransformation
 import android.app.Activity
 import android.os.Build
 import androidx.activity.compose.BackHandler
@@ -95,7 +95,7 @@ import coil.size.Size
 import com.omar.musica.playback.state.PlayerState
 import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
 import com.omar.musica.ui.common.LocalUserPreferences
-import com.omar.musica.ui.common.millisToTime
+import com.omar.musica.ui.millisToTime
 import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.PlayerThemeUi
 import com.omar.musica.ui.model.SongUi

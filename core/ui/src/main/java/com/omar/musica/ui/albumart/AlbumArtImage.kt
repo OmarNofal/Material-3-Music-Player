@@ -1,4 +1,4 @@
-package com.omar.musica.ui.common
+package com.omar.musica.ui.albumart
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember

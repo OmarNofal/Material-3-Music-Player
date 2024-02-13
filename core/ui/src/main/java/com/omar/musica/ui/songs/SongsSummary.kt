@@ -1,4 +1,4 @@
-package com.omar.musica.ui.common
+package com.omar.musica.ui.songs
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.omar.musica.ui.millisToTime
 
 
 @Composable

@@ -14,8 +14,14 @@ data class UiSettings(
      */
     val isUsingDynamicColor: Boolean,
 
+    /**
+     * Solid or blur player theme
+     */
     val playerTheme: PlayerTheme,
 
+    /**
+     * Useful for Amoled Screens
+     */
     val blackBackgroundForDarkTheme: Boolean
 )
 

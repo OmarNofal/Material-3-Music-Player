@@ -2,8 +2,8 @@ package com.omar.musica.ui.actions
 
 import android.content.Context
 import com.omar.musica.playback.PlaybackManager
-import com.omar.musica.ui.common.showSongsAddedToNextToast
-import com.omar.musica.ui.common.showSongsAddedToQueueToast
+import com.omar.musica.ui.showSongsAddedToNextToast
+import com.omar.musica.ui.showSongsAddedToQueueToast
 import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.model.toSongModels
 

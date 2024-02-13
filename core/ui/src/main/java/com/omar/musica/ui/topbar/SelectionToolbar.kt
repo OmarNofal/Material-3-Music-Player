@@ -1,4 +1,4 @@
-package com.omar.musica.ui.common.topbar
+package com.omar.musica.ui.topbar
 
 
 import androidx.compose.animation.AnimatedContent
@@ -29,7 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.omar.musica.ui.common.MenuActionItem
+import com.omar.musica.ui.menu.MenuActionItem
 import com.omar.musica.ui.common.MultiSelectState
 
 

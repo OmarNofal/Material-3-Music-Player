@@ -1,4 +1,4 @@
-package com.omar.musica.ui.common
+package com.omar.musica.ui.songs
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -10,6 +10,8 @@ import androidx.compose.material3.Divider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.omar.musica.ui.common.MultiSelectState
+import com.omar.musica.ui.menu.MenuActionItem
 import com.omar.musica.ui.model.SongUi
 
 

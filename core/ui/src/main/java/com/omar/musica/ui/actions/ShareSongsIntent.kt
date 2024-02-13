@@ -1,9 +1,8 @@
-package com.omar.musica.ui.common
+package com.omar.musica.ui.actions
 
 import android.content.Context
 import android.content.Intent
 import androidx.core.net.toUri
-import com.omar.musica.ui.actions.SongShareAction
 import com.omar.musica.ui.model.SongUi
 
 

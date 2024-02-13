@@ -1,9 +1,8 @@
-package com.omar.musica.ui.common
+package com.omar.musica.ui.menu
 
 import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AddToPhotos
-import androidx.compose.material.icons.rounded.AddToQueue
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Info
@@ -17,6 +16,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.omar.musica.ui.actions.SongDeleteAction
 import com.omar.musica.ui.actions.SongPlaybackActions
 import com.omar.musica.ui.actions.SongShareAction
+import com.omar.musica.ui.songs.SongInfoDialog
 import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.playlist.AddToPlaylistDialog
 

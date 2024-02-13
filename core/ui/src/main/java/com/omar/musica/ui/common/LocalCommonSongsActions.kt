@@ -10,12 +10,14 @@ import com.omar.musica.ui.actions.SongDeleteAction
 import com.omar.musica.ui.actions.SongPlaybackActions
 import com.omar.musica.ui.actions.SongPlaybackActionsImpl
 import com.omar.musica.ui.actions.SongShareAction
+import com.omar.musica.ui.actions.SongsSharer
 import com.omar.musica.ui.actions.rememberSongDeleter
 import com.omar.musica.ui.playlist.AddToPlaylistDialog
 import com.omar.musica.ui.playlist.rememberAddToPlaylistDialog
+import com.omar.musica.ui.songs.SongInfoDialog
+import com.omar.musica.ui.songs.rememberSongDialog
 
 
-//@Stable
 data class CommonSongsActions(
     val playbackActions: SongPlaybackActions,
     val shareAction: SongShareAction,

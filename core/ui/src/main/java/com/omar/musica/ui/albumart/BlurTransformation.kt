@@ -1,3 +1,5 @@
+package com.omar.musica.ui.albumart
+
 import android.graphics.Bitmap
 import coil.size.Size
 import coil.transform.Transformation

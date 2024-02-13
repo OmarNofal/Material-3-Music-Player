@@ -14,8 +14,7 @@ data class SongUi(
     val album: String?,
     val location: String,
     val uriString: String,
-    val albumId: Long? = null,
-    val albumArtUri: String? = null
+    val albumId: Long? = null
 )
 
 val SongUi.uri
@@ -26,7 +25,7 @@ fun List<SongUi>.toSongModels() =
 
 fun SongUi.toSongModel() =
     Song(
-        fileName, title, artist, length, size, album, location, uriString, albumId, albumArtUri
+        fileName, title, artist, length, size, album, location, uriString, albumId
     )
 
 fun List<Song>.toUiSongModels() =
@@ -34,5 +33,5 @@ fun List<Song>.toUiSongModels() =
 
 fun Song.toUiSongModel() =
     SongUi(
-        fileName, title, artist, length, size, album, location, uriString, albumId, albumArtUri
+        fileName, title, artist, length, size, album, location, uriString, albumId
     )

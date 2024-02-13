@@ -56,11 +56,6 @@ class UserPreferencesRepository @Inject constructor(
             it.playerSettings
         }.distinctUntilChanged()
 
-    val uiSettingsFlow = userSettingsFlow
-        .map {
-            it.uiSettings
-        }.distinctUntilChanged()
-
 
     suspend fun saveCurrentPosition(songUriString: String, position: Long) {
         context.datastore.edit {
@@ -90,7 +85,8 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun toggleBlackBackgroundForDarkTheme() {
         context.datastore.edit {
-            it[BLACK_BACKGROUND_FOR_DARK_THEME_KEY] = !(it[BLACK_BACKGROUND_FOR_DARK_THEME_KEY] ?: false)
+            it[BLACK_BACKGROUND_FOR_DARK_THEME_KEY] =
+                !(it[BLACK_BACKGROUND_FOR_DARK_THEME_KEY] ?: false)
         }
     }
 
@@ -162,8 +158,8 @@ class UserPreferencesRepository @Inject constructor(
         val THEME_KEY = stringPreferencesKey("THEME")
         val DYNAMIC_COLOR_KEY = booleanPreferencesKey("DYNAMIC_COLOR")
         val PLAYER_THEME_KEY = stringPreferencesKey("PLAYER_THEME")
-        val BLACK_BACKGROUND_FOR_DARK_THEME_KEY = booleanPreferencesKey("BLACK_BACKGROUND_FOR_DARK_THEME")
-        val MIN_DURATION_MILLIS_KEY = longPreferencesKey("MIN_DURATION_KEY")
+        val BLACK_BACKGROUND_FOR_DARK_THEME_KEY =
+            booleanPreferencesKey("BLACK_BACKGROUND_FOR_DARK_THEME")
         val CACHE_ALBUM_COVER_ART_KEY = booleanPreferencesKey("CACHE_ALBUM_COVER_ART")
         val JUMP_DURATION_KEY = intPreferencesKey("JUMP_DURATION_KEY")
         val SONG_URI_KEY = stringPreferencesKey("SONG_URI")

@@ -36,15 +36,15 @@ import com.omar.musica.model.PlaylistInfo
 import com.omar.musica.playback.PlaylistPlaybackActions
 import com.omar.musica.playlists.playlistdetail.rememberDeletePlaylistDialog
 import com.omar.musica.playlists.rememberCreatePlaylistDialog
-import com.omar.musica.ui.common.MenuActionItem
-import com.omar.musica.ui.common.addToQueue
-import com.omar.musica.ui.common.delete
-import com.omar.musica.ui.common.play
-import com.omar.musica.ui.common.playNext
-import com.omar.musica.ui.common.rename
-import com.omar.musica.ui.common.shuffle
-import com.omar.musica.ui.common.shuffleNext
-import com.omar.musica.ui.common.topbar.OverflowMenu
+import com.omar.musica.ui.menu.MenuActionItem
+import com.omar.musica.ui.menu.addToQueue
+import com.omar.musica.ui.menu.delete
+import com.omar.musica.ui.menu.play
+import com.omar.musica.ui.menu.playNext
+import com.omar.musica.ui.menu.rename
+import com.omar.musica.ui.menu.shuffle
+import com.omar.musica.ui.menu.shuffleNext
+import com.omar.musica.ui.topbar.OverflowMenu
 
 
 @Composable

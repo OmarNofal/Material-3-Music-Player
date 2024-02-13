@@ -25,8 +25,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.omar.musica.ui.common.SongInfoRow
-import com.omar.musica.ui.common.selectableSongsList
+import com.omar.musica.ui.songs.SongInfoRow
 
 
 @Composable

@@ -33,13 +33,11 @@ import com.omar.musica.songs.SongsScreenUiState
 import com.omar.musica.songs.viewmodel.SongsViewModel
 import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.MultiSelectState
-import com.omar.musica.ui.common.SongsSharer
-import com.omar.musica.ui.common.SongsSummary
-import com.omar.musica.ui.common.buildCommonMultipleSongsActions
-import com.omar.musica.ui.common.buildCommonSongActions
-import com.omar.musica.ui.common.selectableSongsList
-import com.omar.musica.ui.common.showSongsAddedToNextToast
-import com.omar.musica.ui.common.topbar.SelectionTopAppBarScaffold
+import com.omar.musica.ui.songs.SongsSummary
+import com.omar.musica.ui.menu.buildCommonMultipleSongsActions
+import com.omar.musica.ui.menu.buildCommonSongActions
+import com.omar.musica.ui.songs.selectableSongsList
+import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
 import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.playlist.rememberAddToPlaylistDialog
 

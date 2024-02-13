@@ -1,4 +1,4 @@
-package com.omar.musica.ui.common
+package com.omar.musica.ui.menu
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DropdownMenu
