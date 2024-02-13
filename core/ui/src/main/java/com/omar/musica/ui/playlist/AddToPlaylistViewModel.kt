@@ -2,7 +2,7 @@ package com.omar.musica.ui.playlist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.omar.musica.model.PlaylistInfo
+import com.omar.musica.model.playlist.PlaylistInfo
 import com.omar.musica.store.PlaylistsRepository
 import com.omar.musica.ui.model.SongUi
 import dagger.hilt.android.lifecycle.HiltViewModel

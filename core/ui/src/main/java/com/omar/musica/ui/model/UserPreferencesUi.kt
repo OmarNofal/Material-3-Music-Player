@@ -1,7 +1,7 @@
 package com.omar.musica.ui.model
 
 import androidx.compose.runtime.Stable
-import com.omar.musica.model.UserPreferences
+import com.omar.musica.model.prefs.UserPreferences
 
 
 @Stable

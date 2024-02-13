@@ -42,4 +42,10 @@ object DatabaseModule {
         appDatabase: MusicaDatabase
     ) = appDatabase.queueDao()
 
+    @Singleton
+    @Provides
+    fun provideActivityDao(
+        appDatabase: MusicaDatabase
+    ) = appDatabase.activityDao()
+
 }

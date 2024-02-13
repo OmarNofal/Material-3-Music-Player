@@ -13,7 +13,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
-import com.omar.musica.model.Song
+import com.omar.musica.model.song.Song
 import com.omar.musica.playback.state.PlaybackState
 import com.omar.musica.playback.state.PlayerState
 import com.omar.musica.store.MediaRepository

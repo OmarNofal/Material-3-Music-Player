@@ -1,11 +1,11 @@
 package com.omar.musica.store
 
 import com.omar.musica.database.dao.PlaylistDao
-import com.omar.musica.database.entities.PlaylistEntity
+import com.omar.musica.database.entities.playlist.PlaylistEntity
 import com.omar.musica.database.model.PlaylistInfoWithNumberOfSongs
-import com.omar.musica.model.Playlist
-import com.omar.musica.model.PlaylistInfo
-import com.omar.musica.model.Song
+import com.omar.musica.model.playlist.Playlist
+import com.omar.musica.model.playlist.PlaylistInfo
+import com.omar.musica.model.song.Song
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

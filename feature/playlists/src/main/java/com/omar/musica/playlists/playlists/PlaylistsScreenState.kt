@@ -1,6 +1,6 @@
 package com.omar.musica.playlists.playlists
 
-import com.omar.musica.model.PlaylistInfo
+import com.omar.musica.model.playlist.PlaylistInfo
 
 sealed interface PlaylistsScreenState {
 

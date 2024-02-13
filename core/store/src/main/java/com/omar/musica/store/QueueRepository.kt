@@ -4,8 +4,8 @@ import android.content.Context
 import android.net.Uri
 import androidx.core.net.toUri
 import com.omar.musica.database.dao.QueueDao
-import com.omar.musica.database.entities.QueueEntity
-import com.omar.musica.model.Song
+import com.omar.musica.database.entities.queue.QueueEntity
+import com.omar.musica.model.song.Song
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

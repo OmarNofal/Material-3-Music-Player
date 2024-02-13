@@ -3,8 +3,8 @@ package com.omar.musica.database.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.omar.musica.database.entities.BlacklistedFolderEntity
-import com.omar.musica.database.entities.FOLDER_PATH_COLUMN
+import com.omar.musica.database.entities.prefs.BlacklistedFolderEntity
+import com.omar.musica.database.entities.prefs.FOLDER_PATH_COLUMN
 import kotlinx.coroutines.flow.Flow
 
 

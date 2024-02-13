@@ -1,4 +1,4 @@
-package com.omar.musica.database.entities
+package com.omar.musica.database.entities.prefs
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

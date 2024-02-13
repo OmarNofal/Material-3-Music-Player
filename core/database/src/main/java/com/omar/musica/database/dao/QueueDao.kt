@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
-import com.omar.musica.database.entities.QUEUE_TABLE
-import com.omar.musica.database.entities.QueueEntity
+import com.omar.musica.database.entities.queue.QUEUE_TABLE
+import com.omar.musica.database.entities.queue.QueueEntity
 import kotlinx.coroutines.flow.Flow
 
 

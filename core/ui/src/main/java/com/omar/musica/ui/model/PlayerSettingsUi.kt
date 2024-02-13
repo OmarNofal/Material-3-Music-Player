@@ -1,8 +1,7 @@
 package com.omar.musica.ui.model
 
 import androidx.compose.runtime.Stable
-import com.omar.musica.model.PlayerSettings
-import com.omar.musica.model.PlayerTheme
+import com.omar.musica.model.prefs.PlayerSettings
 
 
 @Stable

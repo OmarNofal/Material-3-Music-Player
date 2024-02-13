@@ -1,4 +1,6 @@
-package com.omar.musica.model
+package com.omar.musica.model.prefs
+
+import com.omar.musica.model.SortOption
 
 
 typealias IsAscending = Boolean

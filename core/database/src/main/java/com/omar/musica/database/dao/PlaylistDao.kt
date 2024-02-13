@@ -9,8 +9,8 @@ import com.omar.musica.database.entities.PLAYLIST_ENTITY
 import com.omar.musica.database.entities.PLAYLIST_ID_COLUMN
 import com.omar.musica.database.entities.PLAYLIST_NAME_COLUMN
 import com.omar.musica.database.entities.PLAYLIST_SONG_ENTITY
-import com.omar.musica.database.entities.PlaylistEntity
-import com.omar.musica.database.entities.PlaylistsSongsEntity
+import com.omar.musica.database.entities.playlist.PlaylistEntity
+import com.omar.musica.database.entities.playlist.PlaylistsSongsEntity
 import com.omar.musica.database.entities.SONG_URI_STRING_COLUMN
 import com.omar.musica.database.model.PlaylistInfoWithNumberOfSongs
 import com.omar.musica.database.model.PlaylistWithSongsUri

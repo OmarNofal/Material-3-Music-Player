@@ -1,5 +1,6 @@
-package com.omar.musica.model
+package com.omar.musica.model.playlist
 
+import com.omar.musica.model.song.Song
 
 
 data class Playlist(

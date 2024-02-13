@@ -7,10 +7,9 @@ import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import androidx.core.database.getStringOrNull
 import androidx.core.net.toUri
-import com.omar.musica.model.Song
-import com.omar.musica.model.SongLibrary
+import com.omar.musica.model.song.Song
+import com.omar.musica.model.song.SongLibrary
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

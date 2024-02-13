@@ -1,4 +1,4 @@
-package com.omar.musica.model
+package com.omar.musica.model.prefs
 
 /**
  * Settings related to Ui of the Application

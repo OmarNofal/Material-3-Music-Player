@@ -17,8 +17,8 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.omar.musica.model.DEFAULT_JUMP_DURATION_MILLIS
-import com.omar.musica.model.PlayerSettings
+import com.omar.musica.model.prefs.DEFAULT_JUMP_DURATION_MILLIS
+import com.omar.musica.model.prefs.PlayerSettings
 import com.omar.musica.store.QueueItem
 import com.omar.musica.store.QueueRepository
 import com.omar.musica.store.UserPreferencesRepository

@@ -32,7 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.omar.musica.model.PlaylistInfo
+import com.omar.musica.model.playlist.PlaylistInfo
 import com.omar.musica.playback.PlaylistPlaybackActions
 import com.omar.musica.playlists.playlistdetail.rememberDeletePlaylistDialog
 import com.omar.musica.playlists.rememberCreatePlaylistDialog

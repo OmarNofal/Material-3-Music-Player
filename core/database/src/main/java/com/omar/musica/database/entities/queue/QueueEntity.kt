@@ -1,4 +1,4 @@
-package com.omar.musica.database.entities
+package com.omar.musica.database.entities.queue
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

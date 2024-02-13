@@ -3,8 +3,8 @@ package com.omar.musica.database.model
 import androidx.room.Embedded
 import androidx.room.Relation
 import com.omar.musica.database.entities.PLAYLIST_ID_COLUMN
-import com.omar.musica.database.entities.PlaylistEntity
-import com.omar.musica.database.entities.PlaylistsSongsEntity
+import com.omar.musica.database.entities.playlist.PlaylistEntity
+import com.omar.musica.database.entities.playlist.PlaylistsSongsEntity
 
 
 data class PlaylistWithSongsUri(

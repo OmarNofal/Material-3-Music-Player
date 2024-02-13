@@ -3,7 +3,6 @@ package com.omar.musica.settings
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.omar.musica.model.PlayerTheme
 import com.omar.musica.store.UserPreferencesRepository
 import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.PlayerThemeUi

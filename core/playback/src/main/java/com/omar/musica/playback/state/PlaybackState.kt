@@ -1,7 +1,7 @@
 package com.omar.musica.playback.state
 
 
-import com.omar.musica.model.Song
+import com.omar.musica.model.song.Song
 
 
 data class PlaybackState(
