@@ -13,31 +13,31 @@ import com.omar.musica.database.entities.activity.ListeningSessionEntity
 interface ActivityDao {
 
     @Insert
-    fun insertListeningSession(l: ListeningSessionEntity)
+    suspend fun insertListeningSession(l: ListeningSessionEntity)
 
     @Query("SELECT * FROM $LISTENING_SESSION_TABLE")
-    fun getAllListeningSessions(): List<ListeningSessionEntity>
+    suspend fun getAllListeningSessions(): List<ListeningSessionEntity>
 
     @Query("SELECT * FROM $LISTENING_SESSION_TABLE WHERE $START_TIME_COLUMN > :timestamp")
-    fun getListeningSessionsAfterTimestamp(timestamp: Long): List<ListeningSessionEntity>
+    suspend fun getListeningSessionsAfterTimestamp(timestamp: Long): List<ListeningSessionEntity>
 
     @Query(
         "SELECT * FROM $LISTENING_SESSION_TABLE WHERE $START_TIME_COLUMN > :timestamp1"
         + " AND $START_TIME_COLUMN < :timestamp2"
     )
-    fun getListeningSessionsBetween(timestamp1: Long, timestamp2: Long): List<ListeningSessionEntity>
+    suspend fun getListeningSessionsBetween(timestamp1: Long, timestamp2: Long): List<ListeningSessionEntity>
 
     @Query(
         "DELETE FROM $LISTENING_SESSION_TABLE WHERE $START_TIME_COLUMN < :timestamp"
     )
-    fun deleteSessionsBeforeTimestamp(timestamp: Long)
+    suspend fun deleteSessionsBeforeTimestamp(timestamp: Long)
 
     @Query("DELETE FROM $LISTENING_SESSION_TABLE")
-    fun deleteAllSessions()
+    suspend fun deleteAllSessions()
 
     @Delete
-    fun deleteListeningSession(l: ListeningSessionEntity)
+    suspend fun deleteListeningSession(l: ListeningSessionEntity)
 
     @Query("DELETE FROM $LISTENING_SESSION_TABLE WHERE id = :id")
-    fun deleteListeningSessionById(id: Long)
+    suspend fun deleteListeningSessionById(id: Long)
 }

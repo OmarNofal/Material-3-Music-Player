@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.omar.musica.model.prefs.DEFAULT_JUMP_DURATION_MILLIS
 import com.omar.musica.model.prefs.PlayerSettings
+import com.omar.musica.playback.activity.ListeningAnalytics
 import com.omar.musica.store.QueueItem
 import com.omar.musica.store.QueueRepository
 import com.omar.musica.store.UserPreferencesRepository
@@ -47,6 +48,9 @@ class PlaybackService : MediaSessionService() {
     @Inject
     lateinit var queueRepository: QueueRepository
 
+    @Inject
+    lateinit var listeningAnalytics: ListeningAnalytics
+
     private lateinit var player: Player
     private lateinit var mediaSession: MediaSession
 
@@ -59,6 +63,8 @@ class PlaybackService : MediaSessionService() {
         super.onCreate()
 
         player = buildPlayer()
+        attachAnalyticsListener()
+
         mediaSession = buildMediaSession()
 
         playerSettings = userPreferencesRepository.playerSettingsFlow
@@ -75,6 +81,10 @@ class PlaybackService : MediaSessionService() {
                 saveCurrentPosition()
             }
         }
+    }
+
+    private fun attachAnalyticsListener() {
+        player.addListener(listeningAnalytics)
     }
 
     private fun buildPendingIntent(): PendingIntent {
