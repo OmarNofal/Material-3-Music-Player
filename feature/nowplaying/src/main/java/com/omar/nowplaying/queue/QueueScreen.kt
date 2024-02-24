@@ -76,7 +76,6 @@ internal fun QueueScreen(
     }
     val color = Color(0x22000000)
 
-    if (state !is QueueScreenState.Loaded) return
 
     var fabShown by remember {
         mutableStateOf(true)
@@ -94,6 +93,7 @@ internal fun QueueScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
+            if (state !is QueueScreenState.Loaded) return@Scaffold
             val numberOfRemainingSongs = state.songs.size - state.currentSongIndex
             val durationMillis = state.songs.subList(state.currentSongIndex, state.songs.size)
                 .sumOf { it.length }
@@ -119,6 +119,8 @@ internal fun QueueScreen(
         },
         containerColor = color
     ) {
+
+        if (state !is QueueScreenState.Loaded) return@Scaffold
 
         val reorderableList = remember(state.songs) {
             ReorderableList(

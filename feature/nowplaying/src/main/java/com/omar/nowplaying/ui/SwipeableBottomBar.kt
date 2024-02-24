@@ -108,9 +108,9 @@ fun SongCircularProgressIndicator(
         }
     }
     CircularProgressIndicator(
+        progress = { progress.value },
         modifier = modifier,
-        progress = progress.value,
-        strokeCap = StrokeCap.Round
+        strokeCap = StrokeCap.Round,
     )
 }
 

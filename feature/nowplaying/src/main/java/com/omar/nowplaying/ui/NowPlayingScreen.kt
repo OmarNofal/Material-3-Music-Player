@@ -1,34 +1,25 @@
 package com.omar.nowplaying.ui
 
-import com.omar.musica.ui.albumart.BlurTransformation
 import android.app.Activity
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -40,72 +31,46 @@ import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.FastRewind
 import androidx.compose.material.icons.rounded.PauseCircle
 import androidx.compose.material.icons.rounded.PlayCircle
-import androidx.compose.material.icons.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.ColorPainter
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
-import coil.size.Size
-import com.omar.musica.playback.state.PlayerState
-import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
+import com.omar.musica.ui.albumart.BlurTransformation
 import com.omar.musica.ui.common.LocalUserPreferences
-import com.omar.musica.ui.millisToTime
 import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.PlayerThemeUi
-import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.theme.DarkColorScheme
 import com.omar.nowplaying.NowPlayingState
 import com.omar.nowplaying.queue.QueueScreen
 import com.omar.nowplaying.viewmodel.INowPlayingViewModel
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 
 
 @Composable
@@ -310,8 +275,8 @@ fun FullScreenNowPlaying(
                 )
             } else {
 
-                PlayerScreen(
-                    modifier = playerScreenModifier,
+                PlayingScreen2(
+                    modifier = playerScreenModifier.navigationBarsPadding(),
                     song = song,
                     playbackState = uiState.playbackState,
                     screenSize = screenSize,
@@ -323,255 +288,6 @@ fun FullScreenNowPlaying(
 
 
     }
-}
-
-
-@Composable
-fun PlayerScreenSkeleton(
-    song: SongUi,
-    playbackState: PlayerState,
-    screenSize: NowPlayingScreenSize,
-    nowPlayingActions: INowPlayingViewModel,
-    onOpenQueue: () -> Unit,
-) {
-    val initialModifier = remember(screenSize) {
-        if (screenSize == NowPlayingScreenSize.LANDSCAPE) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
-    }
-
-    if (screenSize != NowPlayingScreenSize.COMPACT)
-        CrossFadingAlbumArt(
-            modifier = initialModifier
-                .aspectRatio(1.0f)
-                .scale(0.9f)
-                .clip(RoundedCornerShape(12.dp))
-                .shadow(32.dp),
-            song = song,
-            errorPainterType = ErrorPainterType.PLACEHOLDER
-        )
-
-    Spacer(
-        modifier = if (screenSize == NowPlayingScreenSize.LANDSCAPE) Modifier.width(16.dp) else Modifier.height(
-            16.dp
-        )
-    )
-
-    Column {
-        SongTextInfo(
-            modifier = Modifier.fillMaxWidth(),
-            song = song
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SongProgressInfo(
-            modifier = Modifier.fillMaxWidth(),
-            songDuration = song.length,
-            songProgressProvider = nowPlayingActions::currentSongProgress,
-            onUserSeek = nowPlayingActions::onUserSeek
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        SongControls(
-            modifier = Modifier.fillMaxWidth(),
-            isPlaying = playbackState == PlayerState.PLAYING,
-            onPrevious = nowPlayingActions::previousSong,
-            onTogglePlayback = nowPlayingActions::togglePlayback,
-            onNext = nowPlayingActions::nextSong,
-            onJumpForward = nowPlayingActions::jumpForward,
-            onJumpBackward = nowPlayingActions::jumpBackward
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-
-        TextButton(
-            onClick = onOpenQueue,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        ) {
-            Icon(imageVector = Icons.Rounded.QueueMusic, contentDescription = "Queue")
-            Text(text = "Queue")
-        }
-    }
-}
-
-@Composable
-fun PlayerScreen(
-    modifier: Modifier,
-    song: SongUi,
-    playbackState: PlayerState,
-    screenSize: NowPlayingScreenSize,
-    nowPlayingActions: INowPlayingViewModel,
-    onOpenQueue: () -> Unit,
-) {
-    if (screenSize == NowPlayingScreenSize.LANDSCAPE)
-        Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-            PlayerScreenSkeleton(
-                song,
-                playbackState,
-                screenSize,
-                nowPlayingActions,
-                onOpenQueue
-            )
-        } else
-        Column(modifier) {
-            PlayerScreenSkeleton(
-                song,
-                playbackState,
-                screenSize,
-                nowPlayingActions,
-                onOpenQueue
-            )
-        }
-}
-
-@Composable
-fun SongProgressInfo(
-    modifier: Modifier,
-    songDuration: Long,
-    songProgressProvider: () -> Float,
-    onUserSeek: (progress: Float) -> Unit
-) {
-
-
-    var currentProgress by remember {
-        mutableFloatStateOf(0.0f)
-    }
-
-    // Periodically get the progress
-    LaunchedEffect(key1 = Unit) {
-        while (isActive) {
-            currentProgress = songProgressProvider()
-            delay(500)
-        }
-    }
-
-    val songLength = remember(songDuration) {
-        songDuration.millisToTime()
-    }
-
-    var userSetSliderValue by remember {
-        mutableFloatStateOf(0.0f)
-    }
-
-    // When the user removes his finger from the slider,
-    // the slider will return to the initial position it was on,
-    // it is subtle but annoying, so we add a delay
-    // to give time for the player to change the position of the song.
-    var useSongProgress by remember {
-        mutableStateOf(true)
-    }
-
-    LaunchedEffect(key1 = useSongProgress) {
-        if (!useSongProgress) {
-            delay(1000)
-            if (isActive) useSongProgress = true
-        }
-    }
-
-    val sliderInteractionSource = remember { MutableInteractionSource() }
-    val isPressed by sliderInteractionSource.collectIsDraggedAsState()
-
-    val progressShown =
-        remember(useSongProgress, isPressed, userSetSliderValue, currentProgress) {
-            if (useSongProgress && !isPressed) currentProgress else userSetSliderValue
-        }
-
-    val timestampShown = remember(songDuration, progressShown) {
-        (songDuration * progressShown).toLong().millisToTime()
-    }
-
-    Column(modifier) {
-
-        Slider(
-            value = progressShown,
-            onValueChange = { userSetSliderValue = it },
-            modifier = Modifier
-                .fillMaxWidth(),
-            enabled = true,
-            onValueChangeFinished = {
-                onUserSeek(userSetSliderValue); useSongProgress = false
-            },
-            interactionSource = sliderInteractionSource
-        )
-
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(start = 8.dp, end = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            Text(
-                text = timestampShown,
-                fontSize = 10.sp,
-                maxLines = 1,
-                fontWeight = FontWeight.Light
-            )
-
-            Text(
-                text = songLength,
-                fontSize = 10.sp,
-                maxLines = 1,
-                fontWeight = FontWeight.Light
-            )
-
-        }
-    }
-}
-
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun SongTextInfo(
-    modifier: Modifier,
-    song: SongUi
-) {
-
-
-    Column(modifier = modifier) {
-
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .basicMarquee(
-                    delayMillis = 2000
-                ),
-            text = song.title,
-
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            fontSize = 22.sp,
-            maxLines = 1
-        )
-
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = song.artist ?: "<unknown>",
-            fontWeight = FontWeight.Normal,
-            textAlign = TextAlign.Center,
-            fontSize = 14.sp,
-            maxLines = 1
-        )
-
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = song.album ?: "<unknown>",
-            fontWeight = FontWeight.Normal,
-            textAlign = TextAlign.Center,
-            fontSize = 12.sp,
-            maxLines = 1
-        )
-
-    }
-
-
 }
 
 
@@ -671,115 +387,6 @@ fun ControlButton(
         contentDescription = contentDescription
     )
 
-}
-
-
-@Composable
-fun DarkStatusBarEffect() {
-    val view = LocalView.current
-    DisposableEffect(Unit) {
-
-        val window = (view.context as Activity).window
-
-
-        val windowsInsetsController = WindowCompat.getInsetsController(window, view)
-        val previous = windowsInsetsController.isAppearanceLightStatusBars
-
-
-        windowsInsetsController.isAppearanceLightStatusBars = false
-        windowsInsetsController.isAppearanceLightNavigationBars = false
-
-        onDispose {
-            windowsInsetsController.isAppearanceLightStatusBars = previous
-            windowsInsetsController.isAppearanceLightNavigationBars = previous
-        }
-    }
-}
-
-
-enum class ErrorPainterType {
-    PLACEHOLDER, SOLID_COLOR
-}
-
-@Composable
-fun CrossFadingAlbumArt(
-    modifier: Modifier,
-    song: SongUi,
-    errorPainterType: ErrorPainterType,
-    colorFilter: ColorFilter? = null,
-    blurTransformation: BlurTransformation? = null,
-    contentScale: ContentScale = ContentScale.Crop
-) {
-
-
-    val context = LocalContext.current
-    val imageRequest = remember(song.uriString) {
-        ImageRequest.Builder(context)
-            .data(song)
-            .apply { if (blurTransformation != null) this.transformations(blurTransformation) }
-            .size(Size.ORIGINAL).build()
-    }
-
-    var firstPainter by remember {
-        mutableStateOf<Painter>(ColorPainter(Color.Black))
-    }
-
-    var secondPainter by remember {
-        mutableStateOf<Painter>(ColorPainter(Color.Black))
-    }
-
-    var isUsingFirstPainter by remember {
-        mutableStateOf(true)
-    }
-
-    val solidColorPainter = remember { ColorPainter(Color.Black) }
-    val placeholderPainter = painterResource(id = com.omar.musica.ui.R.drawable.placeholder)
-
-    rememberAsyncImagePainter(
-        model = imageRequest,
-        contentScale = ContentScale.Crop,
-        imageLoader = LocalInefficientThumbnailImageLoader.current,
-        onState = {
-            when (it) {
-                is AsyncImagePainter.State.Success -> {
-                    val newPainter = it.painter
-                    if (isUsingFirstPainter) {
-                        secondPainter = newPainter
-                    } else {
-                        firstPainter = newPainter
-                    }
-                    isUsingFirstPainter = !isUsingFirstPainter
-                }
-
-                is AsyncImagePainter.State.Error -> {
-                    if (isUsingFirstPainter) {
-                        secondPainter =
-                            if (errorPainterType == ErrorPainterType.PLACEHOLDER) placeholderPainter
-                            else solidColorPainter
-                    } else {
-                        firstPainter =
-                            if (errorPainterType == ErrorPainterType.PLACEHOLDER) placeholderPainter
-                            else solidColorPainter
-                    }
-                    isUsingFirstPainter = !isUsingFirstPainter
-                }
-
-                else -> {
-
-                }
-            }
-        }
-    )
-
-    Crossfade(targetState = isUsingFirstPainter, label = "") {
-        Image(
-            modifier = modifier,
-            painter = if (it) firstPainter else secondPainter,
-            contentDescription = null,
-            colorFilter = colorFilter,
-            contentScale = contentScale
-        )
-    }
 }
 
 enum class NowPlayingScreenSize {
