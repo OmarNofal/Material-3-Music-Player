@@ -12,7 +12,7 @@ true // Needed to make the Suppress annotation work for the plugins block
 subprojects {
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         kotlinOptions {
-            val directory = "C:\\Users\\omarw\\Downloads\\Travis Scott - ASTROWORLD (2018) Mp3 (320kbps) [Hunter]"
+            val directory = File(projectDir, "compose_compiler_reports").absolutePath
             if (project.findProperty("composeCompilerReports") == "true") {
                 freeCompilerArgs += listOf(
                     "-P",

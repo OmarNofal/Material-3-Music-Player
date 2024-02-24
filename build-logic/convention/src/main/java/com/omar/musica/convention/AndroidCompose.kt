@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.File
 
 /**
  * Configure Compose-specific options
@@ -34,7 +35,8 @@ internal fun Project.configureAndroidCompose(
         }
 
         composeOptions {
-            kotlinCompilerExtensionVersion = libs.findVersion("androidxComposeCompiler").get().toString()
+            kotlinCompilerExtensionVersion =
+                libs.findVersion("androidxComposeCompiler").get().toString()
         }
 
         dependencies {
@@ -54,7 +56,14 @@ internal fun Project.configureAndroidCompose(
 
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
-            //freeCompilerArgs = freeCompilerArgs + buildComposeMetricsParameters()
+            val stabilityFilePath =
+                File(rootProject.absoluteProjectPath("stability_exceptions.conf")).absolutePath
+            freeCompilerArgs += listOf(
+                "-P",
+                "plugin:androidx.compose.compiler.plugins.kotlin:stabilityConfigurationPath=" +
+                        stabilityFilePath
+            )
+
         }
     }
 }
