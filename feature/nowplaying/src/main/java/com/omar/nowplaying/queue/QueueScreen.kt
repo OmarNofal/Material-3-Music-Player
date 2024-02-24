@@ -1,6 +1,10 @@
 package com.omar.nowplaying.queue
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,6 +16,8 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -20,12 +26,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.omar.musica.ui.songs.SongInfoRow
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyColumnState
 
 
 @Composable
@@ -35,16 +44,26 @@ fun QueueScreen(
     viewModel: QueueViewModel = hiltViewModel()
 ) {
     val state by viewModel.queueScreenState.collectAsState()
-    QueueScreen(modifier = modifier, state = state, onClose = onClose)
+    QueueScreen(
+        modifier = modifier,
+        state = state,
+        onClose = onClose,
+        onSongClicked = viewModel::onSongClicked,
+        onRemoveSongFromQueue = viewModel::onRemoveFromQueue,
+        reorderSong = viewModel::reorderSong
+    )
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 internal fun QueueScreen(
     modifier: Modifier,
     state: QueueScreenState,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    onSongClicked: (Int) -> Unit,
+    onRemoveSongFromQueue: (Int) -> Unit,
+    reorderSong: (Int, Int) -> Unit,
 ) {
     BackHandler(true) {
         onClose()
@@ -54,8 +73,12 @@ internal fun QueueScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(text = "Queue") },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = color,),
+                title = {
+                    Row {
+                        Text(text = "Queue")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = color),
                 navigationIcon = {
                     IconButton(onClick = onClose) {
                         Icon(imageVector = Icons.Rounded.Close, contentDescription = "Close Queue")
@@ -66,49 +89,68 @@ internal fun QueueScreen(
         containerColor = color
     ) {
 
-        if (state is QueueScreenState.Loading) return@Scaffold
+        if (state !is QueueScreenState.Loaded) return@Scaffold
 
-        val songs = (state as QueueScreenState.Loaded).songs
+
+        val reorderableList = remember(state.songs) {
+            ReorderableList(
+                mutableStateOf(state.songs.toMutableList()),
+                reorderSong
+            )
+        }
+        val songs by reorderableList.items
+
         val currentSongIndex = state.currentSongIndex
 
-        val listState = rememberLazyListState()
+
+        val lazyListState = rememberLazyListState()
+
+        val reorderState = rememberReorderableLazyColumnState(
+            lazyListState = lazyListState,
+            onMove = { from, to -> reorderableList.reorder(from.index, to.index) }
+        )
+
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it),
-            state = listState
+            state = lazyListState
         ) {
 
-            itemsIndexed(songs) { index, song ->
-                val disabledModifier = Modifier.alpha(0.5f)
-                val songModifier = if (index >= currentSongIndex) Modifier.fillMaxWidth()
-                else Modifier
-                    .fillMaxWidth()
-                    .then(disabledModifier)
+            itemsIndexed(songs, key = { _, item -> item.uriString }) { index, song ->
+                ReorderableItem(
+                    reorderableLazyListState = reorderState,
+                    key = song.uriString,
+                ) { isDragging ->
 
-                SongInfoRow(
-                    modifier = songModifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    song = song,
-                    efficientThumbnailLoading = false
-                )
-            }
+                    val disabledModifier = Modifier.alpha(0.5f)
+                    val songModifier = if (index > currentSongIndex) Modifier
+                        .fillMaxWidth()
+                    else if (index < currentSongIndex)
+                        Modifier.fillMaxWidth()
+                        .then(disabledModifier)
+                    else Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
 
-            /*selectableSongsList(
-                    songs,
-                    MultiSelectState(),
-                    false,
-                    animateItemPlacement = true,
-                    menuActionsBuilder = { null },
-                    onSongClicked = { _, _ -> Unit }
-                )
+                    QueueSongRow(
+                        modifier = songModifier.clickable { onSongClicked(index) }
+                            .zIndex(if (isDragging) 2.0f else 0.0f),
+                        songUi = song,
+                        swipeToDeleteDelay = 100,
+                        this@ReorderableItem,
+                        onDragStarted = { reorderableList.onDragStarted(index) },
+                        onDragStopped = { reorderableList.onDragStopped() },
+                    ) {
+                        onRemoveSongFromQueue(index)
+                    }
+
+                }
             }
-*/
         }
 
         LaunchedEffect(key1 = Unit) {
             if (currentSongIndex >= 0) {
-                listState.scrollToItem(currentSongIndex, scrollOffset = -50)
+                lazyListState.scrollToItem(currentSongIndex, scrollOffset = -50)
             }
         }
 

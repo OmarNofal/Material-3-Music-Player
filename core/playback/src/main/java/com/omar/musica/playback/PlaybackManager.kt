@@ -111,6 +111,18 @@ class PlaybackManager @Inject constructor(
         mediaController.seekToPrevious()
     }
 
+    fun playSongAtIndex(index: Int) {
+        mediaController.seekTo(index, 0)
+    }
+
+    fun removeSongAtIndex(index: Int) {
+        mediaController.removeMediaItem(index)
+    }
+
+    fun reorderSong(from: Int, to: Int) {
+        mediaController.moveMediaItem(from, to)
+    }
+
     fun seekToPosition(progress: Float) {
         val controller = mediaController
         val songDuration = controller.duration

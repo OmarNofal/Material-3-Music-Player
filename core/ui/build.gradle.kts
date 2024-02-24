@@ -22,6 +22,7 @@ dependencies {
     api(libs.androidx.navigation.compose)
     api(libs.androidx.hilt.navigation.compose)
     api(libs.coil)
+    api(libs.drag.reorder)
 
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
