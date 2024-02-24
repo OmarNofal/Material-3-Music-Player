@@ -46,6 +46,10 @@ class QueueViewModel @Inject constructor(
         playbackManager.reorderSong(from, to)
     }
 
+    fun onClearQueue() {
+        playbackManager.clearQueue()
+    }
+
 }
 
 

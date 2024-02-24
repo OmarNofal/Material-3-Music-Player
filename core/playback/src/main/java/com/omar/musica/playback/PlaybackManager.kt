@@ -73,6 +73,11 @@ class PlaybackManager @Inject constructor(
             }
         }
 
+
+    fun clearQueue() {
+        mediaController.clearMediaItems()
+    }
+
     /**
      * Toggle the player state
      */
