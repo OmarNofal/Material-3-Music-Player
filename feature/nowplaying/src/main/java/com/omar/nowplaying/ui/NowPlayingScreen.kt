@@ -102,6 +102,7 @@ import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.theme.DarkColorScheme
 import com.omar.nowplaying.NowPlayingState
 import com.omar.nowplaying.queue.QueueScreen
+import com.omar.nowplaying.viewmodel.INowPlayingViewModel
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -140,13 +141,7 @@ fun NowPlayingScreen(
             isExpanded = isExpanded,
             onExpandNowPlaying = onExpandNowPlaying,
             progressProvider = progressProvider,
-            songProgressProvider = viewModel::currentSongProgress,
-            onUserSeek = viewModel::onUserSeek,
-            onPrevious = viewModel::previousSong,
-            onTogglePlayback = viewModel::togglePlayback,
-            onNext = viewModel::nextSong,
-            onJumpForward = viewModel::jumpForward,
-            onJumpBackward = viewModel::jumpBackward
+            nowPlayingActions = viewModel
         )
 }
 
@@ -158,13 +153,7 @@ internal fun NowPlayingScreen(
     isExpanded: Boolean,
     onExpandNowPlaying: () -> Unit,
     progressProvider: () -> Float,
-    songProgressProvider: () -> Float,
-    onUserSeek: (Float) -> Unit,
-    onPrevious: () -> Unit,
-    onTogglePlayback: () -> Unit,
-    onNext: () -> Unit,
-    onJumpForward: () -> Unit,
-    onJumpBackward: () -> Unit
+    nowPlayingActions: INowPlayingViewModel
 ) {
 
     val playerTheme = LocalUserPreferences.current.uiSettings.playerThemeUi
@@ -208,13 +197,7 @@ internal fun NowPlayingScreen(
                     { isShowingQueue = true },
                     progressProvider,
                     uiState,
-                    songProgressProvider,
-                    onUserSeek,
-                    onPrevious,
-                    onTogglePlayback,
-                    onNext,
-                    onJumpForward,
-                    onJumpBackward
+                    nowPlayingActions = nowPlayingActions
                 )
                 LaunchedEffect(key1 = isExpanded) {
                     if (!isExpanded) isShowingQueue = false
@@ -228,9 +211,9 @@ internal fun NowPlayingScreen(
                         }
                         .graphicsLayer { alpha = (1 - progressProvider() * 2) },
                     nowPlayingState = uiState,
-                    songProgressProvider = songProgressProvider,
+                    songProgressProvider = nowPlayingActions::currentSongProgress,
                     enabled = !isExpanded, // if the view is expanded then disable the header
-                    onTogglePlayback
+                    nowPlayingActions::togglePlayback
                 )
 
             }
@@ -247,13 +230,7 @@ fun FullScreenNowPlaying(
     onOpenQueue: () -> Unit,
     progressProvider: () -> Float,
     uiState: NowPlayingState.Playing,
-    songProgressProvider: () -> Float,
-    onUserSeek: (Float) -> Unit,
-    onPrevious: () -> Unit,
-    onTogglePlayback: () -> Unit,
-    onNext: () -> Unit,
-    onJumpForward: () -> Unit,
-    onJumpBackward: () -> Unit
+    nowPlayingActions: INowPlayingViewModel,
 ) {
 
     val song = remember(uiState.song) {
@@ -336,15 +313,9 @@ fun FullScreenNowPlaying(
                 PlayerScreen(
                     modifier = playerScreenModifier,
                     song = song,
-                    songProgressProvider = songProgressProvider,
                     playbackState = uiState.playbackState,
                     screenSize = screenSize,
-                    onUserSeek = onUserSeek,
-                    onPrevious = onPrevious,
-                    onTogglePlayback = onTogglePlayback,
-                    onNext = onNext,
-                    onJumpForward = onJumpForward,
-                    onJumpBackward = onJumpBackward,
+                    nowPlayingActions = nowPlayingActions,
                     onOpenQueue = onOpenQueue
                 )
             }
@@ -358,15 +329,9 @@ fun FullScreenNowPlaying(
 @Composable
 fun PlayerScreenSkeleton(
     song: SongUi,
-    songProgressProvider: () -> Float,
     playbackState: PlayerState,
     screenSize: NowPlayingScreenSize,
-    onUserSeek: (Float) -> Unit,
-    onPrevious: () -> Unit,
-    onTogglePlayback: () -> Unit,
-    onNext: () -> Unit,
-    onJumpForward: () -> Unit,
-    onJumpBackward: () -> Unit,
+    nowPlayingActions: INowPlayingViewModel,
     onOpenQueue: () -> Unit,
 ) {
     val initialModifier = remember(screenSize) {
@@ -401,8 +366,8 @@ fun PlayerScreenSkeleton(
         SongProgressInfo(
             modifier = Modifier.fillMaxWidth(),
             songDuration = song.length,
-            songProgressProvider = songProgressProvider,
-            onUserSeek = onUserSeek
+            songProgressProvider = nowPlayingActions::currentSongProgress,
+            onUserSeek = nowPlayingActions::onUserSeek
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -410,11 +375,11 @@ fun PlayerScreenSkeleton(
         SongControls(
             modifier = Modifier.fillMaxWidth(),
             isPlaying = playbackState == PlayerState.PLAYING,
-            onPrevious = onPrevious,
-            onTogglePlayback = onTogglePlayback,
-            onNext = onNext,
-            onJumpForward = onJumpForward,
-            onJumpBackward = onJumpBackward
+            onPrevious = nowPlayingActions::previousSong,
+            onTogglePlayback = nowPlayingActions::togglePlayback,
+            onNext = nowPlayingActions::nextSong,
+            onJumpForward = nowPlayingActions::jumpForward,
+            onJumpBackward = nowPlayingActions::jumpBackward
         )
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -432,45 +397,27 @@ fun PlayerScreenSkeleton(
 fun PlayerScreen(
     modifier: Modifier,
     song: SongUi,
-    songProgressProvider: () -> Float,
     playbackState: PlayerState,
     screenSize: NowPlayingScreenSize,
-    onUserSeek: (Float) -> Unit,
-    onPrevious: () -> Unit,
-    onTogglePlayback: () -> Unit,
-    onNext: () -> Unit,
-    onJumpForward: () -> Unit,
-    onJumpBackward: () -> Unit,
+    nowPlayingActions: INowPlayingViewModel,
     onOpenQueue: () -> Unit,
 ) {
     if (screenSize == NowPlayingScreenSize.LANDSCAPE)
         Row(modifier, verticalAlignment = Alignment.CenterVertically) {
             PlayerScreenSkeleton(
                 song,
-                songProgressProvider,
                 playbackState,
                 screenSize,
-                onUserSeek,
-                onPrevious,
-                onTogglePlayback,
-                onNext,
-                onJumpForward,
-                onJumpBackward,
+                nowPlayingActions,
                 onOpenQueue
             )
         } else
         Column(modifier) {
             PlayerScreenSkeleton(
                 song,
-                songProgressProvider,
                 playbackState,
                 screenSize,
-                onUserSeek,
-                onPrevious,
-                onTogglePlayback,
-                onNext,
-                onJumpForward,
-                onJumpBackward,
+                nowPlayingActions,
                 onOpenQueue
             )
         }

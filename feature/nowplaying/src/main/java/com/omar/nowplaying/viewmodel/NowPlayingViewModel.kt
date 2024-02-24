@@ -16,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class NowPlayingViewModel @Inject constructor(
     private val playbackManager: PlaybackManager
-) : ViewModel() {
+) : ViewModel(), INowPlayingViewModel {
 
 
     private val _state: StateFlow<NowPlayingState> =
@@ -31,29 +31,29 @@ class NowPlayingViewModel @Inject constructor(
     val state: StateFlow<NowPlayingState>
         get() = _state
 
-    fun currentSongProgress() = playbackManager.currentSongProgress
+    override fun currentSongProgress() = playbackManager.currentSongProgress
 
-    fun togglePlayback() {
+    override fun togglePlayback() {
         playbackManager.togglePlayback()
     }
 
-    fun nextSong() {
+    override fun nextSong() {
         playbackManager.playNextSong()
     }
 
-    fun jumpForward() {
+    override fun jumpForward() {
         playbackManager.forward()
     }
 
-    fun jumpBackward() {
+    override fun jumpBackward() {
         playbackManager.backward()
     }
 
-    fun onUserSeek(progress: Float) {
+    override fun onUserSeek(progress: Float) {
         playbackManager.seekToPosition(progress)
     }
 
-    fun previousSong() {
+    override fun previousSong() {
         playbackManager.playPreviousSong()
     }
 
