@@ -16,6 +16,7 @@ import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.UserPreferencesRepository
 import com.omar.musica.ui.MusicaApp
+import com.omar.musica.ui.MusicaApp2
 import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.LocalUserPreferences
 import com.omar.musica.ui.common.rememberCommonSongsActions
@@ -72,7 +73,7 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                             .background(MaterialTheme.colorScheme.background)
                     ) {
-                        MusicaApp(modifier = Modifier.fillMaxSize())
+                        MusicaApp2(modifier = Modifier.fillMaxSize())
                     }
                 }
             }

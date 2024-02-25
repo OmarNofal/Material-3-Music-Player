@@ -100,7 +100,8 @@ internal fun QueueScreen(
             QueueTopBar(
                 color = color,
                 numberOfSongsRemaining = numberOfRemainingSongs,
-                durationMillisRemaining = durationMillis
+                durationMillisRemaining = durationMillis,
+                onClose = onClose
             )
         },
         floatingActionButton = {

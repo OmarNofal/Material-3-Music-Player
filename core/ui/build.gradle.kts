@@ -17,6 +17,8 @@ dependencies {
     api(libs.androidx.compose.material.iconsExtended)
     api(libs.androidx.compose.material3)
     api(libs.androidx.compose.runtime)
+    api(libs.androidx.compose.tooling)
+    api("androidx.compose.material3:material3-window-size-class")
     api(libs.androidx.compose.runtime.livedata)
     api(libs.androidx.activity.compose)
     api(libs.androidx.navigation.compose)

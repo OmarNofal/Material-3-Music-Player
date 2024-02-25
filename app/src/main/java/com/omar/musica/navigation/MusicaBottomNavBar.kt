@@ -76,7 +76,7 @@ fun NavHostController.navigateToTopLevelDestination(topLevelDestination: TopLeve
     }
 }
 
-private fun NavDestination?.isTopLevelDestinationInHierarchy(destination: TopLevelDestination) =
+fun NavDestination?.isTopLevelDestinationInHierarchy(destination: TopLevelDestination) =
     this?.hierarchy?.any {
         it.route?.contains(destination.route, true) ?: false
     } ?: false

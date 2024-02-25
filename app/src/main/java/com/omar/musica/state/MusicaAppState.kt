@@ -6,9 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
 import com.omar.musica.playlists.navigation.PLAYLIST_DETAILS_ROUTE
-import com.omar.musica.settings.navigation.SETTINGS_ROUTE
 import com.omar.musica.songs.navigation.SEARCH_ROUTE
-import com.omar.musica.songs.navigation.SONGS_ROUTE
 import com.omar.nowplaying.NowPlayingState
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -23,20 +21,20 @@ fun rememberMusicaAppState(
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     isNowPlayingExpanded: Boolean,
     nowPlayingViewModel: NowPlayingViewModel,
-    nowPlayingVisibilityProvider: () -> Float
+    nowPlayingExpansionProgress: () -> Float
 ): MusicaAppState {
     return remember(
         navHostController,
         coroutineScope,
         isNowPlayingExpanded,
-        nowPlayingVisibilityProvider
+        nowPlayingExpansionProgress
     ) {
         MusicaAppState(
             navHostController,
             coroutineScope,
             isNowPlayingExpanded,
             nowPlayingViewModel,
-            nowPlayingVisibilityProvider
+            nowPlayingExpansionProgress
         )
     }
 }
@@ -48,7 +46,7 @@ class MusicaAppState(
     val coroutineScope: CoroutineScope,
     val isNowPlayingExpanded: Boolean,
     val nowPlayingViewModel: NowPlayingViewModel,
-    val nowPlayingVisibilityProvider: () -> Float
+    val nowPlayingExpansionProgress: () -> Float
 ) {
 
 

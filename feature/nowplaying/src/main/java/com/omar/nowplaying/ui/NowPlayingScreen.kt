@@ -14,6 +14,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -76,6 +77,7 @@ import com.omar.nowplaying.viewmodel.NowPlayingViewModel
 @Composable
 fun NowPlayingScreen(
     modifier: Modifier,
+    nowPlayingBarPadding: PaddingValues,
     barHeight: Dp,
     isExpanded: Boolean,
     onCollapseNowPlaying: () -> Unit,
@@ -101,6 +103,7 @@ fun NowPlayingScreen(
     if (uiState is NowPlayingState.Playing)
         NowPlayingScreen(
             modifier = modifier,
+            nowPlayingBarPadding = nowPlayingBarPadding,
             uiState = uiState as NowPlayingState.Playing,
             barHeight = barHeight,
             isExpanded = isExpanded,
@@ -113,6 +116,7 @@ fun NowPlayingScreen(
 @Composable
 internal fun NowPlayingScreen(
     modifier: Modifier,
+    nowPlayingBarPadding: PaddingValues,
     uiState: NowPlayingState.Playing,
     barHeight: Dp,
     isExpanded: Boolean,
@@ -170,6 +174,7 @@ internal fun NowPlayingScreen(
                 NowPlayingBarHeader(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(nowPlayingBarPadding)
                         .height(barHeight)
                         .pointerInput(Unit) {
                             detectTapGestures { onExpandNowPlaying() }

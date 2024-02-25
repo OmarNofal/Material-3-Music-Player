@@ -16,6 +16,7 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,11 +24,15 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -71,6 +76,53 @@ val topLevelDestinations =
     )
 
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalFoundationApi::class)
+@Composable
+fun MusicaApp2(
+    modifier: Modifier
+) {
+
+    val navController = rememberNavController()
+    val widthClass = calculateWindowSizeClass(activity = LocalContext.current as Activity)
+
+    var boxMinOffset by remember { mutableFloatStateOf(0.0f) }
+
+
+    val appState = rememberMusicaAppState(
+        navHostController = navController,
+        isNowPlayingExpanded = false,
+        nowPlayingViewModel = hiltViewModel(),
+        nowPlayingExpansionProgress = { 0.0f },
+    )
+
+    val navHost = remember {
+        movableContentOf<Modifier> {
+            NavHost(
+                modifier = it,
+                navController = appState.navHostController,
+                startDestination = SONGS_NAVIGATION_GRAPH
+            ) {
+                songsGraph(navController, enableBackPress = false)
+                playlistsGraph(navController)
+                settingsGraph()
+            }
+        }
+    }
+
+    if (widthClass.widthSizeClass > WindowWidthSizeClass.Compact)
+    {
+        ExpandedAppScaffold(
+            modifier = modifier,
+            appState = appState,
+            topLevelDestinations = topLevelDestinations,
+            currentDestination = navController.currentBackStackEntryAsState().value?.destination,
+            onDestinationSelected = { navController.navigateToTopLevelDestination(it) }
+        ) { contentModifier ->
+            navHost(contentModifier)
+        }
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MusicaApp(
@@ -105,7 +157,7 @@ fun MusicaApp(
         navHostController = navController,
         isNowPlayingExpanded = isExpanded,
         nowPlayingViewModel = hiltViewModel(),
-        nowPlayingVisibilityProvider = scrollProvider,
+        nowPlayingExpansionProgress = scrollProvider,
     )
 
     val shouldShowBottomBar by appState.shouldShowBottomBar.collectAsState(initial = true)
@@ -160,6 +212,7 @@ fun MusicaApp(
 
             NowPlayingScreen(
                 barHeight = nowPlayingBarHeight,
+                nowPlayingBarPadding = PaddingValues(0.dp),
                 modifier = Modifier
                     .fillMaxSize()
                     .offset {

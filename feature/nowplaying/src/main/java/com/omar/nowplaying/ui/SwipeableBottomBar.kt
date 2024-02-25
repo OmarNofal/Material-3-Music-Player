@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -23,6 +24,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 import com.omar.musica.playback.state.PlayerState
@@ -57,7 +60,7 @@ fun NowPlayingBarHeader(
         CrossFadingAlbumArt(
             modifier = Modifier
                 .fillMaxHeight()
-                .aspectRatio(1.0f),
+                .aspectRatio(1.0f).scale(0.9f).clip(RoundedCornerShape(8.dp)),
             song = song,
             errorPainterType = ErrorPainterType.PLACEHOLDER
         )
