@@ -21,20 +21,20 @@ fun rememberMusicaAppState(
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     isNowPlayingExpanded: Boolean,
     nowPlayingViewModel: NowPlayingViewModel,
-    nowPlayingExpansionProgress: () -> Float
+    nowPlayingScreenOffset: () -> Float
 ): MusicaAppState {
     return remember(
         navHostController,
         coroutineScope,
         isNowPlayingExpanded,
-        nowPlayingExpansionProgress
+        nowPlayingScreenOffset
     ) {
         MusicaAppState(
             navHostController,
             coroutineScope,
             isNowPlayingExpanded,
             nowPlayingViewModel,
-            nowPlayingExpansionProgress
+            nowPlayingScreenOffset
         )
     }
 }
@@ -46,7 +46,7 @@ class MusicaAppState(
     val coroutineScope: CoroutineScope,
     val isNowPlayingExpanded: Boolean,
     val nowPlayingViewModel: NowPlayingViewModel,
-    val nowPlayingExpansionProgress: () -> Float
+    val nowPlayingScreenOffset: () -> Float
 ) {
 
 

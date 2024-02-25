@@ -85,35 +85,58 @@ fun MusicaApp2(
     val navController = rememberNavController()
     val widthClass = calculateWindowSizeClass(activity = LocalContext.current as Activity)
 
-    var boxMinOffset by remember { mutableFloatStateOf(0.0f) }
+    val density = LocalDensity.current
+    val nowPlayingScreenAnchors = remember {
+        AnchoredDraggableState(
+            BarState.COLLAPSED,
+            positionalThreshold = { distance: Float -> 0.5f * distance },
+            velocityThreshold = { with(density) { 70.dp.toPx() } },
+            animationSpec = tween()
+        )
+    }
 
 
     val appState = rememberMusicaAppState(
         navHostController = navController,
-        isNowPlayingExpanded = false,
+        isNowPlayingExpanded = nowPlayingScreenAnchors.currentValue == BarState.EXPANDED,
         nowPlayingViewModel = hiltViewModel(),
-        nowPlayingExpansionProgress = { 0.0f },
+        nowPlayingScreenOffset = {
+            if (nowPlayingScreenAnchors.anchors.size > 0)
+                nowPlayingScreenAnchors.requireOffset()
+            else 0.0f
+        },
     )
 
-    val navHost = remember {
+    val navHost = remember(appState.isNowPlayingExpanded) {
         movableContentOf<Modifier> {
             NavHost(
                 modifier = it,
                 navController = appState.navHostController,
                 startDestination = SONGS_NAVIGATION_GRAPH
             ) {
-                songsGraph(navController, enableBackPress = false)
+                songsGraph(navController, enableBackPress = !appState.isNowPlayingExpanded)
                 playlistsGraph(navController)
                 settingsGraph()
             }
         }
     }
 
-    if (widthClass.widthSizeClass > WindowWidthSizeClass.Compact)
-    {
+    if (widthClass.widthSizeClass > WindowWidthSizeClass.Compact) {
         ExpandedAppScaffold(
             modifier = modifier,
             appState = appState,
+            nowPlayingScreenAnchors = nowPlayingScreenAnchors,
+            topLevelDestinations = topLevelDestinations,
+            currentDestination = navController.currentBackStackEntryAsState().value?.destination,
+            onDestinationSelected = { navController.navigateToTopLevelDestination(it) }
+        ) { contentModifier ->
+            navHost(contentModifier)
+        }
+    } else {
+        CompactAppScaffold(
+            modifier = modifier,
+            appState = appState,
+            nowPlayingScreenAnchors = nowPlayingScreenAnchors,
             topLevelDestinations = topLevelDestinations,
             currentDestination = navController.currentBackStackEntryAsState().value?.destination,
             onDestinationSelected = { navController.navigateToTopLevelDestination(it) }
@@ -157,7 +180,7 @@ fun MusicaApp(
         navHostController = navController,
         isNowPlayingExpanded = isExpanded,
         nowPlayingViewModel = hiltViewModel(),
-        nowPlayingExpansionProgress = scrollProvider,
+        nowPlayingScreenOffset = scrollProvider,
     )
 
     val shouldShowBottomBar by appState.shouldShowBottomBar.collectAsState(initial = true)
@@ -172,7 +195,6 @@ fun MusicaApp(
     var layoutHeightPx = remember { 0 }
     val bottomNavBarHeightPx =
         with(density) { 80.dp.toPx() }
-
 
 
     // App itself
@@ -263,7 +285,7 @@ fun MusicaApp(
             anchorState.update(
                 layoutHeightPx,
                 barHeightPx.toInt(),
-                with(density) { bottomNavBarHeightPx.toInt() - bottomNavBarOffset.toPx().toInt() }
+                with(density) { bottomNavBarHeightPx.toInt() - bottomNavBarOffset.toPx().toInt() },
             )
         }
 
@@ -343,7 +365,7 @@ fun AnchoredDraggableState<BarState>.update(
             BarState.COLLAPSED at offset.toFloat()
             BarState.EXPANDED at 0.0f
         },
-        BarState.COLLAPSED
+        this.currentValue
     )
     return offset
 }

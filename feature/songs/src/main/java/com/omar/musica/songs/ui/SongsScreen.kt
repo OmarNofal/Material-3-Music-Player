@@ -124,21 +124,6 @@ internal fun SongsScreen(
                     scrollBehavior = scrollBehavior
                 )
             }
-
-            /*SongsTopAppBar(
-                Modifier,
-                onSearchClicked,
-                { SongsSharer.share(context, it) },
-                scrollBehavior,
-                multiSelectState,
-                onAddToPlaylists = {
-                    addToPlaylistDialog.launch(multiSelectState.selected)
-                }
-            ) {
-                context.showSongsAddedToNextToast(multiSelectState.selected.size)
-                onPlayNext(multiSelectState.selected)
-                multiSelectState.clear()
-            }*/
         },
     ) { paddingValues ->
         val layoutDirection = LocalLayoutDirection.current
