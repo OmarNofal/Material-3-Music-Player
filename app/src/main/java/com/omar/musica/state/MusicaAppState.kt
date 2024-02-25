@@ -55,7 +55,7 @@ class MusicaAppState(
      */
     val shouldShowNowPlayingScreen = nowPlayingViewModel.state.map { it is NowPlayingState.Playing }
 
-    val shouldShowBottomBar = navHostController.currentBackStackEntryFlow.onEach { delay(200) }.map {
+    val shouldShowBottomBar = navHostController.currentBackStackEntryFlow.onEach { delay(100) }.map {
         val route = it.destination.route ?: return@map true
         return@map !(route.contains(PLAYLIST_DETAILS_ROUTE) || route.contains(SEARCH_ROUTE))
     }

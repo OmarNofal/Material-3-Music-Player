@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -34,8 +35,9 @@ fun NavController.navigateToSearch(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.songsGraph(
+    contentModifier: MutableState<Modifier>,
     navController: NavController,
-    enableBackPress: Boolean = true,
+    enableBackPress: MutableState<Boolean>,
 ) {
 
     navigation(
@@ -69,7 +71,7 @@ fun NavGraphBuilder.songsGraph(
             }
         ) {
             SongsScreen(
-                Modifier.fillMaxSize(),
+                contentModifier.value,
                 onSearchClicked = {
                     navController.navigateToSearch(
                         navOptions = navOptions {
@@ -103,9 +105,9 @@ fun NavGraphBuilder.songsGraph(
         )
         {
             SearchScreen(
-                modifier = Modifier.fillMaxSize(),
+                modifier = contentModifier.value,
                 onBackPressed = navController::popBackStack,
-                enableBackPress = enableBackPress
+                enableBackPress = enableBackPress.value
             )
         }
     }

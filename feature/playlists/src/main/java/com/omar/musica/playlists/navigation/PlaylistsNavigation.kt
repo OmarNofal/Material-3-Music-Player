@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
@@ -28,6 +29,7 @@ fun NavController.navigateToPlaylistDetails(id: Int) {
 }
 
 fun NavGraphBuilder.playlistsGraph(
+    contentModifier: MutableState<Modifier>,
     navController: NavController
 ) {
 
@@ -61,7 +63,7 @@ fun NavGraphBuilder.playlistsGraph(
             }
         ) {
             PlaylistsScreen(
-                modifier = Modifier.fillMaxSize(),
+                modifier = contentModifier.value,
                 navController::navigateToPlaylistDetails
             )
         }
@@ -77,7 +79,7 @@ fun NavGraphBuilder.playlistsGraph(
             }
 
             ) {
-            PlaylistDetailScreen(modifier = Modifier.fillMaxSize(), {navController.popBackStack()})
+            PlaylistDetailScreen(modifier = contentModifier.value, {navController.popBackStack()})
         }
 
     }

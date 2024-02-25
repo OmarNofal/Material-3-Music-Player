@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -174,12 +175,14 @@ internal fun NowPlayingScreen(
                 NowPlayingBarHeader(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(nowPlayingBarPadding)
                         .height(barHeight)
+                        .padding(nowPlayingBarPadding)
                         .pointerInput(Unit) {
                             detectTapGestures { onExpandNowPlaying() }
                         }
-                        .graphicsLayer { alpha = (1 - (progressProvider() * 6.66f).coerceAtMost(1.0f)) },
+                        .graphicsLayer {
+                            alpha = (1 - (progressProvider() * 6.66f).coerceAtMost(1.0f))
+                        },
                     nowPlayingState = uiState,
                     songProgressProvider = nowPlayingActions::currentSongProgress,
                     enabled = !isExpanded, // if the view is expanded then disable the header
@@ -256,7 +259,9 @@ fun FullScreenNowPlaying(
         val playerScreenModifier = remember(paddingModifier) {
             Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = ((progressProvider() - 0.15f) * 2.0f).coerceIn(0.0f, 1.0f) }
+                .graphicsLayer {
+                    alpha = ((progressProvider() - 0.15f) * 2.0f).coerceIn(0.0f, 1.0f)
+                }
                 .then(paddingModifier)
                 .statusBarsPadding()
         }

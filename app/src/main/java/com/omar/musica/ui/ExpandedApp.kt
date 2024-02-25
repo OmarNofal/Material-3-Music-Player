@@ -1,7 +1,6 @@
 package com.omar.musica.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -10,6 +9,7 @@ import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.animateTo
+import androidx.compose.foundation.gestures.snapTo
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -53,13 +56,28 @@ fun ExpandedAppScaffold(
     topLevelDestinations: List<TopLevelDestination>,
     currentDestination: NavDestination?,
     onDestinationSelected: (TopLevelDestination) -> Unit,
-    content: @Composable (Modifier) -> Unit
+    content: @Composable (Modifier, MutableState<Modifier>) -> Unit
 ) {
 
     var nowPlayingMinOffset by remember { mutableStateOf(0) }
     val density = LocalDensity.current
 
+    // Navhost takes the whole available screen.
+    // contentModifier is added to the screens (composables) themselves to handle cases
+    // such as when NowPlayingBar is hidden or visible
+    val contentModifier = remember {
+        mutableStateOf<Modifier>(Modifier)
+    }
+
     val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = true)
+
+    LaunchedEffect(shouldShowNowPlayingBar) {
+        contentModifier.value =
+            Modifier.padding(bottom = if (shouldShowNowPlayingBar) EXPANDED_SCREEN_NOW_PLAYING_HEIGHT else 0.dp)
+        if (!shouldShowNowPlayingBar)
+            nowPlayingScreenAnchors.snapTo(BarState.COLLAPSED)
+    }
+
     Box(modifier = modifier) {
         Row(Modifier.fillMaxSize()) {
 
@@ -74,28 +92,8 @@ fun ExpandedAppScaffold(
             content(
                 Modifier
                     .fillMaxSize()
-                    .consumeWindowInsets(
-                        PaddingValues(start = if (layoutDirection == LayoutDirection.Ltr)
-                            with(density) {
-                                WindowInsets.navigationBars
-                                    .getLeft(
-                                        density,
-                                        layoutDirection
-                                    )
-                                    .toDp()
-                            }
-                        else
-                            with(density) {
-                                WindowInsets.navigationBars
-                                    .getRight(
-                                        density,
-                                        layoutDirection
-                                    )
-                                    .toDp()
-                            }
-                        )
-                    ) // consume the insets handled by the Rail
-                    .padding(bottom = if (shouldShowNowPlayingBar) EXPANDED_SCREEN_NOW_PLAYING_HEIGHT else 0.dp)
+                    .consumeRailInsets(layoutDirection, density, WindowInsets.navigationBars),
+                contentModifier,
             )
 
         }
@@ -163,3 +161,30 @@ fun ExpandedAppScaffold(
     }
 
 }
+
+fun Modifier.consumeRailInsets(
+    layoutDirection: LayoutDirection,
+    density: Density,
+    navigationBarsInsets: WindowInsets
+): Modifier =
+    this.consumeWindowInsets(
+        PaddingValues(start = if (layoutDirection == LayoutDirection.Ltr)
+            with(density) {
+                navigationBarsInsets
+                    .getLeft(
+                        density,
+                        layoutDirection
+                    )
+                    .toDp()
+            }
+        else
+            with(density) {
+                navigationBarsInsets
+                    .getRight(
+                        density,
+                        layoutDirection
+                    )
+                    .toDp()
+            }
+        )
+    ) // consume the insets handled by the Rail
