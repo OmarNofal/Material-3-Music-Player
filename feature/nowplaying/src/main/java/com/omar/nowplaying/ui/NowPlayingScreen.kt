@@ -102,7 +102,7 @@ fun NowPlayingScreen(
 
     if (uiState is NowPlayingState.Playing)
         NowPlayingScreen(
-            modifier = modifier,
+            modifier = modifier.clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)),
             nowPlayingBarPadding = nowPlayingBarPadding,
             uiState = uiState as NowPlayingState.Playing,
             barHeight = barHeight,
@@ -179,7 +179,7 @@ internal fun NowPlayingScreen(
                         .pointerInput(Unit) {
                             detectTapGestures { onExpandNowPlaying() }
                         }
-                        .graphicsLayer { alpha = (1 - progressProvider() * 2) },
+                        .graphicsLayer { alpha = (1 - (progressProvider() * 6.66f).coerceAtMost(1.0f)) },
                     nowPlayingState = uiState,
                     songProgressProvider = nowPlayingActions::currentSongProgress,
                     enabled = !isExpanded, // if the view is expanded then disable the header
@@ -256,7 +256,7 @@ fun FullScreenNowPlaying(
         val playerScreenModifier = remember(paddingModifier) {
             Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = progressProvider() * 2 }
+                .graphicsLayer { alpha = ((progressProvider() - 0.15f) * 2.0f).coerceIn(0.0f, 1.0f) }
                 .then(paddingModifier)
                 .statusBarsPadding()
         }

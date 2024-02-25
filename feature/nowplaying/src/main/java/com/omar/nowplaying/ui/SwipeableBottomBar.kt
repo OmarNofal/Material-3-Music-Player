@@ -5,10 +5,12 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +20,7 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,7 +29,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.omar.musica.playback.state.PlayerState
 import com.omar.nowplaying.NowPlayingState
@@ -60,19 +66,33 @@ fun NowPlayingBarHeader(
         CrossFadingAlbumArt(
             modifier = Modifier
                 .fillMaxHeight()
-                .aspectRatio(1.0f).scale(0.9f).clip(RoundedCornerShape(8.dp)),
+                .aspectRatio(1.0f)
+                .scale(0.7f)
+                .shadow(12.dp, shape = RoundedCornerShape(6.dp), clip = true)
+                .clip(RoundedCornerShape(8.dp)),
+            containerModifier = Modifier.padding(start = 8.dp),
             song = song,
             errorPainterType = ErrorPainterType.PLACEHOLDER
         )
 
         Spacer(modifier = Modifier.width(4.dp))
 
-        Text(
-            modifier = Modifier
-                .weight(1f)
-                .basicMarquee(Int.MAX_VALUE),
-            text = "${song.title} • ${song.album.orEmpty()}"
-        )
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                modifier = Modifier.basicMarquee(Int.MAX_VALUE),
+                text = song.title,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                modifier = Modifier,
+                text = song.artist.orEmpty(),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Light
+            )
+        }
 
         Spacer(modifier = Modifier.width(8.dp))
 
