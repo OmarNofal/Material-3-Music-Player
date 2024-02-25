@@ -130,7 +130,6 @@ fun ExpandedAppScaffold(
                     .anchoredDraggable(nowPlayingScreenAnchors, Orientation.Vertical),
                 nowPlayingBarPadding =
                 PaddingValues(
-                    bottom = with(density) { navigationBarInsets.getBottom(this).toDp() },
                     end = with(density) {
                         navigationBarInsets.getRight(this, LayoutDirection.Ltr).toDp()
                     },
