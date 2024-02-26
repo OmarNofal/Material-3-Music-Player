@@ -1,10 +1,10 @@
 package com.omar.nowplaying.queue
 
-import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.MediaRepository
+import com.omar.musica.store.PlaylistsRepository
 import com.omar.musica.store.QueueRepository
 import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.model.toUiSongModels
@@ -12,7 +12,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import javax.annotation.concurrent.Immutable
 import javax.inject.Inject
 
 
@@ -20,6 +19,7 @@ import javax.inject.Inject
 class QueueViewModel @Inject constructor(
     queueRepository: QueueRepository,
     mediaRepository: MediaRepository,
+    private val playlistsRepository: PlaylistsRepository,
     private val playbackManager: PlaybackManager
 ) : ViewModel() {
 
@@ -50,6 +50,10 @@ class QueueViewModel @Inject constructor(
         playbackManager.clearQueue()
     }
 
+    fun onSaveAsPlaylist(name: String) {
+        val songs = (queueScreenState.value as QueueScreenState.Loaded).songs.map { it.uriString }
+        playlistsRepository.createPlaylistAndAddSongs(name, songs)
+    }
 }
 
 

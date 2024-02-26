@@ -144,8 +144,8 @@ fun PortraitPlayerScreen(
         CrossFadingAlbumArt(
             modifier = Modifier
                 .aspectRatio(1f)
-                .clip(RoundedCornerShape(12.dp))
-                .shadow(32.dp),
+                .shadow(32.dp, shape = RoundedCornerShape(12.dp), clip = true)
+                .clip(RoundedCornerShape(12.dp)),
             containerModifier = Modifier.weight(1f, fill = false),
             song = song,
             errorPainterType = ErrorPainterType.PLACEHOLDER
@@ -213,8 +213,8 @@ fun LandscapePlayerScreen(
         CrossFadingAlbumArt(
             modifier = Modifier
                 .aspectRatio(1f)
-                .clip(RoundedCornerShape(12.dp))
-                .shadow(32.dp),
+                .shadow(32.dp, shape = RoundedCornerShape(12.dp), clip = true)
+                .clip(RoundedCornerShape(12.dp)),
             containerModifier = Modifier.weight(1.5f, fill = true),
             song = song,
             errorPainterType = ErrorPainterType.PLACEHOLDER

@@ -32,12 +32,18 @@ interface PlaylistDao {
     suspend fun getPlaylistSongs(playlistId: Int): List<String>
 
     @Insert
-    suspend fun createPlaylist(playlistEntity: PlaylistEntity)
+    suspend fun createPlaylist(playlistEntity: PlaylistEntity): Long
 
     @Transaction
     suspend fun deletePlaylistWithSongs(playlistId: Int) {
         deletePlaylistEntity(playlistId)
         deletePlaylistSongs(playlistId)
+    }
+
+    @Transaction
+    suspend fun createPlaylistAndAddSongs(name: String, songsUris: List<String>) {
+        val newId = createPlaylist(PlaylistEntity(name = name)).toInt()
+        insertSongsToPlaylist(songsUris.map { PlaylistsSongsEntity(newId, it) })
     }
 
     @Query(

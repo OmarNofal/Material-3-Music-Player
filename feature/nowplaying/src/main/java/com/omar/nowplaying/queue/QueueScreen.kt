@@ -1,5 +1,6 @@
 package com.omar.nowplaying.queue
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -35,8 +36,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.omar.musica.ui.dialogs.InputStringDialog
+import com.omar.musica.ui.showShortToast
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyColumnState
 
@@ -54,6 +58,7 @@ fun QueueScreen(
         onClose = onClose,
         onClearQueue = viewModel::onClearQueue,
         onSongClicked = viewModel::onSongClicked,
+        onSaveAsPlaylist = viewModel::onSaveAsPlaylist,
         onRemoveSongFromQueue = viewModel::onRemoveFromQueue,
         reorderSong = viewModel::reorderSong
     )
@@ -68,6 +73,7 @@ internal fun QueueScreen(
     onClose: () -> Unit,
     onClearQueue: () -> Unit,
     onSongClicked: (Int) -> Unit,
+    onSaveAsPlaylist: (String) -> Unit,
     onRemoveSongFromQueue: (Int) -> Unit,
     reorderSong: (Int, Int) -> Unit,
 ) {
@@ -90,6 +96,21 @@ internal fun QueueScreen(
         }
     }
 
+
+    val context = LocalContext.current
+
+    var showDialog by remember {
+        mutableStateOf(false)
+    }
+    if (showDialog)
+        InputStringDialog(
+            title = "Playlist Name",
+            isInputValid = { it.isNotBlank() },
+            onConfirm = { onSaveAsPlaylist(it); showDialog = false; context.showShortToast("Saved queue to $it") },
+            onDismissRequest = { showDialog = false }
+        )
+
+
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -101,7 +122,8 @@ internal fun QueueScreen(
                 color = color,
                 numberOfSongsRemaining = numberOfRemainingSongs,
                 durationMillisRemaining = durationMillis,
-                onClose = onClose
+                onClose = onClose,
+                onSaveAsPlaylist = { showDialog = true }
             )
         },
         floatingActionButton = {

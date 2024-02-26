@@ -3,6 +3,7 @@ package com.omar.nowplaying.queue
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.SaveAs
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -12,7 +13,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import com.omar.musica.ui.menu.MenuActionItem
 import com.omar.musica.ui.millisToTime
+import com.omar.musica.ui.topbar.OverflowMenu
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -21,7 +24,8 @@ fun QueueTopBar(
     color: Color,
     numberOfSongsRemaining: Int,
     durationMillisRemaining: Long,
-    onClose: () -> Unit = {}
+    onClose: () -> Unit = {},
+    onSaveAsPlaylist: () -> Unit = {},
 ) {
     TopAppBar(
         title = {
@@ -38,6 +42,11 @@ fun QueueTopBar(
             IconButton(onClick = onClose) {
                 Icon(imageVector = Icons.Rounded.Close, contentDescription = "Close Queue")
             }
+        },
+        actions = {
+            OverflowMenu(actionItems = listOf(
+                MenuActionItem(Icons.Rounded.SaveAs, "Save as Playlist", onSaveAsPlaylist)
+            ))
         }
     )
 }
