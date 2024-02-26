@@ -27,9 +27,17 @@ data class UiSettings(
     /**
      * Whether to pin MiniPlayer or show it as a FAB
      */
-    val miniPlayerMode: MiniPlayerMode = MiniPlayerMode.PINNED
+    val miniPlayerMode: MiniPlayerMode = MiniPlayerMode.PINNED,
+
+    /**
+     * Color used as a primary color in the application.
+     * The most significant byte is ignored. 0xIIRRGGBB
+     */
+    val accentColor: Int = DEFAULT_ACCENT_COLOR
 )
 
 enum class PlayerTheme {
     SOLID, BLUR
 }
+
+const val DEFAULT_ACCENT_COLOR = (0x002f64ba).or(0xFF shl 24)

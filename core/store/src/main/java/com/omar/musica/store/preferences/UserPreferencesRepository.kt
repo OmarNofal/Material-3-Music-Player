@@ -10,12 +10,14 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.omar.musica.database.dao.BlacklistedFoldersDao
 import com.omar.musica.database.entities.prefs.BlacklistedFolderEntity
+import com.omar.musica.model.SortOption
 import com.omar.musica.model.prefs.AppTheme
+import com.omar.musica.model.prefs.DEFAULT_ACCENT_COLOR
 import com.omar.musica.model.prefs.DEFAULT_JUMP_DURATION_MILLIS
 import com.omar.musica.model.prefs.LibrarySettings
+import com.omar.musica.model.prefs.MiniPlayerMode
 import com.omar.musica.model.prefs.PlayerSettings
 import com.omar.musica.model.prefs.PlayerTheme
-import com.omar.musica.model.SortOption
 import com.omar.musica.model.prefs.UiSettings
 import com.omar.musica.model.prefs.UserPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -87,6 +89,12 @@ class UserPreferencesRepository @Inject constructor(
         toggleBoolean(BLACK_BACKGROUND_FOR_DARK_THEME_KEY)
     }
 
+    suspend fun setAccentColor(color: Int) {
+        context.datastore.edit {
+            it[ACCENT_COLOR_KEY] = color
+        }
+    }
+
     suspend fun changePlayerTheme(playerTheme: PlayerTheme) {
         context.datastore.edit {
             it[PLAYER_THEME_KEY] = playerTheme.toString()
@@ -146,7 +154,15 @@ class UserPreferencesRepository @Inject constructor(
         val isUsingDynamicColor = this[DYNAMIC_COLOR_KEY] ?: true
         val playerTheme = PlayerTheme.valueOf(this[PLAYER_THEME_KEY] ?: "BLUR")
         val blackBackgroundForDarkTheme = this[BLACK_BACKGROUND_FOR_DARK_THEME_KEY] ?: false
-        return UiSettings(theme, isUsingDynamicColor, playerTheme, blackBackgroundForDarkTheme)
+        val accentColor = this[ACCENT_COLOR_KEY] ?: DEFAULT_ACCENT_COLOR
+        return UiSettings(
+            theme,
+            isUsingDynamicColor,
+            playerTheme,
+            blackBackgroundForDarkTheme,
+            MiniPlayerMode.PINNED,
+            accentColor
+        )
     }
 
     private fun Preferences.getLibrarySettings(excludedFolders: List<String>): LibrarySettings {
@@ -154,7 +170,9 @@ class UserPreferencesRepository @Inject constructor(
         val songsSortOrder = if (sortOptionParts == null)
             SortOption.TITLE to true else SortOption.valueOf(sortOptionParts[0]) to sortOptionParts[1].toBoolean()
         val cacheAlbumCoverArt = this[CACHE_ALBUM_COVER_ART_KEY] ?: true
-        return LibrarySettings(songsSortOrder, cacheAlbumCoverArt, excludedFolders)
+        return LibrarySettings(
+            songsSortOrder, cacheAlbumCoverArt, excludedFolders
+        )
     }
 
     private fun mapPrefsToModel(
@@ -179,6 +197,7 @@ class UserPreferencesRepository @Inject constructor(
         val SONG_POSITION_KEY = longPreferencesKey("SONG_POSITION")
         val PAUSE_IF_VOLUME_ZERO = booleanPreferencesKey("PAUSE_VOLUME_ZERO")
         val RESUME_IF_VOLUME_INCREASED = booleanPreferencesKey("RESUME_IF_VOLUME_INCREASED")
+        val ACCENT_COLOR_KEY = intPreferencesKey("ACCENT_COLOR")
     }
 
 }

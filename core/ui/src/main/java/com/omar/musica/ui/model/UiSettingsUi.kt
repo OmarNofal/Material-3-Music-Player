@@ -2,6 +2,7 @@ package com.omar.musica.ui.model
 
 import androidx.compose.runtime.Stable
 import com.omar.musica.model.prefs.AppTheme
+import com.omar.musica.model.prefs.DEFAULT_ACCENT_COLOR
 import com.omar.musica.model.prefs.PlayerTheme
 import com.omar.musica.model.prefs.UiSettings
 
@@ -23,7 +24,13 @@ data class UiSettingsUi(
 
     val playerThemeUi: PlayerThemeUi,
 
-    val blackBackgroundForDarkTheme: Boolean
+    val blackBackgroundForDarkTheme: Boolean,
+
+    /**
+     * Color used as a primary color in the application.
+     * The most significant byte is ignored. 0xIIRRGGBB
+     */
+    val accentColor: Int = DEFAULT_ACCENT_COLOR
 )
 
 @Stable
@@ -51,4 +58,10 @@ fun AppThemeUi.toAppTheme() =
     AppTheme.valueOf(this.toString())
 
 fun UiSettings.toUiSettingsUi() =
-    UiSettingsUi(theme.toAppThemeUi(), isUsingDynamicColor, playerTheme.toPlayerThemeUi(), blackBackgroundForDarkTheme)
+    UiSettingsUi(
+        theme.toAppThemeUi(),
+        isUsingDynamicColor,
+        playerTheme.toPlayerThemeUi(),
+        blackBackgroundForDarkTheme,
+        accentColor
+    )

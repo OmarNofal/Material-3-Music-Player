@@ -86,6 +86,12 @@ class SettingsViewModel @Inject constructor(
             userPreferencesRepository.toggleResumeVolumeNotZero()
         }
     }
+
+    override fun setAccentColor(color: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setAccentColor(color)
+        }
+    }
 }
 
 @Stable
@@ -109,6 +115,8 @@ interface ISettingsViewModel {
     fun togglePauseVolumeZero()
 
     fun toggleResumeVolumeNotZero()
+
+    fun setAccentColor(color: Int)
 }
 
 sealed interface SettingsState {
