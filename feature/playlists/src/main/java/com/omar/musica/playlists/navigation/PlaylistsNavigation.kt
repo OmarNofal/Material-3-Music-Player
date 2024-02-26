@@ -21,12 +21,14 @@ import com.omar.musica.playlists.playlists.PlaylistsScreen
 
 const val PLAYLISTS_ROUTE = "playlists"
 const val PLAYLIST_DETAILS_ROUTE = "playlist_detail"
-
+const val ANIMATION_DURATION = 300
 const val PLAYLISTS_NAVIGATION_GRAPH = "playlists_graph"
 
 fun NavController.navigateToPlaylistDetails(id: Int) {
     navigate("$PLAYLIST_DETAILS_ROUTE/$id")
 }
+
+
 
 fun NavGraphBuilder.playlistsGraph(
     contentModifier: MutableState<Modifier>,
@@ -53,7 +55,7 @@ fun NavGraphBuilder.playlistsGraph(
                 val targetRoute = targetState.destination.route ?: return@ol null
 
                 if (targetRoute.contains(PLAYLIST_DETAILS_ROUTE))
-                    return@ol fadeOut(tween(100))
+                    return@ol fadeOut(tween(200))
 
                 val slidingDirection = when(targetState.destination.route) {
                     "settings_route" -> AnimatedContentTransitionScope.SlideDirection.Start
@@ -72,10 +74,10 @@ fun NavGraphBuilder.playlistsGraph(
         composable(
             "$PLAYLIST_DETAILS_ROUTE/{id}",
             enterTransition = {
-                scaleIn(tween(200), initialScale = .8f) + fadeIn(tween(200), 0.6f)
+                scaleIn(tween(ANIMATION_DURATION), initialScale = .9f) + fadeIn(tween(300), 0.3f)
             },
             exitTransition = {
-                scaleOut(tween(100), targetScale = .8f) + fadeOut(tween(100))
+                scaleOut(tween(100), targetScale = .9f) + fadeOut(tween(100))
             }
 
             ) {

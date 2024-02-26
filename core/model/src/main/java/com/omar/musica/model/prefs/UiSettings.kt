@@ -22,7 +22,12 @@ data class UiSettings(
     /**
      * Useful for Amoled Screens
      */
-    val blackBackgroundForDarkTheme: Boolean
+    val blackBackgroundForDarkTheme: Boolean,
+
+    /**
+     * Whether to pin MiniPlayer or show it as a FAB
+     */
+    val miniPlayerMode: MiniPlayerMode = MiniPlayerMode.PINNED
 )
 
 enum class PlayerTheme {

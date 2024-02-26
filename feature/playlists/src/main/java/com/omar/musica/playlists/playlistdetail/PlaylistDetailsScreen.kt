@@ -84,6 +84,7 @@ import com.omar.musica.ui.menu.shuffleNext
 import com.omar.musica.ui.topbar.OverflowMenu
 import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
 import com.omar.musica.ui.model.SongUi
+import com.omar.musica.ui.theme.DarkColorScheme
 import kotlinx.coroutines.launch
 
 
@@ -309,12 +310,14 @@ private fun PlaylistHeader(
     ) {
 
         if (firstSong != null) {
-            SongAlbumArtImage(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .aspectRatio(1.0f)
-                    .weight(0.4f), song = firstSong
-            )
+            MaterialTheme(colorScheme = DarkColorScheme) {
+                SongAlbumArtImage(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .aspectRatio(1.0f)
+                        .weight(0.4f), song = firstSong
+                )
+            }
         }
 
         Spacer(modifier = Modifier.width(8.dp))

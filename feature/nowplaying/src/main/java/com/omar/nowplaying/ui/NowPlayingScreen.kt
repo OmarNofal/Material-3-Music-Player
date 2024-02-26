@@ -94,8 +94,10 @@ fun NowPlayingScreen(
         }
     }
 
-    BackHandler(isExpanded) {
-        onCollapseNowPlaying()
+    if (isExpanded) {
+        BackHandler(true) {
+            onCollapseNowPlaying()
+        }
     }
 
     val uiState by viewModel.state.collectAsState()

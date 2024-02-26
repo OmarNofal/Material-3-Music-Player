@@ -12,10 +12,21 @@ data class PlayerSettingsUi(
     /**
      * The amount of time skipped when jumping forward in milliseconds
      */
-    val jumpInterval: Int
+    val jumpInterval: Int,
+
+    /**
+     * Pause when volume reaches zero?
+     */
+    val pauseOnVolumeZero: Boolean,
+
+    /**
+     * Should we start playback when volume increases
+     * if it was paused before due to zero volume
+     */
+    val resumeWhenVolumeIncreases: Boolean,
 )
 
 
 
 fun PlayerSettings.toPlayerSettingsUi() =
-    PlayerSettingsUi(jumpInterval)
+    PlayerSettingsUi(jumpInterval, pauseOnVolumeZero, resumeWhenVolumeIncreases)

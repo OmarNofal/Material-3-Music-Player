@@ -2,7 +2,10 @@ package com.omar.musica.playback
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.media.AudioManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC
 import androidx.media3.common.C.USAGE_MEDIA
@@ -20,9 +23,11 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.omar.musica.model.prefs.DEFAULT_JUMP_DURATION_MILLIS
 import com.omar.musica.model.prefs.PlayerSettings
 import com.omar.musica.playback.activity.ListeningAnalytics
+import com.omar.musica.playback.volume.AudioVolumeChangeListener
+import com.omar.musica.playback.volume.VolumeChangeObserver
 import com.omar.musica.store.QueueItem
 import com.omar.musica.store.QueueRepository
-import com.omar.musica.store.UserPreferencesRepository
+import com.omar.musica.store.preferences.UserPreferencesRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +45,11 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PlaybackService : MediaSessionService() {
+class PlaybackService :
+    MediaSessionService(),
+    AudioVolumeChangeListener,
+    Player.Listener
+{
 
     @Inject
     lateinit var userPreferencesRepository: UserPreferencesRepository
@@ -58,6 +67,7 @@ class PlaybackService : MediaSessionService() {
 
     private lateinit var playerSettings: StateFlow<PlayerSettings>
 
+    private lateinit var volumeObserver: VolumeChangeObserver
 
     override fun onCreate() {
         super.onCreate()
@@ -71,8 +81,18 @@ class PlaybackService : MediaSessionService() {
             .stateIn(
                 scope,
                 started = SharingStarted.Eagerly,
-                PlayerSettings(DEFAULT_JUMP_DURATION_MILLIS)
+                PlayerSettings(
+                    DEFAULT_JUMP_DURATION_MILLIS,
+                    pauseOnVolumeZero = false,
+                    resumeWhenVolumeIncreases = false
+                )
             )
+
+        volumeObserver = VolumeChangeObserver(
+            applicationContext,
+            Handler(Looper.myLooper() ?: Looper.getMainLooper()),
+            AudioManager.STREAM_MUSIC
+        ).apply { register(this@PlaybackService) }
 
         recoverQueue()
         scope.launch(Dispatchers.Main) {
@@ -199,6 +219,29 @@ class PlaybackService : MediaSessionService() {
 
     }
 
+
+    private var pausedDueToVolume = false
+    override fun onVolumeChanged(level: Int) {
+        val shouldPause = playerSettings.value.pauseOnVolumeZero
+        val shouldResume = playerSettings.value.resumeWhenVolumeIncreases
+        if (level < 1 && shouldPause && player.playWhenReady) {
+            player.pause()
+            if (shouldResume)
+                pausedDueToVolume = true
+        }
+        if (level >= 1 && pausedDueToVolume && shouldResume && !player.playWhenReady){
+            player.play()
+            pausedDueToVolume = false
+        }
+        if (player.playWhenReady) pausedDueToVolume = false
+    }
+
+    override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+        // to avoid resuming playback when the headphones disconnect
+        if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_BECOMING_NOISY)
+            pausedDueToVolume = false
+    }
+
     fun seekForward() {
         val currentPosition = player.currentPosition
         player.seekTo(currentPosition + playerSettings.value.jumpInterval)
@@ -224,6 +267,7 @@ class PlaybackService : MediaSessionService() {
             player.release()
             release()
         }
+        volumeObserver.unregister()
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {

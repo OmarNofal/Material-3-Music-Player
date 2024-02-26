@@ -90,7 +90,8 @@ fun NowPlayingBarHeader(
                 modifier = Modifier,
                 text = song.artist.orEmpty(),
                 style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Light
+                fontWeight = FontWeight.Light,
+                maxLines = 1
             )
         }
 
@@ -134,6 +135,8 @@ fun SongCircularProgressIndicator(
         progress = { progress.value },
         modifier = modifier,
         strokeCap = StrokeCap.Round,
+        strokeWidth = 2.dp,
+        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
     )
 }
 

@@ -70,7 +70,8 @@ fun CompactAppScaffold(
         targetValue = if (shouldShowBottomBar) 0.dp else 80.dp + with(density) {
             navigationBarInsets.getBottom(this).toDp()
         },
-        label = "BottomBar Offset"
+        label = "BottomBar Offset",
+        animationSpec = tween(300)
     )
 
     var layoutHeightPx = remember { 0 }

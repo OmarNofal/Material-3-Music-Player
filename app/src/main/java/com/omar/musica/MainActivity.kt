@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.MediaRepository
-import com.omar.musica.store.UserPreferencesRepository
+import com.omar.musica.store.preferences.UserPreferencesRepository
 import com.omar.musica.ui.MusicaApp2
 import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.LocalUserPreferences

@@ -41,6 +41,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -50,6 +52,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -78,6 +83,7 @@ fun SettingsScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     modifier: Modifier,
@@ -85,9 +91,10 @@ fun SettingsScreen(
     settingsCallbacks: ISettingsViewModel
 ) {
 
+    val topBarScrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
         modifier = modifier,
-        topBar = { SettingsTopAppBar() }
+        topBar = { SettingsTopAppBar(topBarScrollBehaviour) }
     )
     { paddingValues ->
         Box(
@@ -106,7 +113,8 @@ fun SettingsScreen(
                 SettingsList(
                     modifier = Modifier.fillMaxSize(),
                     userPreferences = state.userPreferences,
-                    settingsCallbacks = settingsCallbacks
+                    settingsCallbacks = settingsCallbacks,
+                    nestedScrollConnection = topBarScrollBehaviour.nestedScrollConnection,
                 )
             }
 
@@ -120,14 +128,15 @@ fun SettingsScreen(
 fun SettingsList(
     modifier: Modifier,
     userPreferences: UserPreferencesUi,
-    settingsCallbacks: ISettingsViewModel
+    settingsCallbacks: ISettingsViewModel,
+    nestedScrollConnection: NestedScrollConnection
 ) {
     val sectionTitleModifier = Modifier
         .fillMaxWidth()
         .padding(start = 32.dp, top = 16.dp)
 
     LazyColumn(
-        modifier
+        modifier.nestedScroll(nestedScrollConnection)
     ) {
         item {
             Divider(Modifier.fillMaxWidth())
@@ -284,6 +293,26 @@ fun SettingsList(
 
         item {
             SectionTitle(modifier = sectionTitleModifier, title = "Player")
+        }
+
+        item {
+            SwitchSettingsItem(
+                modifier = Modifier.fillMaxWidth(),
+                title = "Pause on Volume Zero",
+                "Pause if the volume is set to zero",
+                toggled = userPreferences.playerSettings.pauseOnVolumeZero,
+                onToggle = { settingsCallbacks.togglePauseVolumeZero() }
+            )
+        }
+
+        item {
+            SwitchSettingsItem(
+                modifier = Modifier.fillMaxWidth(),
+                title = "Resume when gaining volume",
+                "Resume if the volume increases, if it was paused due to volume loss",
+                toggled = userPreferences.playerSettings.resumeWhenVolumeIncreases,
+                onToggle = { settingsCallbacks.toggleResumeVolumeNotZero() }
+            )
         }
 
         item {
@@ -535,6 +564,9 @@ fun SectionTitle(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsTopAppBar() {
-    TopAppBar(title = { Text(text = "Settings", fontWeight = FontWeight.SemiBold) })
+fun SettingsTopAppBar(topAppBarScrollBehavior: TopAppBarScrollBehavior) {
+    TopAppBar(
+        title = { Text(text = "Settings", fontWeight = FontWeight.SemiBold) },
+        scrollBehavior = topAppBarScrollBehavior
+    )
 }
