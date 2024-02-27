@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import com.omar.musica.playback.state.PlayerState
+import com.omar.musica.playback.state.RepeatMode
 import com.omar.musica.ui.model.SongUi
 import com.omar.nowplaying.viewmodel.INowPlayingViewModel
 
@@ -34,6 +35,8 @@ import com.omar.nowplaying.viewmodel.INowPlayingViewModel
 fun PlayingScreen2(
     modifier: Modifier,
     song: SongUi,
+    repeatMode: RepeatMode,
+    isShuffleOn: Boolean,
     playbackState: PlayerState,
     screenSize: NowPlayingScreenSize,
     nowPlayingActions: INowPlayingViewModel,
@@ -56,6 +59,8 @@ fun PlayingScreen2(
                 modifier,
                 song,
                 playbackState,
+                repeatMode,
+                isShuffleOn,
                 nowPlayingActions,
                 onOpenQueue
             )
@@ -66,6 +71,8 @@ fun PlayingScreen2(
                 modifier,
                 song,
                 playbackState,
+                repeatMode,
+                isShuffleOn,
                 nowPlayingActions,
                 onOpenQueue
             )
@@ -132,6 +139,8 @@ fun PortraitPlayerScreen(
     modifier: Modifier,
     song: SongUi,
     playbackState: PlayerState,
+    repeatMode: RepeatMode,
+    isShuffleOn: Boolean,
     nowPlayingActions: INowPlayingViewModel,
     onOpenQueue: () -> Unit
 ) {
@@ -182,25 +191,17 @@ fun PortraitPlayerScreen(
             )
             Spacer(modifier = Modifier.height(32.dp))
         }
-        Row(
+        PlayerFooter(
             modifier = Modifier
                 .padding(bottom = 12.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Spacer(modifier = Modifier.width(32.dp))
-            TextButton(
-                onClick = onOpenQueue
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
-                    contentDescription = "Queue"
-                )
-                Text(text = "Queue")
-            }
-            NowPlayingOverflowMenu(options = rememberNowPlayingOptions(songUi = song))
-        }
+            songUi = song,
+            isShuffleOn = isShuffleOn,
+            repeatMode = repeatMode,
+            onOpenQueue = onOpenQueue,
+            onToggleRepeatMode = nowPlayingActions::toggleRepeatMode,
+            onToggleShuffle = nowPlayingActions::toggleShuffleMode
+        )
     }
 }
 
@@ -210,6 +211,8 @@ fun LandscapePlayerScreen(
     modifier: Modifier,
     song: SongUi,
     playbackState: PlayerState,
+    repeatMode: RepeatMode,
+    isShuffleOn: Boolean,
     nowPlayingActions: INowPlayingViewModel,
     onOpenQueue: () -> Unit
 ) {
@@ -264,25 +267,17 @@ fun LandscapePlayerScreen(
             )
             Spacer(modifier = Modifier.height(32.dp))
 
-            Row(
+            PlayerFooter(
                 modifier = Modifier
-                    .padding(bottom = 12.dp)
+                    .padding(bottom = 6.dp)
                     .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Spacer(modifier = Modifier.width(32.dp))
-                TextButton(
-                    onClick = onOpenQueue
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
-                        contentDescription = "Queue"
-                    )
-                    Text(text = "Queue")
-                }
-                NowPlayingOverflowMenu(options = rememberNowPlayingOptions(songUi = song))
-            }
+                songUi = song,
+                isShuffleOn = isShuffleOn,
+                repeatMode = repeatMode,
+                onOpenQueue = onOpenQueue,
+                onToggleRepeatMode = nowPlayingActions::toggleRepeatMode,
+                onToggleShuffle = nowPlayingActions::toggleShuffleMode
+            )
         }
 
     }

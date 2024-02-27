@@ -291,6 +291,8 @@ fun FullScreenNowPlaying(
                     modifier = playerScreenModifier.navigationBarsPadding(),
                     song = song,
                     playbackState = uiState.playbackState,
+                    repeatMode = uiState.repeatMode,
+                    isShuffleOn = uiState.isShuffleOn,
                     screenSize = screenSize,
                     nowPlayingActions = nowPlayingActions,
                     onOpenQueue = onOpenQueue

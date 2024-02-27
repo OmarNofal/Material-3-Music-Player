@@ -18,6 +18,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.omar.musica.model.song.Song
 import com.omar.musica.playback.state.PlaybackState
 import com.omar.musica.playback.state.PlayerState
+import com.omar.musica.playback.state.RepeatMode
 import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.PlaylistsRepository
 import com.omar.musica.store.QueueItem
@@ -258,12 +259,22 @@ class PlaybackManager @Inject constructor(
         )
     }
 
+    fun toggleRepeatMode() {
+        mediaController.repeatMode = RepeatMode.fromPlayer(mediaController.repeatMode).next().toPlayer()
+    }
+
+    fun toggleShuffleMode() {
+        mediaController.shuffleModeEnabled = !mediaController.shuffleModeEnabled
+    }
+
     private fun updateState() {
         val currentMediaItem = mediaController.currentMediaItem ?: return updateToEmptyState()
         val songUri = currentMediaItem.requestMetadata.mediaUri ?: return updateToEmptyState()
         _state.value = PlaybackState(
             mediaRepository.songsFlow.value.getSongByUri(songUri.toString()),
-            playbackState
+            playbackState,
+            mediaController.shuffleModeEnabled,
+            RepeatMode.fromPlayer(mediaController.repeatMode)
         )
     }
 
@@ -298,6 +309,14 @@ class PlaybackManager @Inject constructor(
                 if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
                     savePlayerQueue()
                 }
+            }
+
+            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+                updateState()
+            }
+
+            override fun onRepeatModeChanged(repeatMode: Int) {
+                updateState()
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
