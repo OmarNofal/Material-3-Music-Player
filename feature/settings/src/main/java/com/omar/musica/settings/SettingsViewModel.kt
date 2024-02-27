@@ -92,6 +92,12 @@ class SettingsViewModel @Inject constructor(
             userPreferencesRepository.setAccentColor(color)
         }
     }
+
+    override fun toggleShowExtraControls() {
+        viewModelScope.launch {
+            userPreferencesRepository.toggleMiniPlayerExtraControls()
+        }
+    }
 }
 
 @Stable
@@ -117,6 +123,8 @@ interface ISettingsViewModel {
     fun toggleResumeVolumeNotZero()
 
     fun setAccentColor(color: Int)
+
+    fun toggleShowExtraControls()
 }
 
 sealed interface SettingsState {

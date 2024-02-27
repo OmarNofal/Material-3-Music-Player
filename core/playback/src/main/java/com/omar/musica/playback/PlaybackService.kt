@@ -262,6 +262,10 @@ class PlaybackService :
             pausedDueToVolume = false
     }
 
+    override fun onEvents(player: Player, events: Player.Events) {
+
+    }
+
     fun seekForward() {
         val currentPosition = player.currentPosition
         player.seekTo(currentPosition + playerSettings.value.jumpInterval)

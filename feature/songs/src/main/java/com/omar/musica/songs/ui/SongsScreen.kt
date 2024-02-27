@@ -176,6 +176,7 @@ internal fun SongsScreen(
                             songInfoDialog = this.songInfoDialog,
                             addToPlaylistDialog = this.addToPlaylistDialog,
                             shareAction = this.shareAction,
+                            setAsRingtoneAction = this.setRingtoneAction,
                             songDeleteAction = this.deleteAction
                         )
                     }

@@ -1,6 +1,7 @@
 package com.omar.nowplaying.ui
 
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.basicMarquee
@@ -16,6 +17,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material.icons.sharp.SkipNext
+import androidx.compose.material.icons.sharp.SkipPrevious
+import androidx.compose.material.icons.twotone.Pause
+import androidx.compose.material.icons.twotone.PlayArrow
+import androidx.compose.material.icons.twotone.SkipNext
+import androidx.compose.material.icons.twotone.SkipPrevious
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,9 +52,12 @@ import kotlinx.coroutines.isActive
 fun NowPlayingBarHeader(
     modifier: Modifier,
     nowPlayingState: NowPlayingState,
+    showExtraControls: Boolean,
     songProgressProvider: () -> Float,
     enabled: Boolean,
     onTogglePlayback: () -> Unit,
+    onNext: () -> Unit,
+    onPrevious: () -> Unit,
 ) {
 
     if (nowPlayingState is NowPlayingState.NotPlaying) {
@@ -95,20 +107,32 @@ fun NowPlayingBarHeader(
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        Box(contentAlignment = Alignment.Center) {
-            IconButton(
-                modifier = Modifier.padding(end = 4.dp),
-                onClick = onTogglePlayback,
-                enabled = enabled
-            ) {
-                val icon =
-                    if (state.playbackState == PlayerState.PLAYING) Icons.Rounded.Pause else Icons.Rounded.PlayArrow
-                Icon(imageVector = icon, contentDescription = null)
+        Row {
+            AnimatedVisibility(visible = showExtraControls) {
+                IconButton(onClick = onPrevious) {
+                    Icon(imageVector = Icons.TwoTone.SkipPrevious, contentDescription = "Previous")
+                }
             }
-            SongCircularProgressIndicator(
-                modifier = Modifier.padding(end = 4.dp),
-                songProgressProvider
-            )
+            Box(contentAlignment = Alignment.Center) {
+                IconButton(
+                    modifier = Modifier.padding(end = 4.dp),
+                    onClick = onTogglePlayback,
+                    enabled = enabled
+                ) {
+                    val icon =
+                        if (state.playbackState == PlayerState.PLAYING) Icons.TwoTone.Pause else Icons.TwoTone.PlayArrow
+                    Icon(imageVector = icon, contentDescription = null)
+                }
+                SongCircularProgressIndicator(
+                    modifier = Modifier.padding(end = 4.dp),
+                    songProgressProvider
+                )
+            }
+            AnimatedVisibility(visible = showExtraControls) {
+                IconButton(onClick = onNext) {
+                    Icon(imageVector = Icons.TwoTone.SkipNext, contentDescription = "Next")
+                }
+            }
         }
     }
 

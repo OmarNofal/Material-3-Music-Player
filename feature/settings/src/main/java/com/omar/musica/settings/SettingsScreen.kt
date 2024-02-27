@@ -103,7 +103,8 @@ fun SettingsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = paddingValues.calculateTopPadding()), contentAlignment = Alignment.Center
+                .padding(top = paddingValues.calculateTopPadding()),
+            contentAlignment = Alignment.Center
         ) {
 
             if (state is SettingsState.Loading) {
@@ -203,7 +204,7 @@ fun SettingsList(
             if (accentColorDialogVisible) {
                 ColorPickerDialog(
                     initialColor = userPreferences.uiSettings.accentColor.fromIntToAccentColor(),
-                    onColorChanged = { color -> settingsCallbacks.setAccentColor(color.toInt())},
+                    onColorChanged = { color -> settingsCallbacks.setAccentColor(color.toInt()) },
                     onDismissRequest = { accentColorDialogVisible = false }
                 )
             }
@@ -213,6 +214,17 @@ fun SettingsList(
                 .padding(horizontal = 32.dp, vertical = 16.dp),
                 title = "Accent Color",
                 subtitle = "Color of the app theme"
+            )
+        }
+
+        item {
+            SwitchSettingsItem(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                title = "MiniPlayer Extra Controls",
+                subtitle = "Show next and previous buttons in MiniPlayer",
+                toggled = userPreferences.uiSettings.showMiniPlayerExtraControls,
+                onToggle = settingsCallbacks::toggleShowExtraControls,
             )
         }
 
@@ -234,7 +246,7 @@ fun SettingsList(
                 .clickable { playerThemeDialogVisible = true }
                 .padding(horizontal = 32.dp, vertical = 16.dp),
                 title = "Player Theme",
-                subtitle = when(userPreferences.uiSettings.playerThemeUi) {
+                subtitle = when (userPreferences.uiSettings.playerThemeUi) {
                     PlayerThemeUi.SOLID -> "Solid"
                     PlayerThemeUi.BLUR -> "Blur"
                 }

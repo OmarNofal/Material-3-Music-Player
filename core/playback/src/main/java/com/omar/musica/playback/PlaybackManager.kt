@@ -260,7 +260,8 @@ class PlaybackManager @Inject constructor(
     }
 
     fun toggleRepeatMode() {
-        mediaController.repeatMode = RepeatMode.fromPlayer(mediaController.repeatMode).next().toPlayer()
+        mediaController.repeatMode =
+            RepeatMode.fromPlayer(mediaController.repeatMode).next().toPlayer()
     }
 
     fun toggleShuffleMode() {
@@ -313,6 +314,7 @@ class PlaybackManager @Inject constructor(
 
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
                 updateState()
+                savePlayerQueue()
             }
 
             override fun onRepeatModeChanged(repeatMode: Int) {
@@ -347,12 +349,20 @@ class PlaybackManager @Inject constructor(
     }
 
     private fun getQueueFromPlayer(): List<QueueItem> {
-        val count = mediaController.mediaItemCount
-        return List(count) { i ->
-            val mediaItem = mediaController.getMediaItemAt(i)
+        val count = mediaController.currentTimeline.windowCount
+        var currentWindowIndex =
+            mediaController.currentTimeline.getFirstWindowIndex(mediaController.shuffleModeEnabled)
+        return List(count) { _ ->
+            val window = Timeline.Window()
+            mediaController.currentTimeline.getWindow(currentWindowIndex, window)
+            currentWindowIndex = mediaController.currentTimeline.getNextWindowIndex(
+                currentWindowIndex,
+                mediaController.repeatMode,
+                mediaController.shuffleModeEnabled
+            )
+            val mediaItem = window.mediaItem
             val metadata = mediaItem.mediaMetadata
             val requestMetadata = mediaItem.requestMetadata
-
             QueueItem(
                 requestMetadata.mediaUri!!,
                 metadata.title.toString(),
@@ -360,6 +370,20 @@ class PlaybackManager @Inject constructor(
                 metadata.albumTitle.toString()
             )
         }
+
+        /*val count = mediaController.currentTimeline.windowCount
+            return List(count) { i ->
+
+                val mediaItem = mediaController.getMediaItemAt(i)
+                val metadata = mediaItem.mediaMetadata
+                val requestMetadata = mediaItem.requestMetadata
+                QueueItem(
+                    requestMetadata.mediaUri!!,
+                    metadata.title.toString(),
+                    metadata.artist.toString(),
+                    metadata.albumTitle.toString()
+                )
+            }*/
     }
 
     private fun Song.toMediaItem() =

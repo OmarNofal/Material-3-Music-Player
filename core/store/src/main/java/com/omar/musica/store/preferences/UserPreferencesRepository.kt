@@ -113,6 +113,10 @@ class UserPreferencesRepository @Inject constructor(
         toggleBoolean(PAUSE_IF_VOLUME_ZERO)
     }
 
+    suspend fun toggleMiniPlayerExtraControls() {
+        toggleBoolean(MINI_PLAYER_EXTRA_CONTROLS)
+    }
+
     suspend fun toggleResumeVolumeNotZero() {
         toggleBoolean(RESUME_IF_VOLUME_INCREASED)
     }
@@ -155,13 +159,15 @@ class UserPreferencesRepository @Inject constructor(
         val playerTheme = PlayerTheme.valueOf(this[PLAYER_THEME_KEY] ?: "BLUR")
         val blackBackgroundForDarkTheme = this[BLACK_BACKGROUND_FOR_DARK_THEME_KEY] ?: false
         val accentColor = this[ACCENT_COLOR_KEY] ?: DEFAULT_ACCENT_COLOR
+        val miniPlayerExtraControls = this[MINI_PLAYER_EXTRA_CONTROLS] ?: false
         return UiSettings(
             theme,
             isUsingDynamicColor,
             playerTheme,
             blackBackgroundForDarkTheme,
             MiniPlayerMode.PINNED,
-            accentColor
+            accentColor,
+            miniPlayerExtraControls
         )
     }
 
@@ -198,6 +204,7 @@ class UserPreferencesRepository @Inject constructor(
         val PAUSE_IF_VOLUME_ZERO = booleanPreferencesKey("PAUSE_VOLUME_ZERO")
         val RESUME_IF_VOLUME_INCREASED = booleanPreferencesKey("RESUME_IF_VOLUME_INCREASED")
         val ACCENT_COLOR_KEY = intPreferencesKey("ACCENT_COLOR")
+        val MINI_PLAYER_EXTRA_CONTROLS = booleanPreferencesKey("MINI_PLAYER_EXTRA_CONTROLS")
     }
 
 }

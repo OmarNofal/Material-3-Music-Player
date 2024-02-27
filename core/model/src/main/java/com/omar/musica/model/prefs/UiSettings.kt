@@ -33,7 +33,12 @@ data class UiSettings(
      * Color used as a primary color in the application.
      * The most significant byte is ignored. 0xIIRRGGBB
      */
-    val accentColor: Int = DEFAULT_ACCENT_COLOR
+    val accentColor: Int = DEFAULT_ACCENT_COLOR,
+
+    /**
+     * Show next and previous buttons in MiniPlayer
+     */
+    val showMiniPlayerExtraControls: Boolean = false,
 )
 
 enum class PlayerTheme {

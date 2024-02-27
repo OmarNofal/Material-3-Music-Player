@@ -186,9 +186,12 @@ internal fun NowPlayingScreen(
                             alpha = (1 - (progressProvider() * 6.66f).coerceAtMost(1.0f))
                         },
                     nowPlayingState = uiState,
+                    showExtraControls = LocalUserPreferences.current.uiSettings.showMiniPlayerExtraControls,
                     songProgressProvider = nowPlayingActions::currentSongProgress,
                     enabled = !isExpanded, // if the view is expanded then disable the header
-                    nowPlayingActions::togglePlayback
+                    nowPlayingActions::togglePlayback,
+                    nowPlayingActions::nextSong,
+                    nowPlayingActions::previousSong
                 )
 
             }

@@ -16,9 +16,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -325,12 +328,16 @@ fun ViewNowPlayingScreenListenerEffect(
     onViewNowPlayingScreen: () -> Unit
 ) {
     val context = LocalContext.current
+    var handledIntent by rememberSaveable {
+        mutableStateOf(false)
+    }
     LaunchedEffect(key1 = Unit) {
         delay(500)
         val activity = (context as? Activity) ?: return@LaunchedEffect
         val action = activity.intent.action
-        if (action == PlaybackService.VIEW_MEDIA_SCREEN_ACTION) {
+        if (action == PlaybackService.VIEW_MEDIA_SCREEN_ACTION && !handledIntent) {
             onViewNowPlayingScreen()
+            handledIntent = true
         }
     }
 

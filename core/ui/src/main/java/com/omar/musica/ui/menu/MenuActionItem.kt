@@ -17,11 +17,13 @@ import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.TextFormat
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.omar.musica.ui.actions.SetRingtoneAction
 import com.omar.musica.ui.actions.SongDeleteAction
 import com.omar.musica.ui.actions.SongPlaybackActions
 import com.omar.musica.ui.actions.SongShareAction
 import com.omar.musica.ui.songs.SongInfoDialog
 import com.omar.musica.ui.model.SongUi
+import com.omar.musica.ui.model.uri
 import com.omar.musica.ui.playlist.AddToPlaylistDialog
 
 data class MenuActionItem(
@@ -87,6 +89,7 @@ fun buildCommonSongActions(
     songInfoDialog: SongInfoDialog,
     addToPlaylistDialog: AddToPlaylistDialog,
     shareAction: SongShareAction,
+    setAsRingtoneAction: SetRingtoneAction,
     songDeleteAction: SongDeleteAction
 ): MutableList<MenuActionItem> {
     val songList = listOf(song)
@@ -95,6 +98,7 @@ fun buildCommonSongActions(
         addToQueue { songPlaybackActions.addToQueue(songList) }
         addToPlaylists { addToPlaylistDialog.launch(songList) }
         share { shareAction.share(context, songList) }
+        setAsRingtone { setAsRingtoneAction.setRingtone(song.uri) }
         songInfo { songInfoDialog.open(song) }
         delete { songDeleteAction.deleteSongs(songList) }
     }
