@@ -8,6 +8,7 @@ import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaItem.RequestMetadata
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.session.MediaController
@@ -61,6 +62,11 @@ class PlaybackManager @Inject constructor(
     val currentSongProgress: Float
         get() = mediaController.currentPosition.toFloat() / mediaController.duration.toFloat()
 
+    val playbackParameters: Pair<Float, Float>
+        get() {
+            val p = mediaController.playbackParameters
+            return p.speed to p.pitch
+        }
 
     private val playbackState: PlayerState
         get() {
@@ -69,6 +75,7 @@ class PlaybackManager @Inject constructor(
                     if (mediaController.playWhenReady) PlayerState.PLAYING
                     else PlayerState.PAUSED
                 }
+
                 Player.STATE_BUFFERING -> PlayerState.BUFFERING
                 else -> PlayerState.PAUSED
             }
@@ -91,14 +98,20 @@ class PlaybackManager @Inject constructor(
      * Skip forward in currently playing song
      */
     fun forward() {
-        mediaController.sendCustomCommand(SessionCommand(Commands.JUMP_FORWARD, bundleOf()), bundleOf())
+        mediaController.sendCustomCommand(
+            SessionCommand(Commands.JUMP_FORWARD, bundleOf()),
+            bundleOf()
+        )
     }
 
     /**
      * Skip backward in currently playing song
      */
     fun backward() {
-        mediaController.sendCustomCommand(SessionCommand(Commands.JUMP_BACKWARD, bundleOf()), bundleOf())
+        mediaController.sendCustomCommand(
+            SessionCommand(Commands.JUMP_BACKWARD, bundleOf()),
+            bundleOf()
+        )
     }
 
     /**
@@ -231,12 +244,18 @@ class PlaybackManager @Inject constructor(
             bundleOf(
                 "MINUTES" to minutes,
                 "FINISH_LAST_SONG" to finishLastSong
-            ))
+            )
+        )
+    }
+
+    fun setPlaybackParameters(speed: Float, pitch: Float) {
+        mediaController.playbackParameters = PlaybackParameters(speed, pitch)
     }
 
     fun deleteSleepTimer() {
         mediaController.sendCustomCommand(
-            SessionCommand(Commands.CANCEL_SLEEP_TIMER, Bundle.EMPTY), Bundle.EMPTY)
+            SessionCommand(Commands.CANCEL_SLEEP_TIMER, Bundle.EMPTY), Bundle.EMPTY
+        )
     }
 
     private fun updateState() {
@@ -301,7 +320,6 @@ class PlaybackManager @Inject constructor(
 
         })
     }
-
 
 
     private fun savePlayerQueue() {

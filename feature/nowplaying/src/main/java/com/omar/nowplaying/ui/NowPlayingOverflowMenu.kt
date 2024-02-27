@@ -20,6 +20,8 @@ import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.model.uri
 import com.omar.musica.ui.showShortToast
 import com.omar.musica.ui.topbar.OverflowMenu
+import com.omar.nowplaying.speed.PlaybackSpeedDialog
+import com.omar.nowplaying.speed.rememberPlaybackSpeedDialog
 import com.omar.nowplaying.timer.SleepTimerViewModel
 import com.omar.nowplaying.timer.rememberSleepTimerDialog
 
@@ -55,12 +57,15 @@ fun NowPlayingOverflowMenu(
         }
     )
 
+
+    val playbackSpeedDialog = rememberPlaybackSpeedDialog(viewModel = hiltViewModel())
+
     OverflowMenu(
         contentPaddingValues = PaddingValues(start = 16.dp, end = 36.dp, top = 4.dp, bottom = 4.dp),
         actionItems = mutableListOf<MenuActionItem>().apply {
             sleepTimer { sleepTimerDialog.launch() }
             addToPlaylists(options::addToPlaylist)
-            playbackSpeed(options::playbackSpeed)
+            playbackSpeed { playbackSpeedDialog.launch() }
             setAsRingtone(options::setAsRingtone)
             share(options::share)
             equalizer(options::equalizer)
