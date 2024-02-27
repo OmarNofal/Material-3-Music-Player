@@ -2,6 +2,7 @@ package com.omar.musica.playback
 
 import android.content.ComponentName
 import android.content.Context
+import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
@@ -224,6 +225,20 @@ class PlaybackManager @Inject constructor(
         }
     }
 
+    fun setSleepTimer(minutes: Int, finishLastSong: Boolean) {
+        mediaController.sendCustomCommand(
+            SessionCommand(Commands.SET_SLEEP_TIMER, bundleOf()),
+            bundleOf(
+                "MINUTES" to minutes,
+                "FINISH_LAST_SONG" to finishLastSong
+            ))
+    }
+
+    fun deleteSleepTimer() {
+        mediaController.sendCustomCommand(
+            SessionCommand(Commands.CANCEL_SLEEP_TIMER, Bundle.EMPTY), Bundle.EMPTY)
+    }
+
     private fun updateState() {
         val currentMediaItem = mediaController.currentMediaItem ?: return updateToEmptyState()
         val songUri = currentMediaItem.requestMetadata.mediaUri ?: return updateToEmptyState()
@@ -286,6 +301,8 @@ class PlaybackManager @Inject constructor(
 
         })
     }
+
+
 
     private fun savePlayerQueue() {
         val queue = getQueueFromPlayer()

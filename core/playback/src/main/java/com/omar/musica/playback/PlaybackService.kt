@@ -11,6 +11,7 @@ import androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC
 import androidx.media3.common.C.USAGE_MEDIA
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
@@ -23,6 +24,8 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.omar.musica.model.prefs.DEFAULT_JUMP_DURATION_MILLIS
 import com.omar.musica.model.prefs.PlayerSettings
 import com.omar.musica.playback.activity.ListeningAnalytics
+import com.omar.musica.playback.timer.SleepTimerManager
+import com.omar.musica.playback.timer.SleepTimerManagerListener
 import com.omar.musica.playback.volume.AudioVolumeChangeListener
 import com.omar.musica.playback.volume.VolumeChangeObserver
 import com.omar.musica.store.QueueItem
@@ -47,9 +50,9 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class PlaybackService :
     MediaSessionService(),
+    SleepTimerManagerListener,
     AudioVolumeChangeListener,
-    Player.Listener
-{
+    Player.Listener {
 
     @Inject
     lateinit var userPreferencesRepository: UserPreferencesRepository
@@ -69,6 +72,8 @@ class PlaybackService :
 
     private lateinit var volumeObserver: VolumeChangeObserver
 
+    private lateinit var sleepTimerManager: SleepTimerManager
+
     override fun onCreate() {
         super.onCreate()
 
@@ -76,6 +81,10 @@ class PlaybackService :
         attachAnalyticsListener()
 
         mediaSession = buildMediaSession()
+
+        sleepTimerManager = SleepTimerManager(this)
+        player.addListener(sleepTimerManager)
+
 
         playerSettings = userPreferencesRepository.playerSettingsFlow
             .stateIn(
@@ -192,6 +201,8 @@ class PlaybackService :
             ): MediaSession.ConnectionResult {
                 val connectionResult = super.onConnect(session, controller)
                 val availableSessionCommands = connectionResult.availableSessionCommands.buildUpon()
+                    .add(SessionCommand(Commands.SET_SLEEP_TIMER, Bundle.EMPTY))
+                    .add(SessionCommand(Commands.CANCEL_SLEEP_TIMER, Bundle.EMPTY))
                 customCommands.forEach { commandButton ->
                     // Add custom command to available session commands.
                     commandButton.sessionCommand?.let { availableSessionCommands.add(it) }
@@ -210,8 +221,17 @@ class PlaybackService :
             ): ListenableFuture<SessionResult> {
                 if (Commands.JUMP_FORWARD == customCommand.customAction) {
                     seekForward()
-                } else if (Commands.JUMP_BACKWARD == customCommand.customAction) {
+                }
+                if (Commands.JUMP_BACKWARD == customCommand.customAction) {
                     seekBackward()
+                }
+                if (Commands.SET_SLEEP_TIMER == customCommand.customAction) {
+                    val minutes = args.getInt("MINUTES", 0)
+                    val finishLastSong = args.getBoolean("FINISH_LAST_SONG", false)
+                    sleepTimerManager.schedule(minutes, finishLastSong)
+                }
+                if (Commands.CANCEL_SLEEP_TIMER == customCommand.customAction) {
+                    sleepTimerManager.deleteTimer()
                 }
                 return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
             }
@@ -229,7 +249,7 @@ class PlaybackService :
             if (shouldResume)
                 pausedDueToVolume = true
         }
-        if (level >= 1 && pausedDueToVolume && shouldResume && !player.playWhenReady){
+        if (level >= 1 && pausedDueToVolume && shouldResume && !player.playWhenReady) {
             player.play()
             pausedDueToVolume = false
         }
@@ -255,6 +275,10 @@ class PlaybackService :
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         return START_STICKY
+    }
+
+    override fun onSleepTimerFinished() {
+        player.pause()
     }
 
     override fun onDestroy() {

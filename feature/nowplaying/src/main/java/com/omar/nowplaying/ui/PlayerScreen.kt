@@ -182,15 +182,22 @@ fun PortraitPlayerScreen(
             )
             Spacer(modifier = Modifier.height(32.dp))
         }
-        TextButton(
-            modifier = Modifier.padding(bottom = 12.dp),
-            onClick = onOpenQueue
+        Row(
+            modifier = Modifier.padding(bottom = 12.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
-                contentDescription = "Queue"
-            )
-            Text(text = "Queue")
+            Spacer(modifier = Modifier.width(32.dp))
+            TextButton(
+                onClick = onOpenQueue
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                    contentDescription = "Queue"
+                )
+                Text(text = "Queue")
+            }
+            NowPlayingOverflowMenu(options = rememberNowPlayingOptions(songUi = song))
         }
     }
 }
