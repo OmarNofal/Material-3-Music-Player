@@ -9,11 +9,17 @@ plugins {
 }
 true // Needed to make the Suppress annotation work for the plugins block
 
+
+
 subprojects {
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         kotlinOptions {
-            val directory = File(projectDir, "compose_compiler_reports").absolutePath
+            val directory = File(rootProject.projectDir, "compose_compiler_reports").absolutePath
             if (project.findProperty("composeCompilerReports") == "true") {
+                freeCompilerArgs += listOf(
+                    "-P",
+                    "plugin:androidx.compose.compiler.plugins.kotlin:stabilityConfigurationPath=${rootProject.projectDir}/stability-config.txt"
+                )
                 freeCompilerArgs += listOf(
                     "-P",
                     "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=${directory}/compose_compiler"

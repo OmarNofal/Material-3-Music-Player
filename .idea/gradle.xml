@@ -38,6 +38,7 @@
             <option value="$PROJECT_DIR$/feature/playlists" />
             <option value="$PROJECT_DIR$/feature/settings" />
             <option value="$PROJECT_DIR$/feature/songs" />
+            <option value="$PROJECT_DIR$/feature/tageditor" />
           </set>
         </option>
       </GradleProjectSettings>
