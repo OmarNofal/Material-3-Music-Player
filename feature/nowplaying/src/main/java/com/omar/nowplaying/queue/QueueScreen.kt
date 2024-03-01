@@ -1,6 +1,5 @@
 package com.omar.nowplaying.queue
 
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -106,7 +105,10 @@ internal fun QueueScreen(
         InputStringDialog(
             title = "Playlist Name",
             isInputValid = { it.isNotBlank() },
-            onConfirm = { onSaveAsPlaylist(it); showDialog = false; context.showShortToast("Saved queue to $it") },
+            onConfirm = {
+                onSaveAsPlaylist(it); showDialog =
+                false; context.showShortToast("Saved queue to $it")
+            },
             onDismissRequest = { showDialog = false }
         )
 
@@ -117,7 +119,7 @@ internal fun QueueScreen(
             if (state !is QueueScreenState.Loaded) return@Scaffold
             val numberOfRemainingSongs = state.songs.size - state.currentSongIndex
             val durationMillis = state.songs.subList(state.currentSongIndex, state.songs.size)
-                .sumOf { it.length }
+                .sumOf { it.metadata.durationMillis }
             QueueTopBar(
                 color = color,
                 numberOfSongsRemaining = numberOfRemainingSongs,
@@ -172,10 +174,10 @@ internal fun QueueScreen(
             state = lazyListState
         ) {
 
-            itemsIndexed(songs, key = { _, item -> item.uriString }) { index, song ->
+            itemsIndexed(songs, key = { _, item -> item.uri.toString() }) { index, song ->
                 ReorderableItem(
                     reorderableLazyListState = reorderState,
-                    key = song.uriString,
+                    key = song.uri.toString(),
                 ) { isDragging ->
 
                     val disabledModifier = Modifier.alpha(0.5f)

@@ -64,7 +64,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.albumart.SongAlbumArtImage
+import com.omar.musica.ui.albumart.toSongAlbumArtModel
 import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.MultiSelectState
 import com.omar.musica.ui.common.RenamableTextView
@@ -79,7 +81,6 @@ import com.omar.musica.ui.menu.removeFromPlaylist
 import com.omar.musica.ui.menu.rename
 import com.omar.musica.ui.menu.shuffleNext
 import com.omar.musica.ui.millisToTime
-import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.showShortToast
 import com.omar.musica.ui.songs.selectableSongsList
 import com.omar.musica.ui.theme.DarkColorScheme
@@ -126,7 +127,7 @@ internal fun PlaylistDetailScreen(
     state: PlaylistDetailScreenState,
     playlistActions: PlaylistActions,
     onBackPressed: () -> Unit,
-    onSongClicked: (SongUi) -> Unit,
+    onSongClicked: (Song) -> Unit,
     onEdit: () -> Unit,
 ) {
 
@@ -183,7 +184,7 @@ internal fun PlaylistDetailScreen(
                     commonSongsActions.shareAction
                 ).apply {
                     removeFromPlaylist {
-                        playlistActions.removeSongs(multiSelectState.selected.map { it.uriString })
+                        playlistActions.removeSongs(multiSelectState.selected.map { it.uri.toString() })
                         multiSelectState.clear()
                     }
                 },
@@ -223,7 +224,7 @@ internal fun PlaylistDetailScreen(
                         .padding(start = 16.dp, end = 16.dp, top = 8.dp),
                     state.name,
                     state.numberOfSongs,
-                    state.songs.sumOf { it.length },
+                    state.songs.sumOf { it.metadata.durationMillis },
                     state.songs.firstOrNull(),
                     inRenameMode = inRenameMode,
                     onRename = { inRenameMode = false; playlistActions.rename(it) },
@@ -278,7 +279,7 @@ internal fun PlaylistDetailScreen(
                             add(
                                 3,
                                 MenuActionItem(Icons.Rounded.Delete, "Remove from Playlist") {
-                                    playlistActions.removeSongs(listOf(song.uriString))
+                                    playlistActions.removeSongs(listOf(song.uri.toString()))
                                 })
                         }
                     }
@@ -297,7 +298,7 @@ private fun PlaylistHeader(
     name: String,
     numberOfSongs: Int,
     songsDuration: Long,
-    firstSong: SongUi?, // for the playlist image,
+    firstSong: Song?, // for the playlist image,
     inRenameMode: Boolean,
     onRename: (String) -> Unit,
     onEnableRenameMode: () -> Unit,
@@ -316,7 +317,8 @@ private fun PlaylistHeader(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
                         .aspectRatio(1.0f)
-                        .weight(0.4f), song = firstSong
+                        .weight(0.4f),
+                    songAlbumArtModel = firstSong.toSongAlbumArtModel()
                 )
             }
         }

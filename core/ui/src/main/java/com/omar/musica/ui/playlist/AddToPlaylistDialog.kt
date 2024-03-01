@@ -27,14 +27,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.model.playlist.PlaylistInfo
+import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.showSongsAddedToPlaylistsToast
-import com.omar.musica.ui.model.SongUi
 
 
 @Composable
 fun AddToPlaylistDialog(
     viewModel: AddToPlaylistViewModel = hiltViewModel(),
-    songs: List<SongUi>,
+    songs: List<Song>,
     onDismissRequest: () -> Unit
 ) {
 
@@ -70,7 +70,7 @@ fun AddToPlaylistDialog(
                 context.showSongsAddedToPlaylistsToast(songs.size, selectedPlaylists.size)
                 onDismissRequest()
             }, enabled = dialogEntries.entries.any { it.isSelected }
-                ) {
+            ) {
                 Text("Confirm")
             }
         },
@@ -113,7 +113,7 @@ fun AddToPlaylistDialog(
 fun rememberAddToPlaylistDialog(): AddToPlaylistDialog {
 
     var dialogSongs by remember {
-        mutableStateOf<List<SongUi>?>(null)
+        mutableStateOf<List<Song>?>(null)
     }
 
     if (dialogSongs != null) {
@@ -124,7 +124,7 @@ fun rememberAddToPlaylistDialog(): AddToPlaylistDialog {
 
     return remember {
         object : AddToPlaylistDialog {
-            override fun launch(songs: List<SongUi>) {
+            override fun launch(songs: List<Song>) {
                 dialogSongs = songs
             }
         }
@@ -147,5 +147,5 @@ data class AddToPlaylistDialogEntry(
 )
 
 interface AddToPlaylistDialog {
-    fun launch(songs: List<SongUi>)
+    fun launch(songs: List<Song>)
 }

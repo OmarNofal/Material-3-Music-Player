@@ -1,0 +1,18 @@
+unstable class MainActivity {
+  unstable var userPreferencesRepository: UserPreferencesRepository
+  unstable var playbackManager: PlaybackManager
+  unstable var mediaRepository: MediaRepository
+  <runtime stability> = Unstable
+}
+stable class MusicaApplication {
+  <runtime stability> = Stable
+}
+stable class MusicaAppState {
+  unstable val navHostController: NavHostController
+  unstable val coroutineScope: CoroutineScope
+  stable val isNowPlayingExpanded: Boolean
+  runtime val nowPlayingViewModel: NowPlayingViewModel
+  stable val nowPlayingScreenOffset: Function0<Float>
+  unstable val shouldShowNowPlayingScreen: Flow<Boolean>
+  unstable val shouldShowBottomBar: Flow<Boolean>
+}

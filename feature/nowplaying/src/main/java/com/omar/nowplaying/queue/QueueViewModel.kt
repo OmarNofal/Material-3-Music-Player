@@ -6,8 +6,7 @@ import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.PlaylistsRepository
 import com.omar.musica.store.QueueRepository
-import com.omar.musica.ui.model.SongUi
-import com.omar.musica.ui.model.toUiSongModels
+import com.omar.musica.store.model.song.Song
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -28,8 +27,8 @@ class QueueViewModel @Inject constructor(
         queueRepository.observeQueueUris(), mediaRepository.songsFlow, playbackManager.state
     ) { uris, library, playerState ->
         val songs = library.getSongsByUris(uris)
-        val currentSongIndex = uris.indexOf(playerState.currentSong?.uriString)
-        QueueScreenState.Loaded(songs.toUiSongModels(), currentSongIndex)
+        val currentSongIndex = uris.indexOf(playerState.currentPlayingSong?.uri.toString())
+        QueueScreenState.Loaded(songs, currentSongIndex)
     }.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(500, 500), QueueScreenState.Loading
     )
@@ -51,7 +50,8 @@ class QueueViewModel @Inject constructor(
     }
 
     fun onSaveAsPlaylist(name: String) {
-        val songs = (queueScreenState.value as QueueScreenState.Loaded).songs.map { it.uriString }
+        val songs =
+            (queueScreenState.value as QueueScreenState.Loaded).songs.map { it.uri.toString() }
         playlistsRepository.createPlaylistAndAddSongs(name, songs)
     }
 }
@@ -60,7 +60,7 @@ class QueueViewModel @Inject constructor(
 sealed interface QueueScreenState {
 
     data class Loaded(
-        val songs: List<SongUi>, val currentSongIndex: Int
+        val songs: List<Song>, val currentSongIndex: Int
     ) : QueueScreenState
 
     data object Loading : QueueScreenState

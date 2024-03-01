@@ -14,12 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.omar.musica.store.MediaRepository
-import com.omar.musica.ui.model.SongUi
-import com.omar.musica.ui.model.toSongModel
-import com.omar.musica.ui.model.uri
+import com.omar.musica.store.model.song.Song
 
 fun interface SongDeleteAction {
-    fun deleteSongs(songs: List<SongUi>)
+    fun deleteSongs(songs: List<Song>)
 }
 
 
@@ -29,7 +27,7 @@ class AndroidRAboveDeleter(
 ) : SongDeleteAction {
 
     @RequiresApi(30)
-    override fun deleteSongs(songs: List<SongUi>) {
+    override fun deleteSongs(songs: List<Song>) {
         if (songs.isEmpty()) return
         val senderRequest = getIntentSenderRequest(context, songs[0].uri)
         activityResultLauncher.launch(senderRequest)
@@ -55,8 +53,8 @@ class AndroidQBelowDeleter(
     private val mediaRepository: MediaRepository
 ) : SongDeleteAction {
 
-    override fun deleteSongs(songs: List<SongUi>) {
-        songs.map { it.toSongModel() }.forEach { mediaRepository.deleteSong(it) }
+    override fun deleteSongs(songs: List<Song>) {
+        songs.forEach { mediaRepository.deleteSong(it) }
     }
 
 }

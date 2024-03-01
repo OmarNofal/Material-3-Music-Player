@@ -1,0 +1,34 @@
+stable class SearchScreenUiState {
+  stable val searchQuery: String
+  stable val songs: List<Song>
+}
+stable class Success {
+  stable val songs: List<Song>
+  stable val sortOption: SortOption
+  stable val isSortedAscendingly: Boolean
+}
+stable class Loading {
+  <runtime stability> = Stable
+}
+stable class Loaded {
+  stable val averageListeningTimePerDay: Int
+  <runtime stability> = Stable
+}
+unstable class AnalyticsViewModel {
+  unstable val analyticsRepository: AnalyticsRepository
+  <runtime stability> = Unstable
+}
+unstable class SearchViewModel {
+  unstable val playbackManager: PlaybackManager
+  unstable val _state: MutableStateFlow<SearchScreenUiState>
+  unstable val songs: StateFlow<List<Song>>
+  <runtime stability> = Unstable
+}
+unstable class SongsViewModel {
+  unstable val mediaRepository: MediaRepository
+  unstable val mediaPlaybackManager: PlaybackManager
+  unstable val userPreferencesRepository: UserPreferencesRepository
+  unstable val sortOptionFlow: Flow<Pair<SortOption, Boolean>>
+  unstable val state: StateFlow<SongsScreenUiState>
+  <runtime stability> = Unstable
+}

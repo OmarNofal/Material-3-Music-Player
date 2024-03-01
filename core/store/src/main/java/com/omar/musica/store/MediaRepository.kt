@@ -7,9 +7,10 @@ import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import androidx.core.net.toUri
-import com.omar.musica.store.model.Song
-import com.omar.musica.store.model.SongLibrary
+import com.omar.musica.model.song.BasicSongMetadata
+import com.omar.musica.store.model.song.Song
+import com.omar.musica.store.model.song.SongLibrary
+import com.omar.musica.store.preferences.UserPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,12 @@ import javax.inject.Singleton
 private const val TAG = "MediaRepository"
 
 
+/**
+ * A class that is responsible for manipulating songs on the Android device.
+ * It uses the MediaStore as the underlying database and exposes all the user's
+ * library inside a [StateFlow] which automatically updates when the MediaStore updates.
+ * Also, it provides methods to delete songs, and change their tags.
+ */
 @Singleton
 class MediaRepository @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -98,11 +105,14 @@ class MediaRepository @Inject constructor(
 
             SongLibrary(filteredSongs)
         }.flowOn(Dispatchers.IO).stateIn(
-                scope = scope,
-                started = SharingStarted.Eagerly,
-                initialValue = SongLibrary(listOf())
-            )
+            scope = scope,
+            started = SharingStarted.Eagerly,
+            initialValue = SongLibrary(listOf())
+        )
 
+    /**
+     * Retrieves all the user's songs on the device along with their [BasicSongMetadata]
+     */
     suspend fun getAllSongs(): List<Song> = withContext(Dispatchers.IO) {
 
         val projection =
@@ -144,17 +154,20 @@ class MediaRepository @Inject constructor(
                         cursor.getInt(idColumn).toLong()
                     )
 
+                    val basicMetadata = BasicSongMetadata(
+                        title = c.getString(titleColumn),
+                        artistName = c.getString(artistColumn) ?: "<unknown>",
+                        albumName = c.getString(albumColumn) ?: "<unknown>",
+                        durationMillis = c.getLong(durationColumn),
+                        sizeBytes = c.getLong(sizeColumn)
+                    )
+
                     try {
                         Song(
-                            title = c.getString(titleColumn),
-                            artist = c.getString(artistColumn) ?: "<unknown>",
-                            album = c.getString(albumColumn) ?: "<unknown>",
-                            length = c.getLong(durationColumn),
-                            location = c.getString(pathColumn),
-                            size = c.getLong(sizeColumn),
-                            fileName = cursor.getString(fileNameColumn),
-                            uriString = fileUri.toString(),
-                            albumId = cursor.getLong(albumIdColumn)
+                            uri = fileUri,
+                            metadata = basicMetadata,
+                            filePath = c.getString(pathColumn),
+                            albumId = c.getLong(albumIdColumn)
                         ).apply { Timber.d(this.toString()) }.also(results::add)
                     } catch (e: Exception) {
                         Timber.e(e) // ignore the song for now if any problems occurred

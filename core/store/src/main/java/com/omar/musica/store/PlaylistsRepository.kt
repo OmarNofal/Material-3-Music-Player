@@ -3,9 +3,9 @@ package com.omar.musica.store
 import com.omar.musica.database.dao.PlaylistDao
 import com.omar.musica.database.entities.playlist.PlaylistEntity
 import com.omar.musica.database.model.PlaylistInfoWithNumberOfSongs
-import com.omar.musica.model.playlist.Playlist
 import com.omar.musica.model.playlist.PlaylistInfo
-import com.omar.musica.model.song.Song
+import com.omar.musica.store.model.playlist.Playlist
+import com.omar.musica.store.model.song.Song
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -85,7 +85,7 @@ class PlaylistsRepository @Inject constructor(
         ) { library, playlistWithSongs ->
 
             // Convert the songs to a map to enable fast retrieval
-            val songsSet = library.songs.associateBy { it.uriString }
+            val songsSet = library.songs.associateBy { it.uri.toString() }
 
             // The uris of the song
             val playlistSongsUriStrings = playlistWithSongs.songUris
@@ -100,7 +100,7 @@ class PlaylistsRepository @Inject constructor(
 
             val playlistInfo = playlistWithSongs.playlistEntity
             Playlist(
-                PlaylistInfo(playlistInfo.id, playlistInfo.name ?: "", playlistSongs.size),
+                PlaylistInfo(playlistInfo.id, playlistInfo.name, playlistSongs.size),
                 playlistSongs
             )
         }
@@ -115,7 +115,7 @@ class PlaylistsRepository @Inject constructor(
     private fun PlaylistInfoWithNumberOfSongs.toDomainPlaylist() =
         PlaylistInfo(
             id = playlistEntity.id,
-            name = playlistEntity.name ?: "",
+            name = playlistEntity.name,
             numberOfSongs = numberOfSongs
         )
 

@@ -6,11 +6,8 @@ import com.omar.musica.model.SortOption
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.songs.SongsScreenUiState
 import com.omar.musica.store.MediaRepository
+import com.omar.musica.store.model.song.Song
 import com.omar.musica.store.preferences.UserPreferencesRepository
-import com.omar.musica.ui.model.SongUi
-import com.omar.musica.ui.model.toSongModel
-import com.omar.musica.ui.model.toSongModels
-import com.omar.musica.ui.model.toUiSongModels
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +31,7 @@ class SongsViewModel @Inject constructor(
 
     val state: StateFlow<SongsScreenUiState> =
         mediaRepository.songsFlow
-            .map { it.songs.toUiSongModels() }
+            .map { it.songs }
             .combine(sortOptionFlow) { songList, sortOptionPair ->
                 // Sort the list according to the sort option
                 val ascending = sortOptionPair.second
@@ -54,13 +51,13 @@ class SongsViewModel @Inject constructor(
     /**
      * User clicked a song in the list. Default action is to play
      */
-    fun onSongClicked(song: SongUi, index: Int) {
+    fun onSongClicked(song: Song, index: Int) {
         val songs = (state.value as SongsScreenUiState.Success).songs
-        mediaPlaybackManager.setPlaylistAndPlayAtIndex(songs.toSongModels(), index)
+        mediaPlaybackManager.setPlaylistAndPlayAtIndex(songs, index)
     }
 
-    fun onPlayNext(songs: List<SongUi>) {
-        mediaPlaybackManager.playNext(songs.toSongModels())
+    fun onPlayNext(songs: List<Song>) {
+        mediaPlaybackManager.playNext(songs)
     }
 
     /**
@@ -78,27 +75,27 @@ class SongsViewModel @Inject constructor(
      * Mainly, in Android R and above, we will have to send an intent to delete a media item and the system will ask the user for permission.
      * So they are implemented as part of the UI in Jetpack Compose
      */
-    fun onDelete(songs: List<SongUi>) {
-        mediaRepository.deleteSong(songs[0].toSongModel())
+    fun onDelete(songs: List<Song>) {
+        mediaRepository.deleteSong(songs[0])
     }
 
-    private fun List<SongUi>.sortedByOptionAscending(sortOption: SortOption): List<SongUi> =
+    private fun List<Song>.sortedByOptionAscending(sortOption: SortOption): List<Song> =
         when (sortOption) {
-            SortOption.TITLE -> this.sortedBy { it.title.lowercase() }
-            SortOption.ARTIST -> this.sortedBy { it.artist?.lowercase() }
-            SortOption.FileSize -> this.sortedBy { it.size }
-            SortOption.ALBUM -> this.sortedBy { it.album }
-            SortOption.Duration -> this.sortedBy { it.length }
+            SortOption.TITLE -> this.sortedBy { it.metadata.title.lowercase() }
+            SortOption.ARTIST -> this.sortedBy { it.metadata.artistName?.lowercase() }
+            SortOption.FileSize -> this.sortedBy { it.metadata.sizeBytes }
+            SortOption.ALBUM -> this.sortedBy { it.metadata.albumName }
+            SortOption.Duration -> this.sortedBy { it.metadata.durationMillis }
         }
 
 
-    private fun List<SongUi>.sortedByOptionDescending(sortOption: SortOption): List<SongUi> =
+    private fun List<Song>.sortedByOptionDescending(sortOption: SortOption): List<Song> =
         when (sortOption) {
-            SortOption.TITLE -> this.sortedByDescending { it.title.lowercase() }
-            SortOption.ARTIST -> this.sortedByDescending { it.artist?.lowercase() }
-            SortOption.FileSize -> this.sortedByDescending { it.size }
-            SortOption.ALBUM -> this.sortedByDescending { it.album?.lowercase() }
-            SortOption.Duration -> this.sortedByDescending { it.length }
+            SortOption.TITLE -> this.sortedByDescending { it.metadata.title.lowercase() }
+            SortOption.ARTIST -> this.sortedByDescending { it.metadata.artistName?.lowercase() }
+            SortOption.FileSize -> this.sortedByDescending { it.metadata.sizeBytes }
+            SortOption.ALBUM -> this.sortedByDescending { it.metadata.albumName }
+            SortOption.Duration -> this.sortedByDescending { it.metadata.durationMillis }
         }
 
 

@@ -3,7 +3,6 @@ package com.omar.musica.playback
 import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
-import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaItem.RequestMetadata
@@ -15,14 +14,14 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
-import com.omar.musica.model.song.Song
-import com.omar.musica.playback.state.PlaybackState
-import com.omar.musica.playback.state.PlayerState
-import com.omar.musica.playback.state.RepeatMode
+import com.omar.musica.model.playback.PlaybackState
+import com.omar.musica.model.playback.PlayerState
+import com.omar.musica.playback.state.MediaPlayerState
 import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.PlaylistsRepository
 import com.omar.musica.store.QueueItem
 import com.omar.musica.store.QueueRepository
+import com.omar.musica.store.model.song.Song
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,9 +54,9 @@ class PlaybackManager @Inject constructor(
         initMediaController(context)
     }
 
-    private val _state = MutableStateFlow(PlaybackState.emptyState)
+    private val _state = MutableStateFlow(MediaPlayerState.empty)
 
-    val state: StateFlow<PlaybackState>
+    val state: StateFlow<MediaPlayerState>
         get() = _state
 
     val currentSongProgress: Float
@@ -261,7 +260,7 @@ class PlaybackManager @Inject constructor(
 
     fun toggleRepeatMode() {
         mediaController.repeatMode =
-            RepeatMode.fromPlayer(mediaController.repeatMode).next().toPlayer()
+            getRepeatModeFromPlayer(mediaController.repeatMode).next().toPlayer()
     }
 
     fun toggleShuffleMode() {
@@ -271,16 +270,19 @@ class PlaybackManager @Inject constructor(
     private fun updateState() {
         val currentMediaItem = mediaController.currentMediaItem ?: return updateToEmptyState()
         val songUri = currentMediaItem.requestMetadata.mediaUri ?: return updateToEmptyState()
-        _state.value = PlaybackState(
-            mediaRepository.songsFlow.value.getSongByUri(songUri.toString()),
+        val song = mediaRepository.songsFlow.value.getSongByUri(songUri.toString())
+            ?: return updateToEmptyState()
+        val playbackState = PlaybackState(
             playbackState,
             mediaController.shuffleModeEnabled,
-            RepeatMode.fromPlayer(mediaController.repeatMode)
+            getRepeatModeFromPlayer(mediaController.repeatMode)
         )
+
+        _state.value = MediaPlayerState(song, playbackState)
     }
 
     private fun updateToEmptyState() {
-        _state.value = PlaybackState.emptyState
+        _state.value = MediaPlayerState.empty
     }
 
     private fun stopPlayback() {
@@ -388,17 +390,17 @@ class PlaybackManager @Inject constructor(
 
     private fun Song.toMediaItem() =
         MediaItem.Builder()
-            .setUri(uriString)
+            .setUri(uri)
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                    .setArtist(artist)
-                    .setAlbumTitle(album)
-                    .setTitle(title)
+                    .setArtist(metadata.artistName)
+                    .setAlbumTitle(metadata.albumName)
+                    .setTitle(metadata.title)
                     .build()
             )
             .setRequestMetadata(
-                RequestMetadata.Builder().setMediaUri(uriString.toUri())
+                RequestMetadata.Builder().setMediaUri(uri)
                     .build() // to be able to retrieve the URI easily
             )
             .build()

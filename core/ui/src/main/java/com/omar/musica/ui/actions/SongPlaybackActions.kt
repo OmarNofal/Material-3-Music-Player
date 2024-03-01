@@ -2,18 +2,17 @@ package com.omar.musica.ui.actions
 
 import android.content.Context
 import com.omar.musica.playback.PlaybackManager
+import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.showSongsAddedToNextToast
 import com.omar.musica.ui.showSongsAddedToQueueToast
-import com.omar.musica.ui.model.SongUi
-import com.omar.musica.ui.model.toSongModels
 
 interface SongPlaybackActions {
 
-    fun playNext(songs: List<SongUi>)
-    fun addToQueue(songs: List<SongUi>)
-    fun shuffleNext(songs: List<SongUi>)
-    fun shuffle(songs: List<SongUi>)
-    fun play(songs: List<SongUi>)
+    fun playNext(songs: List<Song>)
+    fun addToQueue(songs: List<Song>)
+    fun shuffleNext(songs: List<Song>)
+    fun shuffle(songs: List<Song>)
+    fun play(songs: List<Song>)
 
 }
 
@@ -23,26 +22,26 @@ class SongPlaybackActionsImpl(
     private val playbackManager: PlaybackManager
 ) : SongPlaybackActions {
 
-    override fun playNext(songs: List<SongUi>) {
-        playbackManager.playNext(songs.toSongModels())
+    override fun playNext(songs: List<Song>) {
+        playbackManager.playNext(songs)
         context.showSongsAddedToNextToast(songs.size)
     }
 
-    override fun addToQueue(songs: List<SongUi>) {
-        playbackManager.addToQueue(songs.toSongModels())
+    override fun addToQueue(songs: List<Song>) {
+        playbackManager.addToQueue(songs)
         context.showSongsAddedToQueueToast(songs.size)
     }
 
-    override fun shuffleNext(songs: List<SongUi>) {
-        playbackManager.shuffleNext(songs.toSongModels())
+    override fun shuffleNext(songs: List<Song>) {
+        playbackManager.shuffleNext(songs)
         context.showSongsAddedToNextToast(songs.size)
     }
 
-    override fun shuffle(songs: List<SongUi>) {
-        playbackManager.shuffle(songs.toSongModels())
+    override fun shuffle(songs: List<Song>) {
+        playbackManager.shuffle(songs)
     }
 
-    override fun play(songs: List<SongUi>) {
-        playbackManager.setPlaylistAndPlayAtIndex(songs.toSongModels())
+    override fun play(songs: List<Song>) {
+        playbackManager.setPlaylistAndPlayAtIndex(songs)
     }
 }

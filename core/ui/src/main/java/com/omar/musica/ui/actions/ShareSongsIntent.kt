@@ -2,13 +2,12 @@ package com.omar.musica.ui.actions
 
 import android.content.Context
 import android.content.Intent
-import androidx.core.net.toUri
-import com.omar.musica.ui.model.SongUi
+import com.omar.musica.store.model.song.Song
 
 
 object SongsSharer : SongShareAction {
 
-    override fun share(context: Context, songs: List<SongUi>) {
+    override fun share(context: Context, songs: List<Song>) {
         if (songs.isEmpty()) return
         if (songs.size == 1) shareSingleSong(context, songs[0])
         else shareMultipleSongs(context, songs)
@@ -16,29 +15,32 @@ object SongsSharer : SongShareAction {
 
 }
 
-fun shareSongs(context: Context, songs: List<SongUi>) {
+fun shareSongs(context: Context, songs: List<Song>) {
     if (songs.isEmpty()) return
     if (songs.size == 1) shareSingleSong(context, songs[0])
     else shareMultipleSongs(context, songs)
 }
 
 
-fun shareSingleSong(context: Context, song: SongUi) {
+fun shareSingleSong(context: Context, song: Song) {
     val intent = Intent(Intent.ACTION_SEND).apply {
-        putExtra(Intent.EXTRA_STREAM, song.uriString.toUri())
+        putExtra(Intent.EXTRA_STREAM, song.uri)
         type = "audio/*"
     }
-    val chooser = Intent.createChooser(intent, "Share ${song.title}")
+    val chooser = Intent.createChooser(intent, "Share ${song.metadata.title}")
     context.startActivity(chooser)
 }
 
-fun shareMultipleSongs(context: Context, songs: List<SongUi>) {
+fun shareMultipleSongs(context: Context, songs: List<Song>) {
     val intent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
-        val uris = songs.map { it.uriString.toUri() }
+        val uris = songs.map { it.uri }
         type = "audio/*"
         putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
     }
     val chooser =
-        Intent.createChooser(intent, "Share ${songs[0].title} and ${songs.size - 1} other files")
+        Intent.createChooser(
+            intent,
+            "Share ${songs[0].metadata.title} and ${songs.size - 1} other files"
+        )
     context.startActivity(chooser)
 }

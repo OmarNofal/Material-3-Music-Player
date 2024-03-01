@@ -9,20 +9,17 @@ import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.omar.musica.ui.R
-import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
-import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
-import com.omar.musica.ui.model.SongUi
 
 
 @Composable
 fun SongAlbumArtImage(
     modifier: Modifier,
-    song: SongUi
+    songAlbumArtModel: SongAlbumArtModel
 ) {
     val context = LocalContext.current
-    val imageRequest = remember(song) {
+    val imageRequest = remember(songAlbumArtModel) {
         ImageRequest.Builder(context)
-            .data(song)
+            .data(songAlbumArtModel)
             .crossfade(true).build()
     }
     AsyncImage(

@@ -1,19 +1,18 @@
-package com.omar.musica.playback.state
+package com.omar.musica.model.playback
 
 
-import com.omar.musica.model.song.Song
-
-
+/**
+ * Contains info about the current playback state of the media player,
+ * such as whether the player is playing media or paused, shuffle mode and repeat mode
+ */
 data class PlaybackState(
-    val currentSong: Song?,
-    val playbackState: PlayerState,
+    val playerState: PlayerState,
     val isShuffleOn: Boolean = false,
     val repeatMode: RepeatMode
 ) {
 
     companion object {
         val emptyState = PlaybackState(
-            null,
             PlayerState.PAUSED,
             false,
             RepeatMode.REPEAT_ALL

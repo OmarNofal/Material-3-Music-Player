@@ -16,22 +16,3 @@ data class SongUi(
     val uriString: String,
     val albumId: Long? = null
 )
-
-val SongUi.uri
-    get() = uriString.toUri()
-
-fun List<SongUi>.toSongModels() =
-    map { it.toSongModel() }
-
-fun SongUi.toSongModel() =
-    Song(
-        fileName, title, artist, length, size, album, location, uriString, albumId
-    )
-
-fun List<Song>.toUiSongModels() =
-    map { it.toUiSongModel() }
-
-fun Song.toUiSongModel() =
-    SongUi(
-        fileName, title, artist, length, size, album, location, uriString, albumId
-    )

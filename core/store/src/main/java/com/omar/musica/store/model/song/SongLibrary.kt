@@ -1,5 +1,4 @@
-package com.omar.musica.store.model
-
+package com.omar.musica.store.model.song
 
 
 class SongLibrary(

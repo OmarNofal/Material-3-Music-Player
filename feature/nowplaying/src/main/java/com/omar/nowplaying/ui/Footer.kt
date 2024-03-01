@@ -19,15 +19,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import com.omar.musica.playback.state.RepeatMode
-import com.omar.musica.ui.model.SongUi
+import com.omar.musica.model.playback.RepeatMode
+import com.omar.musica.store.model.song.Song
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerFooter(
     modifier: Modifier,
-    songUi: SongUi,
+    songUi: Song,
     isShuffleOn: Boolean,
     repeatMode: RepeatMode,
     onOpenQueue: () -> Unit,
@@ -58,15 +58,17 @@ fun PlayerFooter(
 
         // icons
         TooltipBox(
-            tooltip = { PlainTooltip {
-                Text(
-                    text = when (repeatMode) {
-                        RepeatMode.REPEAT_ALL -> "Repeat all"
-                        RepeatMode.REPEAT_SONG -> "Repeat this song"
-                        RepeatMode.NO_REPEAT -> "Don't Repeat"
-                    }
-                )
-            } },
+            tooltip = {
+                PlainTooltip {
+                    Text(
+                        text = when (repeatMode) {
+                            RepeatMode.REPEAT_ALL -> "Repeat all"
+                            RepeatMode.REPEAT_SONG -> "Repeat this song"
+                            RepeatMode.NO_REPEAT -> "Don't Repeat"
+                        }
+                    )
+                }
+            },
             state = rememberTooltipState(),
             positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
         ) {
@@ -75,9 +77,11 @@ fun PlayerFooter(
             }
         }
         TooltipBox(
-            tooltip = { PlainTooltip {
-                Text(text = "Shuffle Mode")
-            } },
+            tooltip = {
+                PlainTooltip {
+                    Text(text = "Shuffle Mode")
+                }
+            },
             state = rememberTooltipState(),
             positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
         ) {

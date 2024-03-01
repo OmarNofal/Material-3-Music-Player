@@ -1,10 +1,9 @@
 package com.omar.nowplaying
 
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.Stable
-import com.omar.musica.playback.state.PlayerState
-import com.omar.musica.playback.state.RepeatMode
-import com.omar.musica.ui.model.SongUi
+import com.omar.musica.model.playback.PlayerState
+import com.omar.musica.model.playback.RepeatMode
+import com.omar.musica.store.model.song.Song
 
 
 @Immutable
@@ -16,8 +15,7 @@ sealed interface NowPlayingState {
 
     @Immutable
     data class Playing(
-        @Stable
-        val song: SongUi,
+        val song: Song,
         val playbackState: PlayerState,
         val repeatMode: RepeatMode,
         val isShuffleOn: Boolean,

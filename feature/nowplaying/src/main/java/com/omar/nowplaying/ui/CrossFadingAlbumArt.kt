@@ -22,7 +22,7 @@ import coil.size.Size
 import com.omar.musica.ui.R
 import com.omar.musica.ui.albumart.BlurTransformation
 import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
-import com.omar.musica.ui.model.SongUi
+import com.omar.musica.ui.albumart.SongAlbumArtModel
 
 
 enum class ErrorPainterType {
@@ -33,7 +33,7 @@ enum class ErrorPainterType {
 fun CrossFadingAlbumArt(
     modifier: Modifier,
     containerModifier: Modifier = Modifier,
-    song: SongUi,
+    songAlbumArtModel: SongAlbumArtModel,
     errorPainterType: ErrorPainterType,
     colorFilter: ColorFilter? = null,
     blurTransformation: BlurTransformation? = null,
@@ -42,9 +42,9 @@ fun CrossFadingAlbumArt(
 
 
     val context = LocalContext.current
-    val imageRequest = remember(song.uriString) {
+    val imageRequest = remember(songAlbumArtModel.uri.toString()) {
         ImageRequest.Builder(context)
-            .data(song)
+            .data(songAlbumArtModel)
             .apply { if (blurTransformation != null) this.transformations(blurTransformation) }
             .size(Size.ORIGINAL).build()
     }

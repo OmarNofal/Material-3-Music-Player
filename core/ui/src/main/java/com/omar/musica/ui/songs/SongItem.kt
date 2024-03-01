@@ -36,28 +36,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.PlatformTextStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.R
 import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
 import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
+import com.omar.musica.ui.albumart.toSongAlbumArtModel
 import com.omar.musica.ui.common.LocalUserPreferences
-import com.omar.musica.ui.millisToTime
 import com.omar.musica.ui.menu.MenuActionItem
 import com.omar.musica.ui.menu.SongDropdownMenu
-import com.omar.musica.ui.model.SongUi
+import com.omar.musica.ui.millisToTime
 import timber.log.Timber
 
 
 @Composable
 fun SongRow(
     modifier: Modifier,
-    song: SongUi,
+    song: Song,
     menuOptions: List<MenuActionItem>? = null,
     songRowState: SongRowState
 ) {
@@ -123,7 +122,7 @@ enum class SongRowState {
 @Composable
 fun SongInfoRow(
     modifier: Modifier,
-    song: SongUi,
+    song: Song,
     efficientThumbnailLoading: Boolean
 ) {
     Row(
@@ -135,7 +134,7 @@ fun SongInfoRow(
             modifier = Modifier
                 .size(54.dp)
                 .clip(RoundedCornerShape(6.dp)),
-            model = song,
+            model = song.toSongAlbumArtModel(),
             imageLoader = if (efficientThumbnailLoading) LocalEfficientThumbnailImageLoader.current else LocalInefficientThumbnailImageLoader.current,
             contentDescription = "Cover Photo",
             contentScale = ContentScale.Crop,
@@ -150,7 +149,7 @@ fun SongInfoRow(
         Column(Modifier.weight(1f)) {
 
             Text(
-                text = song.title,
+                text = song.metadata.title,
                 fontWeight = FontWeight.Normal,
                 fontSize = 16.sp,
                 maxLines = 1,
@@ -158,7 +157,7 @@ fun SongInfoRow(
             )
             //Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = song.artist.toString(),
+                text = song.metadata.artistName.toString(),
                 fontWeight = FontWeight.Normal,
                 fontSize = 11.sp,
                 maxLines = 1,
@@ -170,13 +169,13 @@ fun SongInfoRow(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = song.album.toString(),
+                    text = song.metadata.albumName.toString(),
                     fontSize = 11.sp,
                     maxLines = 1,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = song.length.millisToTime(),
+                    text = song.metadata.durationMillis.millisToTime(),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Normal
                 )

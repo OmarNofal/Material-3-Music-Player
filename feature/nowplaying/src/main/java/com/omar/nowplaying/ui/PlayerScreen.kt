@@ -25,16 +25,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
-import com.omar.musica.playback.state.PlayerState
-import com.omar.musica.playback.state.RepeatMode
-import com.omar.musica.ui.model.SongUi
+import com.omar.musica.model.playback.PlayerState
+import com.omar.musica.model.playback.RepeatMode
+import com.omar.musica.store.model.song.Song
+import com.omar.musica.ui.albumart.toSongAlbumArtModel
 import com.omar.nowplaying.viewmodel.INowPlayingViewModel
 
 
 @Composable
 fun PlayingScreen2(
     modifier: Modifier,
-    song: SongUi,
+    song: Song,
     repeatMode: RepeatMode,
     isShuffleOn: Boolean,
     playbackState: PlayerState,
@@ -84,7 +85,7 @@ fun PlayingScreen2(
 @Composable
 fun CompactPlayerScreen(
     modifier: Modifier,
-    song: SongUi,
+    song: Song,
     playbackState: PlayerState,
     nowPlayingActions: INowPlayingViewModel,
     onOpenQueue: () -> Unit
@@ -105,7 +106,7 @@ fun CompactPlayerScreen(
 
         SongProgressInfo(
             modifier = Modifier.fillMaxWidth(),
-            songDuration = song.length,
+            songDuration = song.metadata.durationMillis,
             songProgressProvider = nowPlayingActions::currentSongProgress,
             onUserSeek = nowPlayingActions::onUserSeek
         )
@@ -137,7 +138,7 @@ fun CompactPlayerScreen(
 @Composable
 fun PortraitPlayerScreen(
     modifier: Modifier,
-    song: SongUi,
+    song: Song,
     playbackState: PlayerState,
     repeatMode: RepeatMode,
     isShuffleOn: Boolean,
@@ -156,7 +157,7 @@ fun PortraitPlayerScreen(
                 .shadow(32.dp, shape = RoundedCornerShape(12.dp), clip = true)
                 .clip(RoundedCornerShape(12.dp)),
             containerModifier = Modifier.weight(1f, fill = false),
-            song = song,
+            songAlbumArtModel = song.toSongAlbumArtModel(),
             errorPainterType = ErrorPainterType.PLACEHOLDER
         )
 
@@ -173,7 +174,7 @@ fun PortraitPlayerScreen(
 
             SongProgressInfo(
                 modifier = Modifier.fillMaxWidth(),
-                songDuration = song.length,
+                songDuration = song.metadata.durationMillis,
                 songProgressProvider = nowPlayingActions::currentSongProgress,
                 onUserSeek = nowPlayingActions::onUserSeek
             )
@@ -209,7 +210,7 @@ fun PortraitPlayerScreen(
 @Composable
 fun LandscapePlayerScreen(
     modifier: Modifier,
-    song: SongUi,
+    song: Song,
     playbackState: PlayerState,
     repeatMode: RepeatMode,
     isShuffleOn: Boolean,
@@ -228,7 +229,7 @@ fun LandscapePlayerScreen(
                 .shadow(32.dp, shape = RoundedCornerShape(12.dp), clip = true)
                 .clip(RoundedCornerShape(12.dp)),
             containerModifier = Modifier.weight(1.5f, fill = true),
-            song = song,
+            songAlbumArtModel = song.toSongAlbumArtModel(),
             errorPainterType = ErrorPainterType.PLACEHOLDER
         )
 
@@ -249,7 +250,7 @@ fun LandscapePlayerScreen(
 
             SongProgressInfo(
                 modifier = Modifier.fillMaxWidth(),
-                songDuration = song.length,
+                songDuration = song.metadata.durationMillis,
                 songProgressProvider = nowPlayingActions::currentSongProgress,
                 onUserSeek = nowPlayingActions::onUserSeek
             )
@@ -286,7 +287,7 @@ fun LandscapePlayerScreen(
 
 @Composable
 fun PlayerScreenSkeleton(
-    song: SongUi,
+    song: Song,
     playbackState: PlayerState,
     screenSize: NowPlayingScreenSize,
     nowPlayingActions: INowPlayingViewModel,
@@ -303,7 +304,7 @@ fun PlayerScreenSkeleton(
                 .scale(0.9f)
                 .clip(RoundedCornerShape(12.dp))
                 .shadow(32.dp),
-            song = song,
+            songAlbumArtModel = song.toSongAlbumArtModel(),
             errorPainterType = ErrorPainterType.PLACEHOLDER
         )
 
@@ -325,7 +326,7 @@ fun PlayerScreenSkeleton(
 
         SongProgressInfo(
             modifier = Modifier.fillMaxWidth(),
-            songDuration = song.length,
+            songDuration = song.metadata.durationMillis,
             songProgressProvider = nowPlayingActions::currentSongProgress,
             onUserSeek = nowPlayingActions::onUserSeek
         )
@@ -353,6 +354,7 @@ fun PlayerScreenSkeleton(
     }
 }
 
+/*
 @Composable
 fun PlayerScreen(
     modifier: Modifier,
@@ -382,3 +384,4 @@ fun PlayerScreen(
             )
         }
 }
+*/

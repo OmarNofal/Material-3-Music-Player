@@ -3,7 +3,6 @@ package com.omar.nowplaying.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.omar.musica.playback.PlaybackManager
-import com.omar.musica.ui.model.toUiSongModel
 import com.omar.nowplaying.NowPlayingState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,14 +20,14 @@ class NowPlayingViewModel @Inject constructor(
 
     private val _state: StateFlow<NowPlayingState> =
         playbackManager.state
-            .map { playbackManagerState ->
-                val song = playbackManagerState.currentSong?.toUiSongModel()
+            .map { mediaPlayerState ->
+                val song = mediaPlayerState.currentPlayingSong
                     ?: return@map NowPlayingState.NotPlaying
                 NowPlayingState.Playing(
                     song,
-                    playbackManagerState.playbackState,
-                    repeatMode = playbackManagerState.repeatMode,
-                    isShuffleOn = playbackManagerState.isShuffleOn
+                    mediaPlayerState.playbackState.playerState,
+                    repeatMode = mediaPlayerState.playbackState.repeatMode,
+                    isShuffleOn = mediaPlayerState.playbackState.isShuffleOn
                 )
             }.stateIn(viewModelScope, SharingStarted.Eagerly, NowPlayingState.NotPlaying)
 

@@ -29,10 +29,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.R
 import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
+import com.omar.musica.ui.albumart.toSongAlbumArtModel
 import com.omar.musica.ui.millisToTime
-import com.omar.musica.ui.model.SongUi
+import java.io.File
 import kotlin.math.pow
 
 
@@ -44,7 +46,7 @@ fun rememberSongDialog(): SongInfoDialog {
     }
 
     var song by remember {
-        mutableStateOf<SongUi?>(null)
+        mutableStateOf<Song?>(null)
     }
 
     val safeSong = song
@@ -69,7 +71,7 @@ fun rememberSongDialog(): SongInfoDialog {
                             AsyncImage(
                                 modifier = Modifier
                                     .size(64.dp),
-                                model = safeSong,
+                                model = safeSong.toSongAlbumArtModel(),
                                 error = painterResource(R.drawable.placeholder),
                                 placeholder = painterResource(R.drawable.placeholder),
                                 contentDescription = null,
@@ -79,48 +81,53 @@ fun rememberSongDialog(): SongInfoDialog {
                             SongMetadataRow(
                                 modifier = rowModifier,
                                 title = "Title",
-                                value = safeSong.title
+                                value = safeSong.metadata.title
                             )
                         }
                         Divider(
                             Modifier
                                 .padding(top = 8.dp)
-                                .fillMaxWidth())
+                                .fillMaxWidth()
+                        )
                         SongMetadataSpacer()
                         SongMetadataRow(
                             modifier = rowModifier,
                             title = "File Name",
-                            value = safeSong.fileName
+                            value = File(safeSong.filePath).name
                         )
                         SongMetadataSpacer()
                         SongMetadataRow(
                             modifier = rowModifier,
                             title = "File Location",
-                            value = safeSong.location.replace(internalStoragePath, "Internal Storage", true)
+                            value = safeSong.filePath.replace(
+                                internalStoragePath,
+                                "Internal Storage",
+                                true
+                            )
                         )
                         SongMetadataSpacer()
                         SongMetadataRow(
                             modifier = rowModifier,
                             title = "Artist",
-                            value = safeSong.artist ?: "<unknown>"
+                            value = safeSong.metadata.artistName ?: "<unknown>"
                         )
                         SongMetadataSpacer()
                         SongMetadataRow(
                             modifier = rowModifier,
                             title = "Album",
-                            value = safeSong.album ?: "<unknown>"
+                            value = safeSong.metadata.albumName ?: "<unknown>"
                         )
                         SongMetadataSpacer()
                         SongMetadataRow(
                             modifier = rowModifier,
                             title = "File Size",
-                            value = safeSong.size.bytesToSizeString()
+                            value = safeSong.metadata.sizeBytes.bytesToSizeString()
                         )
                         SongMetadataSpacer()
                         SongMetadataRow(
                             modifier = rowModifier,
                             title = "Duration",
-                            value = safeSong.length.millisToTime()
+                            value = safeSong.metadata.durationMillis.millisToTime()
                         )
                     }
                 }
@@ -129,7 +136,7 @@ fun rememberSongDialog(): SongInfoDialog {
 
     return remember {
         object : SongInfoDialog {
-            override fun open(songUi: SongUi) {
+            override fun open(songUi: Song) {
                 song = songUi
             }
         }
@@ -156,7 +163,7 @@ internal fun SongMetadataSpacer() {
 }
 
 interface SongInfoDialog {
-    fun open(songUi: SongUi)
+    fun open(songUi: Song)
 }
 
 
@@ -165,6 +172,7 @@ val sizeRanges = arrayOf(
     2.0.pow(20.0).toLong() until 2.0.pow(30.0).toLong() to "MB",
     2.0.pow(30.0).toLong() until Long.MAX_VALUE to "GB"
 )
+
 fun Long.bytesToSizeString(): String {
 
     if (this in 0 until 1024) return "$this Bytes"

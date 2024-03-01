@@ -1,17 +1,17 @@
 package com.omar.musica.playlists.playlistdetail
 
-import com.omar.musica.ui.model.SongUi
+import com.omar.musica.store.model.song.Song
 
 sealed interface PlaylistDetailScreenState {
 
-    data object Loading: PlaylistDetailScreenState
+    data object Loading : PlaylistDetailScreenState
 
     data class Loaded(
         val name: String,
-        val songs: List<SongUi>,
+        val songs: List<Song>,
         val numberOfSongs: Int = songs.size
-    ): PlaylistDetailScreenState
+    ) : PlaylistDetailScreenState
 
-    data object Deleted: PlaylistDetailScreenState
+    data object Deleted : PlaylistDetailScreenState
 
 }

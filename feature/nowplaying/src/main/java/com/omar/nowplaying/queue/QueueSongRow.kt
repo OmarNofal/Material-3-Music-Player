@@ -34,8 +34,8 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.common.LocalUserPreferences
-import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.songs.SongInfoRow
 import kotlinx.coroutines.delay
 import sh.calvin.reorderable.ReorderableItemScope
@@ -47,7 +47,7 @@ import kotlin.math.roundToInt
 @Composable
 fun QueueSongRow(
     modifier: Modifier,
-    songUi: SongUi,
+    songUi: Song,
     swipeToDeleteDelay: Int,
     reorderScope: ReorderableItemScope,
     onDragStarted: () -> Unit,

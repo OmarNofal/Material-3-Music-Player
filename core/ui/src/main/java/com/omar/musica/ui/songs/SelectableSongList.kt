@@ -10,22 +10,22 @@ import androidx.compose.material3.Divider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.common.MultiSelectState
 import com.omar.musica.ui.menu.MenuActionItem
-import com.omar.musica.ui.model.SongUi
 
 
 @OptIn(ExperimentalFoundationApi::class)
 fun LazyListScope.selectableSongsList(
-    songs: List<SongUi>,
+    songs: List<Song>,
     multiSelectState: MultiSelectState,
     multiSelectEnabled: Boolean,
     animateItemPlacement: Boolean = true,
-    menuActionsBuilder: (SongUi) -> List<MenuActionItem>?,
-    onSongClicked: (SongUi, Int) -> Unit
+    menuActionsBuilder: (Song) -> List<MenuActionItem>?,
+    onSongClicked: (Song, Int) -> Unit
 ) {
 
-    itemsIndexed(songs, key = { _, song -> song.uriString }) { index, song ->
+    itemsIndexed(songs, key = { _, song -> song.uri.toString() }) { index, song ->
 
         val menuActions = remember {
             menuActionsBuilder(song)

@@ -9,7 +9,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -65,6 +64,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.ui.albumart.BlurTransformation
+import com.omar.musica.ui.albumart.toSongAlbumArtModel
 import com.omar.musica.ui.common.LocalUserPreferences
 import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.PlayerThemeUi
@@ -227,7 +227,7 @@ fun FullScreenNowPlaying(
         ) {
             CrossFadingAlbumArt(
                 modifier = Modifier.fillMaxSize(),
-                song = song,
+                songAlbumArtModel = song.toSongAlbumArtModel(),
                 errorPainterType = ErrorPainterType.SOLID_COLOR,
                 blurTransformation = remember { BlurTransformation(radius = 40, scale = 0.15f) },
                 colorFilter = remember {

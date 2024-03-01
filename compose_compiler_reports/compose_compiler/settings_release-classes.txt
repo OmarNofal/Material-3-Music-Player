@@ -1,0 +1,18 @@
+stable class SettingsViewModel {
+  unstable val userPreferencesRepository: UserPreferencesRepository
+  unstable val state: StateFlow<SettingsState>
+  <runtime stability> = Stable
+}
+stable class Loading {
+  <runtime stability> = Stable
+}
+stable class Loaded {
+  stable val userPreferences: UserPreferencesUi
+  <runtime stability> = Stable
+}
+stable class SettingInfo {
+  stable val title: String
+  stable val text: String
+  stable val icon: ImageVector
+  <runtime stability> = Stable
+}

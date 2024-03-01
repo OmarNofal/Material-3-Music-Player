@@ -15,12 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material.icons.sharp.SkipNext
-import androidx.compose.material.icons.sharp.SkipPrevious
 import androidx.compose.material.icons.twotone.Pause
 import androidx.compose.material.icons.twotone.PlayArrow
 import androidx.compose.material.icons.twotone.SkipNext
@@ -41,7 +35,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.omar.musica.playback.state.PlayerState
+import com.omar.musica.model.playback.PlayerState
+import com.omar.musica.ui.albumart.toSongAlbumArtModel
 import com.omar.nowplaying.NowPlayingState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -81,7 +76,7 @@ fun NowPlayingBarHeader(
                 .shadow(12.dp, shape = RoundedCornerShape(6.dp), clip = true)
                 .clip(RoundedCornerShape(8.dp)),
             containerModifier = Modifier.padding(start = 8.dp),
-            song = song,
+            songAlbumArtModel = song.toSongAlbumArtModel(),
             errorPainterType = ErrorPainterType.PLACEHOLDER
         )
 
@@ -93,12 +88,12 @@ fun NowPlayingBarHeader(
         ) {
             Text(
                 modifier = Modifier.basicMarquee(Int.MAX_VALUE),
-                text = song.title,
+                text = song.metadata.title,
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
                 modifier = Modifier,
-                text = song.artist.orEmpty(),
+                text = song.metadata.artistName.orEmpty(),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Light,
                 maxLines = 1

@@ -1,0 +1,55 @@
+restartable scheme("[androidx.compose.ui.UiComposable]") fun MusicaBottomNavBar(
+  stable modifier: Modifier
+  stable topLevelDestinations: List<TopLevelDestination>
+  unstable currentDestination: NavDestination?
+  stable onDestinationSelected: Function1<TopLevelDestination, Unit>
+)
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun BottomNavItem(
+  stable <this>: RowScope
+  stable item: TopLevelDestination
+  stable isSelected: Boolean
+  stable onDestinationSelected: Function0<Unit>
+)
+restartable scheme("[androidx.compose.ui.UiComposable]") fun MusicaNavigationRail(
+  stable modifier: Modifier
+  stable topLevelDestinations: List<TopLevelDestination>
+  unstable currentDestination: NavDestination?
+  stable onDestinationSelected: Function1<TopLevelDestination, Unit>
+)
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun NavRailItem(
+  stable item: TopLevelDestination
+  stable isSelected: Boolean
+  stable onDestinationSelected: Function0<Unit>
+)
+fun rememberMusicaAppState(
+  unstable navHostController: NavHostController
+  unstable coroutineScope: CoroutineScope? = @dynamic rememberCoroutineScope(null, $composer, 0, 0b0001)
+  stable isNowPlayingExpanded: Boolean
+  nowPlayingViewModel: NowPlayingViewModel
+  stable nowPlayingScreenOffset: Function0<Float>
+): MusicaAppState
+restartable scheme("[androidx.compose.ui.UiComposable, [androidx.compose.ui.UiComposable]]") fun CompactAppScaffold(
+  stable modifier: Modifier
+  stable appState: MusicaAppState
+  stable nowPlayingScreenAnchors: AnchoredDraggableState<BarState>
+  stable topLevelDestinations: List<TopLevelDestination>
+  unstable currentDestination: NavDestination?
+  stable onDestinationSelected: Function1<TopLevelDestination, Unit>
+  stable content: Function4<Modifier, MutableState<Modifier>, Composer, Int, Unit>
+)
+restartable scheme("[androidx.compose.ui.UiComposable, [androidx.compose.ui.UiComposable]]") fun ExpandedAppScaffold(
+  stable modifier: Modifier
+  stable appState: MusicaAppState
+  stable nowPlayingScreenAnchors: AnchoredDraggableState<BarState>
+  stable topLevelDestinations: List<TopLevelDestination>
+  unstable currentDestination: NavDestination?
+  stable onDestinationSelected: Function1<TopLevelDestination, Unit>
+  stable content: Function4<Modifier, MutableState<Modifier>, Composer, Int, Unit>
+)
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun MusicaApp2(
+  stable modifier: Modifier
+)
+restartable fun ViewNowPlayingScreenListenerEffect(
+  unstable navController: NavController
+  stable onViewNowPlayingScreen: Function0<Unit>
+)

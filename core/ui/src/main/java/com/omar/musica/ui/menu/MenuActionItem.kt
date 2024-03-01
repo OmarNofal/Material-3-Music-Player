@@ -17,14 +17,13 @@ import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.TextFormat
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.actions.SetRingtoneAction
 import com.omar.musica.ui.actions.SongDeleteAction
 import com.omar.musica.ui.actions.SongPlaybackActions
 import com.omar.musica.ui.actions.SongShareAction
-import com.omar.musica.ui.songs.SongInfoDialog
-import com.omar.musica.ui.model.SongUi
-import com.omar.musica.ui.model.uri
 import com.omar.musica.ui.playlist.AddToPlaylistDialog
+import com.omar.musica.ui.songs.SongInfoDialog
 
 data class MenuActionItem(
     val icon: ImageVector,
@@ -83,7 +82,7 @@ fun MutableList<MenuActionItem>.playbackSpeed(callback: () -> Unit) =
 
 
 fun buildCommonSongActions(
-    song: SongUi,
+    song: Song,
     context: Context,
     songPlaybackActions: SongPlaybackActions,
     songInfoDialog: SongInfoDialog,
@@ -106,7 +105,7 @@ fun buildCommonSongActions(
 }
 
 fun buildCommonMultipleSongsActions(
-    songs: List<SongUi>,
+    songs: List<Song>,
     context: Context,
     songPlaybackActions: SongPlaybackActions,
     addToPlaylistDialog: AddToPlaylistDialog,

@@ -34,15 +34,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.model.SortOption
 import com.omar.musica.songs.SongsScreenUiState
 import com.omar.musica.songs.viewmodel.SongsViewModel
+import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.MultiSelectState
-import com.omar.musica.ui.songs.SongsSummary
 import com.omar.musica.ui.menu.buildCommonMultipleSongsActions
 import com.omar.musica.ui.menu.buildCommonSongActions
+import com.omar.musica.ui.songs.SongsSummary
 import com.omar.musica.ui.songs.selectableSongsList
 import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
-import com.omar.musica.ui.model.SongUi
-import com.omar.musica.ui.playlist.rememberAddToPlaylistDialog
 
 
 @Composable
@@ -56,7 +55,6 @@ fun SongsScreen(
         modifier,
         songsUiState,
         viewModel::onSongClicked,
-        viewModel::onPlayNext,
         onSearchClicked,
         viewModel::onSortOptionChanged
     )
@@ -68,8 +66,7 @@ fun SongsScreen(
 internal fun SongsScreen(
     modifier: Modifier,
     uiState: SongsScreenUiState,
-    onSongClicked: (SongUi, Int) -> Unit,
-    onPlayNext: (List<SongUi>) -> Unit,
+    onSongClicked: (Song, Int) -> Unit,
     onSearchClicked: () -> Unit,
     onSortOptionChanged: (SortOption, isAscending: Boolean) -> Unit
 ) {
@@ -78,8 +75,6 @@ internal fun SongsScreen(
     val songs = (uiState as SongsScreenUiState.Success).songs
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-
-    val addToPlaylistDialog = rememberAddToPlaylistDialog()
 
     val multiSelectState = remember {
         MultiSelectState()
@@ -144,7 +139,7 @@ internal fun SongsScreen(
                             .fillMaxWidth()
                             .padding(start = 16.dp, top = 16.dp),
                         songs.count(),
-                        songs.sumOf { it.length }
+                        songs.sumOf { it.metadata.durationMillis }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Divider(Modifier.fillMaxWidth())
@@ -167,7 +162,7 @@ internal fun SongsScreen(
                 songs,
                 multiSelectState,
                 multiSelectEnabled,
-                menuActionsBuilder = { song: SongUi ->
+                menuActionsBuilder = { song: Song ->
                     with(commonSongActions) {
                         buildCommonSongActions(
                             song = song,

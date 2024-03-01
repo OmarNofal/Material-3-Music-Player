@@ -14,13 +14,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.omar.musica.ui.model.SongUi
+import com.omar.musica.store.model.song.Song
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SongTextInfo(
     modifier: Modifier,
-    song: SongUi,
+    song: Song,
     showArtist: Boolean = true,
     showAlbum: Boolean = true
 ) {
@@ -36,7 +36,7 @@ fun SongTextInfo(
                     delayMillis = 1000,
                     animationMode = MarqueeAnimationMode.Immediately
                 ),
-            text = song.title,
+            text = song.metadata.title,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             fontSize = 22.sp,
@@ -47,7 +47,7 @@ fun SongTextInfo(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = song.artist ?: "<unknown>",
+                text = song.metadata.artistName ?: "<unknown>",
                 fontWeight = FontWeight.Normal,
                 textAlign = TextAlign.Center,
                 fontSize = 14.sp,
@@ -59,7 +59,7 @@ fun SongTextInfo(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = song.album ?: "<unknown>",
+                text = song.metadata.albumName ?: "<unknown>",
                 fontWeight = FontWeight.Normal,
                 textAlign = TextAlign.Center,
                 fontSize = 12.sp,

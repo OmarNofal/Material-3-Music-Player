@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.menu.MenuActionItem
 import com.omar.musica.ui.menu.addToPlaylists
@@ -16,11 +17,8 @@ import com.omar.musica.ui.menu.setAsRingtone
 import com.omar.musica.ui.menu.share
 import com.omar.musica.ui.menu.sleepTimer
 import com.omar.musica.ui.menu.songInfo
-import com.omar.musica.ui.model.SongUi
-import com.omar.musica.ui.model.uri
 import com.omar.musica.ui.showShortToast
 import com.omar.musica.ui.topbar.OverflowMenu
-import com.omar.nowplaying.speed.PlaybackSpeedDialog
 import com.omar.nowplaying.speed.rememberPlaybackSpeedDialog
 import com.omar.nowplaying.timer.SleepTimerViewModel
 import com.omar.nowplaying.timer.rememberSleepTimerDialog
@@ -79,7 +77,7 @@ fun NowPlayingOverflowMenu(
 
 @Composable
 fun rememberNowPlayingOptions(
-    songUi: SongUi
+    songUi: Song
 ): NowPlayingOptions {
 
     val commonSongsActions = LocalCommonSongsAction.current

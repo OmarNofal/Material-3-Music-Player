@@ -5,9 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.PlaylistsRepository
-import com.omar.musica.ui.model.SongUi
-import com.omar.musica.ui.model.toSongModels
-import com.omar.musica.ui.model.toUiSongModel
+import com.omar.musica.store.model.song.Song
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +38,7 @@ class PlaylistDetailViewModel @Inject constructor(
                     _state.emit(
                         PlaylistDetailScreenState.Loaded(
                             it.playlistInfo.name,
-                            it.songs.map { song -> song.toUiSongModel() }
+                            it.songs
                         )
                     )
                 }
@@ -48,7 +46,7 @@ class PlaylistDetailViewModel @Inject constructor(
 
     }
 
-    fun onSongClicked(song: SongUi) {
+    fun onSongClicked(song: Song) {
         val state = _state.value
         if (state !is PlaylistDetailScreenState.Loaded) return
 
@@ -57,7 +55,7 @@ class PlaylistDetailViewModel @Inject constructor(
         if (index == -1) return
 
 
-        playbackManager.setPlaylistAndPlayAtIndex(songs.toSongModels(), index)
+        playbackManager.setPlaylistAndPlayAtIndex(songs, index)
     }
 
     override fun removeSongs(songUris: List<String>) {
@@ -75,7 +73,7 @@ class PlaylistDetailViewModel @Inject constructor(
         if (state !is PlaylistDetailScreenState.Loaded) return
 
         val songs = state.songs
-        playbackManager.playNext(songs.toSongModels())
+        playbackManager.playNext(songs)
     }
 
     override fun addToQueue() {
@@ -83,7 +81,7 @@ class PlaylistDetailViewModel @Inject constructor(
         if (state !is PlaylistDetailScreenState.Loaded) return
 
         val songs = state.songs
-        playbackManager.addToQueue(songs.toSongModels())
+        playbackManager.addToQueue(songs)
     }
 
     override fun shuffle() {
@@ -91,7 +89,7 @@ class PlaylistDetailViewModel @Inject constructor(
         if (state !is PlaylistDetailScreenState.Loaded) return
 
         val songs = state.songs
-        playbackManager.shuffle(songs.toSongModels())
+        playbackManager.shuffle(songs)
     }
 
     override fun shuffleNext() {
@@ -99,7 +97,7 @@ class PlaylistDetailViewModel @Inject constructor(
         if (state !is PlaylistDetailScreenState.Loaded) return
 
         val songs = state.songs
-        playbackManager.shuffleNext(songs.toSongModels())
+        playbackManager.shuffleNext(songs)
     }
 
     override fun rename(newName: String) {
@@ -111,7 +109,7 @@ class PlaylistDetailViewModel @Inject constructor(
         if (state !is PlaylistDetailScreenState.Loaded) return
 
         val songs = state.songs
-        playbackManager.setPlaylistAndPlayAtIndex(songs.toSongModels())
+        playbackManager.setPlaylistAndPlayAtIndex(songs)
     }
 
 

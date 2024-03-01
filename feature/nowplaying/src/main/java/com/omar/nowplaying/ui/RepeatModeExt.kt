@@ -4,7 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Repeat
 import androidx.compose.material.icons.rounded.RepeatOne
 import androidx.compose.material.icons.rounded.TextRotationNone
-import com.omar.musica.playback.state.RepeatMode
+import com.omar.musica.model.playback.RepeatMode
 
 
 fun RepeatMode.getIconVector() = when(this) {

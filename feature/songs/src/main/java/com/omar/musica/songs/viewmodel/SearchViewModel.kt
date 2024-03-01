@@ -5,9 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.songs.SearchScreenUiState
 import com.omar.musica.store.MediaRepository
-import com.omar.musica.ui.model.SongUi
-import com.omar.musica.ui.model.toSongModels
-import com.omar.musica.ui.model.toUiSongModels
+import com.omar.musica.store.model.song.Song
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,7 +32,7 @@ class SearchViewModel @Inject constructor(
         get() = _state
 
     val songs = mediaRepository.songsFlow
-        .map { it.songs.toUiSongModels() }
+        .map { it.songs }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), listOf())
 
     init {
@@ -44,21 +42,22 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    private fun updateState(searchQuery: String, songs: List<SongUi>) {
+    private fun updateState(searchQuery: String, songs: List<Song>) {
         _state.getAndUpdate {
             if (searchQuery.isBlank()) return@getAndUpdate SearchScreenUiState.emptyState
             val sortedSongs = songs.filter { song ->
-                song.title.contains(searchQuery, ignoreCase = true)
+                song.metadata.title.contains(searchQuery, ignoreCase = true)
                         ||
-                        (song.album?.contains(searchQuery, ignoreCase = true) ?: false)
+                        (song.metadata.albumName?.contains(searchQuery, ignoreCase = true) ?: false)
                         ||
-                        (song.artist?.contains(searchQuery, ignoreCase = true) ?: false)
+                        (song.metadata.artistName?.contains(searchQuery, ignoreCase = true)
+                            ?: false)
             }
             SearchScreenUiState(searchQuery, sortedSongs)
         }
     }
 
-    private fun updateSongList(songs: List<SongUi>) {
+    private fun updateSongList(songs: List<Song>) {
         updateState(state.value.searchQuery, songs)
     }
 
@@ -66,13 +65,8 @@ class SearchViewModel @Inject constructor(
         updateState(query, songs.value)
     }
 
-    fun onSongClicked(song: SongUi, index: Int) {
+    fun onSongClicked(song: Song, index: Int) {
         val songs = _state.value.songs
-        playbackManager.setPlaylistAndPlayAtIndex(songs.toSongModels(), index)
+        playbackManager.setPlaylistAndPlayAtIndex(songs, index)
     }
-
-    fun onPlayNext(songs: List<SongUi>) {
-        playbackManager.playNext(songs.toSongModels())
-    }
-
 }

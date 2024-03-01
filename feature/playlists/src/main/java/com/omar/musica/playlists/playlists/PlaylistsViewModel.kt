@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlaylistsViewModel @Inject constructor(
-    val playlistsRepository: PlaylistsRepository,
+    private val playlistsRepository: PlaylistsRepository,
     playbackManager: PlaybackManager
 ): ViewModel(), PlaylistPlaybackActions by playbackManager {
 

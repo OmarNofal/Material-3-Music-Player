@@ -45,11 +45,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.omar.musica.songs.SearchScreenUiState
 import com.omar.musica.songs.viewmodel.SearchViewModel
+import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.MultiSelectState
 import com.omar.musica.ui.menu.buildCommonMultipleSongsActions
 import com.omar.musica.ui.menu.buildCommonSongActions
-import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.songs.selectableSongsList
 import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
 
@@ -85,7 +85,7 @@ internal fun SearchScreen(
     modifier: Modifier,
     state: SearchScreenUiState,
     enableBackPress: Boolean = true,
-    onSongClicked: (SongUi, Int) -> Unit,
+    onSongClicked: (Song, Int) -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     searchFocusRequester: FocusRequester,
     onBackPressed: () -> Unit
@@ -193,7 +193,7 @@ internal fun SearchScreen(
                             multiSelectState,
                             multiSelectEnabled,
                             animateItemPlacement = false, // for some reason if it is true, the application will crash on, no idea why
-                            menuActionsBuilder = { song: SongUi ->
+                            menuActionsBuilder = { song: Song ->
                                 with(commonSongsActions) {
                                     buildCommonSongActions(
                                         song = song,
