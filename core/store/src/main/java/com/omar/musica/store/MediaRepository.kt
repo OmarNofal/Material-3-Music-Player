@@ -8,8 +8,8 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import androidx.core.net.toUri
-import com.omar.musica.model.song.Song
-import com.omar.musica.model.song.SongLibrary
+import com.omar.musica.store.model.Song
+import com.omar.musica.store.model.SongLibrary
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -92,7 +92,7 @@ class MediaRepository @Inject constructor(
 
             val filteredSongs = songs.filter { song ->
                 !excludedFolders.any { folder ->
-                    song.location.startsWith(folder)
+                    song.filePath.startsWith(folder)
                 }
             }
 
@@ -177,9 +177,9 @@ class MediaRepository @Inject constructor(
         }
 
         try {
-            val file = File(song.location)
+            val file = File(song.filePath)
             file.delete()
-            context.contentResolver.delete(song.uriString.toUri(), null, null)
+            context.contentResolver.delete(song.uri, null, null)
         } catch (e: Exception) {
             Timber.e(e)
         }
