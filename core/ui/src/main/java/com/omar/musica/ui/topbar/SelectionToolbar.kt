@@ -121,7 +121,8 @@ fun SelectionToolbar(
 @Composable
 fun OverflowMenu(
     actionItems: List<MenuActionItem>,
-    showIcons: Boolean = true
+    showIcons: Boolean = true,
+    contentPaddingValues: PaddingValues = PaddingValues(horizontal = 16.dp , vertical = 4.dp)
 ) {
     var visible by remember { mutableStateOf(false) }
     Box {
@@ -143,7 +144,7 @@ fun OverflowMenu(
                         null
                     },
                     text = { Text(text = it.title) },
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                    contentPadding = contentPaddingValues,
                     onClick = { visible = false; it.callback() }
                 )
             }

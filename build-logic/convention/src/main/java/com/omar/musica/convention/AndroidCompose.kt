@@ -56,12 +56,10 @@ internal fun Project.configureAndroidCompose(
 
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
-            val stabilityFilePath =
-                File(rootProject.absoluteProjectPath("stability_exceptions.conf")).absolutePath
             freeCompilerArgs += listOf(
                 "-P",
                 "plugin:androidx.compose.compiler.plugins.kotlin:stabilityConfigurationPath=" +
-                        stabilityFilePath
+                        "${rootDir}/stability-config.txt"
             )
 
         }

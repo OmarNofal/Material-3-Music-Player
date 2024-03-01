@@ -41,6 +41,12 @@ class PlaylistsRepository @Inject constructor(
         }
     }
 
+    fun createPlaylistAndAddSongs(name: String, songUris: List<String>) {
+        coroutineScope.launch {
+            playlistsDao.createPlaylistAndAddSongs(name, songUris)
+        }
+    }
+
     fun addSongsToPlaylists(songsUris: List<String>, playlists: List<PlaylistInfo>) {
         coroutineScope.launch {
             playlistsDao.insertSongsToPlaylists(songsUris, playlists.toDBEntities())

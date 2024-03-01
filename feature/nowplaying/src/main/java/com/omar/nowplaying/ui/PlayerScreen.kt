@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import com.omar.musica.playback.state.PlayerState
+import com.omar.musica.playback.state.RepeatMode
 import com.omar.musica.ui.model.SongUi
 import com.omar.nowplaying.viewmodel.INowPlayingViewModel
 
@@ -34,6 +35,8 @@ import com.omar.nowplaying.viewmodel.INowPlayingViewModel
 fun PlayingScreen2(
     modifier: Modifier,
     song: SongUi,
+    repeatMode: RepeatMode,
+    isShuffleOn: Boolean,
     playbackState: PlayerState,
     screenSize: NowPlayingScreenSize,
     nowPlayingActions: INowPlayingViewModel,
@@ -56,6 +59,8 @@ fun PlayingScreen2(
                 modifier,
                 song,
                 playbackState,
+                repeatMode,
+                isShuffleOn,
                 nowPlayingActions,
                 onOpenQueue
             )
@@ -66,6 +71,8 @@ fun PlayingScreen2(
                 modifier,
                 song,
                 playbackState,
+                repeatMode,
+                isShuffleOn,
                 nowPlayingActions,
                 onOpenQueue
             )
@@ -132,6 +139,8 @@ fun PortraitPlayerScreen(
     modifier: Modifier,
     song: SongUi,
     playbackState: PlayerState,
+    repeatMode: RepeatMode,
+    isShuffleOn: Boolean,
     nowPlayingActions: INowPlayingViewModel,
     onOpenQueue: () -> Unit
 ) {
@@ -144,8 +153,8 @@ fun PortraitPlayerScreen(
         CrossFadingAlbumArt(
             modifier = Modifier
                 .aspectRatio(1f)
-                .clip(RoundedCornerShape(12.dp))
-                .shadow(32.dp),
+                .shadow(32.dp, shape = RoundedCornerShape(12.dp), clip = true)
+                .clip(RoundedCornerShape(12.dp)),
             containerModifier = Modifier.weight(1f, fill = false),
             song = song,
             errorPainterType = ErrorPainterType.PLACEHOLDER
@@ -182,16 +191,17 @@ fun PortraitPlayerScreen(
             )
             Spacer(modifier = Modifier.height(32.dp))
         }
-        TextButton(
-            modifier = Modifier.padding(bottom = 12.dp),
-            onClick = onOpenQueue
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
-                contentDescription = "Queue"
-            )
-            Text(text = "Queue")
-        }
+        PlayerFooter(
+            modifier = Modifier
+                .padding(bottom = 12.dp)
+                .fillMaxWidth(),
+            songUi = song,
+            isShuffleOn = isShuffleOn,
+            repeatMode = repeatMode,
+            onOpenQueue = onOpenQueue,
+            onToggleRepeatMode = nowPlayingActions::toggleRepeatMode,
+            onToggleShuffle = nowPlayingActions::toggleShuffleMode
+        )
     }
 }
 
@@ -201,6 +211,8 @@ fun LandscapePlayerScreen(
     modifier: Modifier,
     song: SongUi,
     playbackState: PlayerState,
+    repeatMode: RepeatMode,
+    isShuffleOn: Boolean,
     nowPlayingActions: INowPlayingViewModel,
     onOpenQueue: () -> Unit
 ) {
@@ -213,8 +225,8 @@ fun LandscapePlayerScreen(
         CrossFadingAlbumArt(
             modifier = Modifier
                 .aspectRatio(1f)
-                .clip(RoundedCornerShape(12.dp))
-                .shadow(32.dp),
+                .shadow(32.dp, shape = RoundedCornerShape(12.dp), clip = true)
+                .clip(RoundedCornerShape(12.dp)),
             containerModifier = Modifier.weight(1.5f, fill = true),
             song = song,
             errorPainterType = ErrorPainterType.PLACEHOLDER
@@ -255,16 +267,17 @@ fun LandscapePlayerScreen(
             )
             Spacer(modifier = Modifier.height(32.dp))
 
-            TextButton(
-                modifier = Modifier.padding(bottom = 12.dp),
-                onClick = onOpenQueue
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
-                    contentDescription = "Queue"
-                )
-                Text(text = "Queue")
-            }
+            PlayerFooter(
+                modifier = Modifier
+                    .padding(bottom = 6.dp)
+                    .fillMaxWidth(),
+                songUi = song,
+                isShuffleOn = isShuffleOn,
+                repeatMode = repeatMode,
+                onOpenQueue = onOpenQueue,
+                onToggleRepeatMode = nowPlayingActions::toggleRepeatMode,
+                onToggleShuffle = nowPlayingActions::toggleShuffleMode
+            )
         }
 
     }

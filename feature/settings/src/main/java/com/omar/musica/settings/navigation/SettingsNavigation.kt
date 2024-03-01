@@ -3,6 +3,7 @@ package com.omar.musica.settings.navigation
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -14,7 +15,9 @@ const val SETTINGS_NAVIGATION_GRAPH = "settings_graph"
 const val SETTINGS_ROUTE = "settings_route"
 
 
-fun NavGraphBuilder.settingsGraph() {
+fun NavGraphBuilder.settingsGraph(
+    contentModifier: MutableState<Modifier>,
+) {
 
     navigation(
         route = SETTINGS_NAVIGATION_GRAPH,
@@ -37,7 +40,7 @@ fun NavGraphBuilder.settingsGraph() {
                 slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(200))
             }
         ) {
-            SettingsScreen(Modifier.fillMaxSize())
+            SettingsScreen(modifier = contentModifier.value)
         }
     }
 

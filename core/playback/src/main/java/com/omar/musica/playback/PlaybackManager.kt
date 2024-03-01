@@ -2,11 +2,13 @@ package com.omar.musica.playback
 
 import android.content.ComponentName
 import android.content.Context
+import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaItem.RequestMetadata
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.session.MediaController
@@ -16,6 +18,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.omar.musica.model.song.Song
 import com.omar.musica.playback.state.PlaybackState
 import com.omar.musica.playback.state.PlayerState
+import com.omar.musica.playback.state.RepeatMode
 import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.PlaylistsRepository
 import com.omar.musica.store.QueueItem
@@ -60,6 +63,11 @@ class PlaybackManager @Inject constructor(
     val currentSongProgress: Float
         get() = mediaController.currentPosition.toFloat() / mediaController.duration.toFloat()
 
+    val playbackParameters: Pair<Float, Float>
+        get() {
+            val p = mediaController.playbackParameters
+            return p.speed to p.pitch
+        }
 
     private val playbackState: PlayerState
         get() {
@@ -68,6 +76,7 @@ class PlaybackManager @Inject constructor(
                     if (mediaController.playWhenReady) PlayerState.PLAYING
                     else PlayerState.PAUSED
                 }
+
                 Player.STATE_BUFFERING -> PlayerState.BUFFERING
                 else -> PlayerState.PAUSED
             }
@@ -90,14 +99,20 @@ class PlaybackManager @Inject constructor(
      * Skip forward in currently playing song
      */
     fun forward() {
-        mediaController.sendCustomCommand(SessionCommand(Commands.JUMP_FORWARD, bundleOf()), bundleOf())
+        mediaController.sendCustomCommand(
+            SessionCommand(Commands.JUMP_FORWARD, bundleOf()),
+            bundleOf()
+        )
     }
 
     /**
      * Skip backward in currently playing song
      */
     fun backward() {
-        mediaController.sendCustomCommand(SessionCommand(Commands.JUMP_BACKWARD, bundleOf()), bundleOf())
+        mediaController.sendCustomCommand(
+            SessionCommand(Commands.JUMP_BACKWARD, bundleOf()),
+            bundleOf()
+        )
     }
 
     /**
@@ -224,12 +239,43 @@ class PlaybackManager @Inject constructor(
         }
     }
 
+    fun setSleepTimer(minutes: Int, finishLastSong: Boolean) {
+        mediaController.sendCustomCommand(
+            SessionCommand(Commands.SET_SLEEP_TIMER, bundleOf()),
+            bundleOf(
+                "MINUTES" to minutes,
+                "FINISH_LAST_SONG" to finishLastSong
+            )
+        )
+    }
+
+    fun setPlaybackParameters(speed: Float, pitch: Float) {
+        mediaController.playbackParameters = PlaybackParameters(speed, pitch)
+    }
+
+    fun deleteSleepTimer() {
+        mediaController.sendCustomCommand(
+            SessionCommand(Commands.CANCEL_SLEEP_TIMER, Bundle.EMPTY), Bundle.EMPTY
+        )
+    }
+
+    fun toggleRepeatMode() {
+        mediaController.repeatMode =
+            RepeatMode.fromPlayer(mediaController.repeatMode).next().toPlayer()
+    }
+
+    fun toggleShuffleMode() {
+        mediaController.shuffleModeEnabled = !mediaController.shuffleModeEnabled
+    }
+
     private fun updateState() {
         val currentMediaItem = mediaController.currentMediaItem ?: return updateToEmptyState()
         val songUri = currentMediaItem.requestMetadata.mediaUri ?: return updateToEmptyState()
         _state.value = PlaybackState(
             mediaRepository.songsFlow.value.getSongByUri(songUri.toString()),
-            playbackState
+            playbackState,
+            mediaController.shuffleModeEnabled,
+            RepeatMode.fromPlayer(mediaController.repeatMode)
         )
     }
 
@@ -266,6 +312,15 @@ class PlaybackManager @Inject constructor(
                 }
             }
 
+            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+                updateState()
+                savePlayerQueue()
+            }
+
+            override fun onRepeatModeChanged(repeatMode: Int) {
+                updateState()
+            }
+
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 Timber.d("Media transitioned to ${mediaItem?.requestMetadata?.mediaUri}")
                 updateState()
@@ -287,18 +342,27 @@ class PlaybackManager @Inject constructor(
         })
     }
 
+
     private fun savePlayerQueue() {
         val queue = getQueueFromPlayer()
         queueRepository.saveQueueFromQueueItems(queue)
     }
 
     private fun getQueueFromPlayer(): List<QueueItem> {
-        val count = mediaController.mediaItemCount
-        return List(count) { i ->
-            val mediaItem = mediaController.getMediaItemAt(i)
+        val count = mediaController.currentTimeline.windowCount
+        var currentWindowIndex =
+            mediaController.currentTimeline.getFirstWindowIndex(mediaController.shuffleModeEnabled)
+        return List(count) { _ ->
+            val window = Timeline.Window()
+            mediaController.currentTimeline.getWindow(currentWindowIndex, window)
+            currentWindowIndex = mediaController.currentTimeline.getNextWindowIndex(
+                currentWindowIndex,
+                mediaController.repeatMode,
+                mediaController.shuffleModeEnabled
+            )
+            val mediaItem = window.mediaItem
             val metadata = mediaItem.mediaMetadata
             val requestMetadata = mediaItem.requestMetadata
-
             QueueItem(
                 requestMetadata.mediaUri!!,
                 metadata.title.toString(),
@@ -306,6 +370,20 @@ class PlaybackManager @Inject constructor(
                 metadata.albumTitle.toString()
             )
         }
+
+        /*val count = mediaController.currentTimeline.windowCount
+            return List(count) { i ->
+
+                val mediaItem = mediaController.getMediaItemAt(i)
+                val metadata = mediaItem.mediaMetadata
+                val requestMetadata = mediaItem.requestMetadata
+                QueueItem(
+                    requestMetadata.mediaUri!!,
+                    metadata.title.toString(),
+                    metadata.artist.toString(),
+                    metadata.albumTitle.toString()
+                )
+            }*/
     }
 
     private fun Song.toMediaItem() =

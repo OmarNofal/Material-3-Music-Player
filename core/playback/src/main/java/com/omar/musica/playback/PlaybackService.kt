@@ -2,12 +2,16 @@ package com.omar.musica.playback
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.media.AudioManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC
 import androidx.media3.common.C.USAGE_MEDIA
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
@@ -20,9 +24,13 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.omar.musica.model.prefs.DEFAULT_JUMP_DURATION_MILLIS
 import com.omar.musica.model.prefs.PlayerSettings
 import com.omar.musica.playback.activity.ListeningAnalytics
+import com.omar.musica.playback.timer.SleepTimerManager
+import com.omar.musica.playback.timer.SleepTimerManagerListener
+import com.omar.musica.playback.volume.AudioVolumeChangeListener
+import com.omar.musica.playback.volume.VolumeChangeObserver
 import com.omar.musica.store.QueueItem
 import com.omar.musica.store.QueueRepository
-import com.omar.musica.store.UserPreferencesRepository
+import com.omar.musica.store.preferences.UserPreferencesRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +48,11 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PlaybackService : MediaSessionService() {
+class PlaybackService :
+    MediaSessionService(),
+    SleepTimerManagerListener,
+    AudioVolumeChangeListener,
+    Player.Listener {
 
     @Inject
     lateinit var userPreferencesRepository: UserPreferencesRepository
@@ -58,6 +70,9 @@ class PlaybackService : MediaSessionService() {
 
     private lateinit var playerSettings: StateFlow<PlayerSettings>
 
+    private lateinit var volumeObserver: VolumeChangeObserver
+
+    private lateinit var sleepTimerManager: SleepTimerManager
 
     override fun onCreate() {
         super.onCreate()
@@ -67,12 +82,26 @@ class PlaybackService : MediaSessionService() {
 
         mediaSession = buildMediaSession()
 
+        sleepTimerManager = SleepTimerManager(this)
+        player.addListener(sleepTimerManager)
+
+
         playerSettings = userPreferencesRepository.playerSettingsFlow
             .stateIn(
                 scope,
                 started = SharingStarted.Eagerly,
-                PlayerSettings(DEFAULT_JUMP_DURATION_MILLIS)
+                PlayerSettings(
+                    DEFAULT_JUMP_DURATION_MILLIS,
+                    pauseOnVolumeZero = false,
+                    resumeWhenVolumeIncreases = false
+                )
             )
+
+        volumeObserver = VolumeChangeObserver(
+            applicationContext,
+            Handler(Looper.myLooper() ?: Looper.getMainLooper()),
+            AudioManager.STREAM_MUSIC
+        ).apply { register(this@PlaybackService) }
 
         recoverQueue()
         scope.launch(Dispatchers.Main) {
@@ -172,6 +201,8 @@ class PlaybackService : MediaSessionService() {
             ): MediaSession.ConnectionResult {
                 val connectionResult = super.onConnect(session, controller)
                 val availableSessionCommands = connectionResult.availableSessionCommands.buildUpon()
+                    .add(SessionCommand(Commands.SET_SLEEP_TIMER, Bundle.EMPTY))
+                    .add(SessionCommand(Commands.CANCEL_SLEEP_TIMER, Bundle.EMPTY))
                 customCommands.forEach { commandButton ->
                     // Add custom command to available session commands.
                     commandButton.sessionCommand?.let { availableSessionCommands.add(it) }
@@ -190,12 +221,48 @@ class PlaybackService : MediaSessionService() {
             ): ListenableFuture<SessionResult> {
                 if (Commands.JUMP_FORWARD == customCommand.customAction) {
                     seekForward()
-                } else if (Commands.JUMP_BACKWARD == customCommand.customAction) {
+                }
+                if (Commands.JUMP_BACKWARD == customCommand.customAction) {
                     seekBackward()
+                }
+                if (Commands.SET_SLEEP_TIMER == customCommand.customAction) {
+                    val minutes = args.getInt("MINUTES", 0)
+                    val finishLastSong = args.getBoolean("FINISH_LAST_SONG", false)
+                    sleepTimerManager.schedule(minutes, finishLastSong)
+                }
+                if (Commands.CANCEL_SLEEP_TIMER == customCommand.customAction) {
+                    sleepTimerManager.deleteTimer()
                 }
                 return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
             }
         }
+
+    }
+
+
+    private var pausedDueToVolume = false
+    override fun onVolumeChanged(level: Int) {
+        val shouldPause = playerSettings.value.pauseOnVolumeZero
+        val shouldResume = playerSettings.value.resumeWhenVolumeIncreases
+        if (level < 1 && shouldPause && player.playWhenReady) {
+            player.pause()
+            if (shouldResume)
+                pausedDueToVolume = true
+        }
+        if (level >= 1 && pausedDueToVolume && shouldResume && !player.playWhenReady) {
+            player.play()
+            pausedDueToVolume = false
+        }
+        if (player.playWhenReady) pausedDueToVolume = false
+    }
+
+    override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+        // to avoid resuming playback when the headphones disconnect
+        if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_BECOMING_NOISY)
+            pausedDueToVolume = false
+    }
+
+    override fun onEvents(player: Player, events: Player.Events) {
 
     }
 
@@ -214,6 +281,10 @@ class PlaybackService : MediaSessionService() {
         return START_STICKY
     }
 
+    override fun onSleepTimerFinished() {
+        player.pause()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         scope.cancel()
@@ -224,6 +295,7 @@ class PlaybackService : MediaSessionService() {
             player.release()
             release()
         }
+        volumeObserver.unregister()
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {

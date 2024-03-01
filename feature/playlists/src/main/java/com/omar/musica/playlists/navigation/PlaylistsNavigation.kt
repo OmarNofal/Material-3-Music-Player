@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
@@ -20,14 +21,17 @@ import com.omar.musica.playlists.playlists.PlaylistsScreen
 
 const val PLAYLISTS_ROUTE = "playlists"
 const val PLAYLIST_DETAILS_ROUTE = "playlist_detail"
-
+const val ANIMATION_DURATION = 300
 const val PLAYLISTS_NAVIGATION_GRAPH = "playlists_graph"
 
 fun NavController.navigateToPlaylistDetails(id: Int) {
     navigate("$PLAYLIST_DETAILS_ROUTE/$id")
 }
 
+
+
 fun NavGraphBuilder.playlistsGraph(
+    contentModifier: MutableState<Modifier>,
     navController: NavController
 ) {
 
@@ -51,7 +55,7 @@ fun NavGraphBuilder.playlistsGraph(
                 val targetRoute = targetState.destination.route ?: return@ol null
 
                 if (targetRoute.contains(PLAYLIST_DETAILS_ROUTE))
-                    return@ol fadeOut(tween(100))
+                    return@ol fadeOut(tween(200))
 
                 val slidingDirection = when(targetState.destination.route) {
                     "settings_route" -> AnimatedContentTransitionScope.SlideDirection.Start
@@ -61,7 +65,7 @@ fun NavGraphBuilder.playlistsGraph(
             }
         ) {
             PlaylistsScreen(
-                modifier = Modifier.fillMaxSize(),
+                modifier = contentModifier.value,
                 navController::navigateToPlaylistDetails
             )
         }
@@ -70,14 +74,14 @@ fun NavGraphBuilder.playlistsGraph(
         composable(
             "$PLAYLIST_DETAILS_ROUTE/{id}",
             enterTransition = {
-                scaleIn(tween(200), initialScale = .8f) + fadeIn(tween(200), 0.6f)
+                scaleIn(tween(ANIMATION_DURATION), initialScale = .9f) + fadeIn(tween(300), 0.3f)
             },
             exitTransition = {
-                scaleOut(tween(100), targetScale = .8f) + fadeOut(tween(100))
+                scaleOut(tween(100), targetScale = .9f) + fadeOut(tween(100))
             }
 
             ) {
-            PlaylistDetailScreen(modifier = Modifier.fillMaxSize(), {navController.popBackStack()})
+            PlaylistDetailScreen(modifier = contentModifier.value, {navController.popBackStack()})
         }
 
     }

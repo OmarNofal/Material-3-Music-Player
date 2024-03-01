@@ -6,7 +6,7 @@ import com.omar.musica.model.SortOption
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.songs.SongsScreenUiState
 import com.omar.musica.store.MediaRepository
-import com.omar.musica.store.UserPreferencesRepository
+import com.omar.musica.store.preferences.UserPreferencesRepository
 import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.model.toSongModel
 import com.omar.musica.ui.model.toSongModels

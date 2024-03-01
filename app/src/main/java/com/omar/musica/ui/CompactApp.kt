@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,7 +56,7 @@ fun CompactAppScaffold(
     topLevelDestinations: List<TopLevelDestination>,
     currentDestination: NavDestination?,
     onDestinationSelected: (TopLevelDestination) -> Unit,
-    content: @Composable (Modifier) -> Unit
+    content: @Composable (Modifier, MutableState<Modifier>) -> Unit
 ) {
 
     val density = LocalDensity.current
@@ -63,9 +64,14 @@ fun CompactAppScaffold(
     val nowPlayingBarHeightPx = with(density) { COMPACT_NOW_PLAYING_BAR_HEIGHT.toPx() }
     val shouldShowBottomBar by appState.shouldShowBottomBar.collectAsState(initial = true)
 
+    val navigationBarInsets = WindowInsets.navigationBars
+
     val bottomNavBarOffset by animateDpAsState(
-        targetValue = if (shouldShowBottomBar) 0.dp else 80.dp,
-        label = "BottomBar Offset"
+        targetValue = if (shouldShowBottomBar) 0.dp else 80.dp + with(density) {
+            navigationBarInsets.getBottom(this).toDp()
+        },
+        label = "BottomBar Offset",
+        animationSpec = tween(300)
     )
 
     var layoutHeightPx = remember { 0 }
@@ -79,25 +85,41 @@ fun CompactAppScaffold(
     val scrollProvider = { 1 - (appState.nowPlayingScreenOffset() / nowPlayingBarMinOffset) }
     val barHeightPx = with(density) { COMPACT_NOW_PLAYING_BAR_HEIGHT.toPx() }
 
+
+    val contentModifier = remember {
+        mutableStateOf<Modifier>(Modifier)
+    }
+
+    LaunchedEffect(key1 = shouldShowNowPlayingBar) {
+        if (!shouldShowNowPlayingBar)
+            nowPlayingScreenAnchors.animateTo(BarState.COLLAPSED)
+    }
+
+    LaunchedEffect(key1 = shouldShowBottomBar, key2 = shouldShowNowPlayingBar) {
+        contentModifier.value = Modifier.padding(
+            bottom = calculateBottomPaddingForContent(
+                shouldShowNowPlayingBar,
+                if (shouldShowBottomBar) 80.dp else 0.dp,
+                COMPACT_NOW_PLAYING_BAR_HEIGHT
+            )
+        )
+    }
+
     // App itself
     Box(modifier = modifier) {
 
         // DrawContentFirst
-        content(
-            Modifier
-                .align(Alignment.TopCenter)
-                .padding(
-                    bottom = calculateBottomPaddingForContent(
-                        shouldShowNowPlayingBar,
-                        80.dp - bottomNavBarOffset,
-                        COMPACT_NOW_PLAYING_BAR_HEIGHT
-                    )
-                )
-                .fillMaxSize()
-                .navigationBarsPadding()
-        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            content(
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxSize()
+                    .navigationBarsPadding(),
+                contentModifier
+            )
+        }
 
-        val navigationBarInsets = WindowInsets.navigationBars
+
         AnimatedVisibility(
             visible = shouldShowNowPlayingBar,
             enter = slideInVertically(
@@ -121,7 +143,21 @@ fun CompactAppScaffold(
                                 .roundToInt() - ((1 - scrollProvider()) * navigationBarInsets.getBottom(
                                 this
                             )).toInt(),
-                        )
+                        ) + if (!shouldShowBottomBar || bottomNavBarOffset != 0.dp)
+                            IntOffset(
+                                x = 0,
+                                y = ((bottomNavBarOffset.toPx() - navigationBarInsets.getBottom(
+                                    this
+                                )) * (1 - scrollProvider()))
+                                    .toInt()
+                                    .coerceIn(
+                                        0,
+                                        80.dp
+                                            .toPx()
+                                            .toInt()
+                                    )
+                            )
+                        else IntOffset.Zero
                     }
 
                     .onSizeChanged { layoutSize ->
@@ -130,11 +166,7 @@ fun CompactAppScaffold(
                             .update(
                                 layoutHeightPx,
                                 nowPlayingBarHeightPx.toInt(),
-                                with(density) {
-                                    bottomNavBarHeightPx.toInt() - bottomNavBarOffset
-                                        .toPx()
-                                        .toInt()
-                                }
+                                bottomNavBarHeightPx.toInt()
                             )
                     }
                     .anchoredDraggable(nowPlayingScreenAnchors, Orientation.Vertical),
@@ -154,15 +186,6 @@ fun CompactAppScaffold(
             )
         }
 
-
-        LaunchedEffect(key1 = shouldShowBottomBar) {
-            nowPlayingScreenAnchors.update(
-                layoutHeightPx,
-                barHeightPx.toInt(),
-                with(density) { bottomNavBarHeightPx.toInt() - bottomNavBarOffset.toPx().toInt() }
-            )
-        }
-
         MusicaBottomNavBar(
             modifier = Modifier
                 .fillMaxWidth()
@@ -170,16 +193,18 @@ fun CompactAppScaffold(
                 .graphicsLayer { alpha = 1 - scrollProvider() }
                 .offset {
                     val navigationBarHeight = 80.dp.toPx()
-                    IntOffset(
-                        0,
-                        (navigationBarHeight * scrollProvider()).toInt()
-                    ) +
-                            IntOffset(
-                                0,
-                                bottomNavBarOffset
-                                    .toPx()
-                                    .toInt()
-                            )
+                    if (!shouldShowBottomBar || bottomNavBarOffset != 0.dp)
+                        IntOffset(
+                            0,
+                            bottomNavBarOffset
+                                .toPx()
+                                .toInt()
+                        )
+                    else
+                        IntOffset(
+                            0,
+                            (navigationBarHeight * scrollProvider()).toInt()
+                        )
                 },
             topLevelDestinations = topLevelDestinations,
             currentDestination = currentDestination,

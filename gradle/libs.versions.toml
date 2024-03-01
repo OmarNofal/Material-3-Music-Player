@@ -34,6 +34,7 @@ android-desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity-compose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidxComposeBom" }
+androidx-compose-compiler = { group = "androidx.compose", name = "compiler", version.ref = "androidxComposeCompiler"}
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "composeFoundation" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }

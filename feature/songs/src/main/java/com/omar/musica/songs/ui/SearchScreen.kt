@@ -49,9 +49,9 @@ import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.MultiSelectState
 import com.omar.musica.ui.menu.buildCommonMultipleSongsActions
 import com.omar.musica.ui.menu.buildCommonSongActions
+import com.omar.musica.ui.model.SongUi
 import com.omar.musica.ui.songs.selectableSongsList
 import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
-import com.omar.musica.ui.model.SongUi
 
 
 @Composable
@@ -202,6 +202,7 @@ internal fun SearchScreen(
                                         songInfoDialog = this.songInfoDialog,
                                         addToPlaylistDialog = this.addToPlaylistDialog,
                                         shareAction = this.shareAction,
+                                        setAsRingtoneAction = this.setRingtoneAction,
                                         songDeleteAction = this.deleteAction
                                     )
                                 }

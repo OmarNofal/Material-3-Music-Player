@@ -59,7 +59,8 @@ fun GeneralSettingsItem(
             Text(
                 text = subtitle,
                 fontSize = 10.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 12.sp
             )
         }
 

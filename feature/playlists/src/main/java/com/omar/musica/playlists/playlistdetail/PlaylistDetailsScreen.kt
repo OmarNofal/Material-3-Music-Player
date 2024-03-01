@@ -64,26 +64,27 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.omar.musica.ui.albumart.SongAlbumArtImage
 import com.omar.musica.ui.common.LocalCommonSongsAction
-import com.omar.musica.ui.menu.MenuActionItem
 import com.omar.musica.ui.common.MultiSelectState
 import com.omar.musica.ui.common.RenamableTextView
-import com.omar.musica.ui.albumart.SongAlbumArtImage
+import com.omar.musica.ui.menu.MenuActionItem
 import com.omar.musica.ui.menu.addToQueue
 import com.omar.musica.ui.menu.buildCommonMultipleSongsActions
 import com.omar.musica.ui.menu.buildCommonSongActions
 import com.omar.musica.ui.menu.delete
 import com.omar.musica.ui.menu.edit
-import com.omar.musica.ui.millisToTime
 import com.omar.musica.ui.menu.playNext
 import com.omar.musica.ui.menu.removeFromPlaylist
 import com.omar.musica.ui.menu.rename
-import com.omar.musica.ui.songs.selectableSongsList
-import com.omar.musica.ui.showShortToast
 import com.omar.musica.ui.menu.shuffleNext
+import com.omar.musica.ui.millisToTime
+import com.omar.musica.ui.model.SongUi
+import com.omar.musica.ui.showShortToast
+import com.omar.musica.ui.songs.selectableSongsList
+import com.omar.musica.ui.theme.DarkColorScheme
 import com.omar.musica.ui.topbar.OverflowMenu
 import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
-import com.omar.musica.ui.model.SongUi
 import kotlinx.coroutines.launch
 
 
@@ -271,7 +272,8 @@ internal fun PlaylistDetailScreen(
                             songInfoDialog = this.songInfoDialog,
                             addToPlaylistDialog = this.addToPlaylistDialog,
                             shareAction = this.shareAction,
-                            songDeleteAction = this.deleteAction
+                            setAsRingtoneAction = this.setRingtoneAction,
+                            songDeleteAction = this.deleteAction,
                         ).apply {
                             add(
                                 3,
@@ -309,12 +311,14 @@ private fun PlaylistHeader(
     ) {
 
         if (firstSong != null) {
-            SongAlbumArtImage(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .aspectRatio(1.0f)
-                    .weight(0.4f), song = firstSong
-            )
+            MaterialTheme(colorScheme = DarkColorScheme) {
+                SongAlbumArtImage(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .aspectRatio(1.0f)
+                        .weight(0.4f), song = firstSong
+                )
+            }
         }
 
         Spacer(modifier = Modifier.width(8.dp))

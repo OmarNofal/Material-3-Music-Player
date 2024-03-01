@@ -3,7 +3,7 @@ package com.omar.musica.settings
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.omar.musica.store.UserPreferencesRepository
+import com.omar.musica.store.preferences.UserPreferencesRepository
 import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.PlayerThemeUi
 import com.omar.musica.ui.model.UserPreferencesUi
@@ -75,6 +75,29 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    override fun togglePauseVolumeZero() {
+        viewModelScope.launch {
+            userPreferencesRepository.togglePauseVolumeZero()
+        }
+    }
+
+    override fun toggleResumeVolumeNotZero() {
+        viewModelScope.launch {
+            userPreferencesRepository.toggleResumeVolumeNotZero()
+        }
+    }
+
+    override fun setAccentColor(color: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setAccentColor(color)
+        }
+    }
+
+    override fun toggleShowExtraControls() {
+        viewModelScope.launch {
+            userPreferencesRepository.toggleMiniPlayerExtraControls()
+        }
+    }
 }
 
 @Stable
@@ -94,6 +117,14 @@ interface ISettingsViewModel {
     fun onPlayerThemeChanged(playerTheme: PlayerThemeUi)
 
     fun toggleBlackBackgroundForDarkTheme()
+
+    fun togglePauseVolumeZero()
+
+    fun toggleResumeVolumeNotZero()
+
+    fun setAccentColor(color: Int)
+
+    fun toggleShowExtraControls()
 }
 
 sealed interface SettingsState {

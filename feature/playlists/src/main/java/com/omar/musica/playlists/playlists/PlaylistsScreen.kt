@@ -21,6 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -29,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -80,6 +82,7 @@ fun PlaylistsScreen(
 
     val createPlaylistsDialog = rememberCreatePlaylistDialog()
 
+    val topBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
         modifier = modifier,
@@ -91,7 +94,8 @@ fun PlaylistsScreen(
                     IconButton(onClick = { createPlaylistsDialog.launch() }) {
                         Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
                     }
-                }
+                },
+                scrollBehavior = topBarScrollBehavior
             )
 
         }
@@ -105,8 +109,10 @@ fun PlaylistsScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = paddingValues.calculateTopPadding())
-            ) {
+                    .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
+                    .padding(top = paddingValues.calculateTopPadding()),
+
+                ) {
 
                 item {
                     Divider(Modifier.fillMaxWidth())

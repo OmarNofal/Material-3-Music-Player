@@ -3,48 +3,29 @@ package com.omar.musica.ui
 import android.app.Activity
 import android.content.Intent
 import androidx.activity.ComponentActivity
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.animateTo
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.util.Consumer
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -52,7 +33,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.omar.musica.navigation.MusicaBottomNavBar
 import com.omar.musica.navigation.TopLevelDestination
 import com.omar.musica.navigation.navigateToTopLevelDestination
 import com.omar.musica.playback.PlaybackService
@@ -62,10 +42,8 @@ import com.omar.musica.songs.navigation.SONGS_NAVIGATION_GRAPH
 import com.omar.musica.songs.navigation.songsGraph
 import com.omar.musica.state.rememberMusicaAppState
 import com.omar.nowplaying.ui.BarState
-import com.omar.nowplaying.ui.NowPlayingScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 
 val topLevelDestinations =
@@ -95,7 +73,6 @@ fun MusicaApp2(
         )
     }
 
-
     val appState = rememberMusicaAppState(
         navHostController = navController,
         isNowPlayingExpanded = nowPlayingScreenAnchors.currentValue == BarState.EXPANDED,
@@ -107,16 +84,24 @@ fun MusicaApp2(
         },
     )
 
-    val navHost = remember(appState.isNowPlayingExpanded) {
-        movableContentOf<Modifier> {
+
+    val navHost = remember {
+        movableContentOf<Modifier, MutableState<Modifier>> { navHostModifier, contentModifier ->
             NavHost(
-                modifier = it,
+                modifier = navHostModifier,
                 navController = appState.navHostController,
                 startDestination = SONGS_NAVIGATION_GRAPH
             ) {
-                songsGraph(navController, enableBackPress = !appState.isNowPlayingExpanded)
-                playlistsGraph(navController)
-                settingsGraph()
+                songsGraph(
+                    contentModifier = contentModifier,
+                    navController,
+                    enableBackPress = mutableStateOf(false)
+                )
+                playlistsGraph(
+                    contentModifier = contentModifier,
+                    navController
+                )
+                settingsGraph(contentModifier = contentModifier)
             }
         }
     }
@@ -129,8 +114,8 @@ fun MusicaApp2(
             topLevelDestinations = topLevelDestinations,
             currentDestination = navController.currentBackStackEntryAsState().value?.destination,
             onDestinationSelected = { navController.navigateToTopLevelDestination(it) }
-        ) { contentModifier ->
-            navHost(contentModifier)
+        ) { navHostModifier, contentModifier ->
+            navHost(navHostModifier, contentModifier)
         }
     } else {
         CompactAppScaffold(
@@ -140,12 +125,25 @@ fun MusicaApp2(
             topLevelDestinations = topLevelDestinations,
             currentDestination = navController.currentBackStackEntryAsState().value?.destination,
             onDestinationSelected = { navController.navigateToTopLevelDestination(it) }
-        ) { contentModifier ->
-            navHost(contentModifier)
+        ) { navHostModifier, contentModifier ->
+            navHost(navHostModifier, contentModifier)
         }
     }
+
+    ViewNowPlayingScreenListenerEffect(
+        navController = navController,
+        onViewNowPlayingScreen = {
+            appState.coroutineScope.launch {
+                nowPlayingScreenAnchors.animateTo(
+                    BarState.EXPANDED
+                )
+            }
+        }
+    )
+
 }
 
+/*
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MusicaApp(
@@ -216,7 +214,7 @@ fun MusicaApp(
             navController = navController,
             startDestination = SONGS_NAVIGATION_GRAPH
         ) {
-            songsGraph(navController, enableBackPress = !appState.isNowPlayingExpanded)
+            songsGraph(navController, enableBackPress = mutableStateOf(false))
 
             playlistsGraph(navController)
 
@@ -322,6 +320,7 @@ fun MusicaApp(
     }
 }
 
+*/
 
 @Composable
 fun ViewNowPlayingScreenListenerEffect(
@@ -329,12 +328,16 @@ fun ViewNowPlayingScreenListenerEffect(
     onViewNowPlayingScreen: () -> Unit
 ) {
     val context = LocalContext.current
+    var handledIntent by rememberSaveable {
+        mutableStateOf(false)
+    }
     LaunchedEffect(key1 = Unit) {
         delay(500)
         val activity = (context as? Activity) ?: return@LaunchedEffect
         val action = activity.intent.action
-        if (action == PlaybackService.VIEW_MEDIA_SCREEN_ACTION) {
+        if (action == PlaybackService.VIEW_MEDIA_SCREEN_ACTION && !handledIntent) {
             onViewNowPlayingScreen()
+            handledIntent = true
         }
     }
 

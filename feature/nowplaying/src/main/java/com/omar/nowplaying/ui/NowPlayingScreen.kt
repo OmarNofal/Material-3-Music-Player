@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -93,8 +94,10 @@ fun NowPlayingScreen(
         }
     }
 
-    BackHandler(isExpanded) {
-        onCollapseNowPlaying()
+    if (isExpanded) {
+        BackHandler(true) {
+            onCollapseNowPlaying()
+        }
     }
 
     val uiState by viewModel.state.collectAsState()
@@ -102,7 +105,7 @@ fun NowPlayingScreen(
 
     if (uiState is NowPlayingState.Playing)
         NowPlayingScreen(
-            modifier = modifier,
+            modifier = modifier.clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)),
             nowPlayingBarPadding = nowPlayingBarPadding,
             uiState = uiState as NowPlayingState.Playing,
             barHeight = barHeight,
@@ -174,16 +177,21 @@ internal fun NowPlayingScreen(
                 NowPlayingBarHeader(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(nowPlayingBarPadding)
                         .height(barHeight)
+                        .padding(nowPlayingBarPadding)
                         .pointerInput(Unit) {
                             detectTapGestures { onExpandNowPlaying() }
                         }
-                        .graphicsLayer { alpha = (1 - progressProvider() * 2) },
+                        .graphicsLayer {
+                            alpha = (1 - (progressProvider() * 6.66f).coerceAtMost(1.0f))
+                        },
                     nowPlayingState = uiState,
+                    showExtraControls = LocalUserPreferences.current.uiSettings.showMiniPlayerExtraControls,
                     songProgressProvider = nowPlayingActions::currentSongProgress,
                     enabled = !isExpanded, // if the view is expanded then disable the header
-                    nowPlayingActions::togglePlayback
+                    nowPlayingActions::togglePlayback,
+                    nowPlayingActions::nextSong,
+                    nowPlayingActions::previousSong
                 )
 
             }
@@ -256,7 +264,9 @@ fun FullScreenNowPlaying(
         val playerScreenModifier = remember(paddingModifier) {
             Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = progressProvider() * 2 }
+                .graphicsLayer {
+                    alpha = ((progressProvider() - 0.15f) * 2.0f).coerceIn(0.0f, 1.0f)
+                }
                 .then(paddingModifier)
                 .statusBarsPadding()
         }
@@ -284,6 +294,8 @@ fun FullScreenNowPlaying(
                     modifier = playerScreenModifier.navigationBarsPadding(),
                     song = song,
                     playbackState = uiState.playbackState,
+                    repeatMode = uiState.repeatMode,
+                    isShuffleOn = uiState.isShuffleOn,
                     screenSize = screenSize,
                     nowPlayingActions = nowPlayingActions,
                     onOpenQueue = onOpenQueue

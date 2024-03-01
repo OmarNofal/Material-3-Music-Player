@@ -8,4 +8,6 @@ interface INowPlayingViewModel {
     fun jumpBackward()
     fun onUserSeek(progress: Float)
     fun previousSong()
+    fun toggleRepeatMode()
+    fun toggleShuffleMode()
 }

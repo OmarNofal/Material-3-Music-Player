@@ -1,4 +1,4 @@
-package com.omar.musica.store
+package com.omar.musica.store.preferences
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
@@ -10,12 +10,14 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.omar.musica.database.dao.BlacklistedFoldersDao
 import com.omar.musica.database.entities.prefs.BlacklistedFolderEntity
+import com.omar.musica.model.SortOption
 import com.omar.musica.model.prefs.AppTheme
+import com.omar.musica.model.prefs.DEFAULT_ACCENT_COLOR
 import com.omar.musica.model.prefs.DEFAULT_JUMP_DURATION_MILLIS
 import com.omar.musica.model.prefs.LibrarySettings
+import com.omar.musica.model.prefs.MiniPlayerMode
 import com.omar.musica.model.prefs.PlayerSettings
 import com.omar.musica.model.prefs.PlayerTheme
-import com.omar.musica.model.SortOption
 import com.omar.musica.model.prefs.UiSettings
 import com.omar.musica.model.prefs.UserPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -84,9 +86,12 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     suspend fun toggleBlackBackgroundForDarkTheme() {
+        toggleBoolean(BLACK_BACKGROUND_FOR_DARK_THEME_KEY)
+    }
+
+    suspend fun setAccentColor(color: Int) {
         context.datastore.edit {
-            it[BLACK_BACKGROUND_FOR_DARK_THEME_KEY] =
-                !(it[BLACK_BACKGROUND_FOR_DARK_THEME_KEY] ?: false)
+            it[ACCENT_COLOR_KEY] = color
         }
     }
 
@@ -97,15 +102,23 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     suspend fun toggleCacheAlbumArt() {
-        context.datastore.edit {
-            it[CACHE_ALBUM_COVER_ART_KEY] = !(it[CACHE_ALBUM_COVER_ART_KEY] ?: true)
-        }
+        toggleBoolean(CACHE_ALBUM_COVER_ART_KEY)
     }
 
     suspend fun toggleDynamicColor() {
-        context.datastore.edit {
-            it[DYNAMIC_COLOR_KEY] = !(it[DYNAMIC_COLOR_KEY] ?: true)
-        }
+        toggleBoolean(DYNAMIC_COLOR_KEY)
+    }
+
+    suspend fun togglePauseVolumeZero() {
+        toggleBoolean(PAUSE_IF_VOLUME_ZERO)
+    }
+
+    suspend fun toggleMiniPlayerExtraControls() {
+        toggleBoolean(MINI_PLAYER_EXTRA_CONTROLS)
+    }
+
+    suspend fun toggleResumeVolumeNotZero() {
+        toggleBoolean(RESUME_IF_VOLUME_INCREASED)
     }
 
     suspend fun deleteFolderFromBlacklist(folder: String) = withContext(Dispatchers.IO) {
@@ -122,10 +135,22 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
+    private suspend fun toggleBoolean(key: Preferences.Key<Boolean>, default: Boolean = true) {
+        context.datastore.edit {
+            it[key] = !(it[key] ?: !default)
+        }
+    }
+
 
     private fun Preferences.getPlayerSettings(): PlayerSettings {
         val jumpDuration = this[JUMP_DURATION_KEY] ?: DEFAULT_JUMP_DURATION_MILLIS
-        return PlayerSettings(jumpDuration)
+        val pauseOnVolumeZero = this[PAUSE_IF_VOLUME_ZERO] ?: false
+        val resumeOnVolumeNotZero = this[RESUME_IF_VOLUME_INCREASED] ?: false
+        return PlayerSettings(
+            jumpDuration,
+            pauseOnVolumeZero,
+            resumeOnVolumeNotZero
+        )
     }
 
     private fun Preferences.getUiSettings(): UiSettings {
@@ -133,7 +158,17 @@ class UserPreferencesRepository @Inject constructor(
         val isUsingDynamicColor = this[DYNAMIC_COLOR_KEY] ?: true
         val playerTheme = PlayerTheme.valueOf(this[PLAYER_THEME_KEY] ?: "BLUR")
         val blackBackgroundForDarkTheme = this[BLACK_BACKGROUND_FOR_DARK_THEME_KEY] ?: false
-        return UiSettings(theme, isUsingDynamicColor, playerTheme, blackBackgroundForDarkTheme)
+        val accentColor = this[ACCENT_COLOR_KEY] ?: DEFAULT_ACCENT_COLOR
+        val miniPlayerExtraControls = this[MINI_PLAYER_EXTRA_CONTROLS] ?: false
+        return UiSettings(
+            theme,
+            isUsingDynamicColor,
+            playerTheme,
+            blackBackgroundForDarkTheme,
+            MiniPlayerMode.PINNED,
+            accentColor,
+            miniPlayerExtraControls
+        )
     }
 
     private fun Preferences.getLibrarySettings(excludedFolders: List<String>): LibrarySettings {
@@ -141,7 +176,9 @@ class UserPreferencesRepository @Inject constructor(
         val songsSortOrder = if (sortOptionParts == null)
             SortOption.TITLE to true else SortOption.valueOf(sortOptionParts[0]) to sortOptionParts[1].toBoolean()
         val cacheAlbumCoverArt = this[CACHE_ALBUM_COVER_ART_KEY] ?: true
-        return LibrarySettings(songsSortOrder, cacheAlbumCoverArt, excludedFolders)
+        return LibrarySettings(
+            songsSortOrder, cacheAlbumCoverArt, excludedFolders
+        )
     }
 
     private fun mapPrefsToModel(
@@ -164,6 +201,10 @@ class UserPreferencesRepository @Inject constructor(
         val JUMP_DURATION_KEY = intPreferencesKey("JUMP_DURATION_KEY")
         val SONG_URI_KEY = stringPreferencesKey("SONG_URI")
         val SONG_POSITION_KEY = longPreferencesKey("SONG_POSITION")
+        val PAUSE_IF_VOLUME_ZERO = booleanPreferencesKey("PAUSE_VOLUME_ZERO")
+        val RESUME_IF_VOLUME_INCREASED = booleanPreferencesKey("RESUME_IF_VOLUME_INCREASED")
+        val ACCENT_COLOR_KEY = intPreferencesKey("ACCENT_COLOR")
+        val MINI_PLAYER_EXTRA_CONTROLS = booleanPreferencesKey("MINI_PLAYER_EXTRA_CONTROLS")
     }
 
 }

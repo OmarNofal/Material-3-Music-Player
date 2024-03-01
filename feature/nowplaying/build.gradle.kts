@@ -5,6 +5,14 @@ plugins {
 
 android {
     namespace = "com.omar.nowplaying"
+
+
+    kotlinOptions {
+        freeCompilerArgs += listOf(
+            "-P",
+            "plugin:androidx.compose.compiler.plugins.kotlin:stabilityConfigurationPath=${rootDir.absolutePath}/stability-config.txt"
+        )
+    }
 }
 
 

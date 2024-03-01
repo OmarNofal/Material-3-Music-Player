@@ -77,6 +77,7 @@ dependencies {
     implementation(project(mapOf("path" to ":feature:playlists")))
     implementation(project(mapOf("path" to ":feature:nowplaying")))
     implementation(project(mapOf("path" to ":feature:settings")))
+    implementation(project(mapOf("path" to ":feature:tageditor")))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)

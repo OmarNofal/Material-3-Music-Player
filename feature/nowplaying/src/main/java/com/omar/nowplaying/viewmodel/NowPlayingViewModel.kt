@@ -24,7 +24,12 @@ class NowPlayingViewModel @Inject constructor(
             .map { playbackManagerState ->
                 val song = playbackManagerState.currentSong?.toUiSongModel()
                     ?: return@map NowPlayingState.NotPlaying
-                NowPlayingState.Playing(song, playbackManagerState.playbackState)
+                NowPlayingState.Playing(
+                    song,
+                    playbackManagerState.playbackState,
+                    repeatMode = playbackManagerState.repeatMode,
+                    isShuffleOn = playbackManagerState.isShuffleOn
+                )
             }.stateIn(viewModelScope, SharingStarted.Eagerly, NowPlayingState.NotPlaying)
 
 
@@ -55,6 +60,14 @@ class NowPlayingViewModel @Inject constructor(
 
     override fun previousSong() {
         playbackManager.playPreviousSong()
+    }
+
+    override fun toggleRepeatMode() {
+        playbackManager.toggleRepeatMode()
+    }
+
+    override fun toggleShuffleMode() {
+        playbackManager.toggleShuffleMode()
     }
 
 }
