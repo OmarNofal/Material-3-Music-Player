@@ -172,7 +172,8 @@ internal fun SongsScreen(
                             addToPlaylistDialog = this.addToPlaylistDialog,
                             shareAction = this.shareAction,
                             setAsRingtoneAction = this.setRingtoneAction,
-                            songDeleteAction = this.deleteAction
+                            songDeleteAction = this.deleteAction,
+                            tagEditorAction = this.openTagEditorAction
                         )
                     }
                 },

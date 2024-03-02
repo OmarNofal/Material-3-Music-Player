@@ -18,6 +18,7 @@ import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.TextFormat
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.omar.musica.store.model.song.Song
+import com.omar.musica.ui.actions.OpenTagEditorAction
 import com.omar.musica.ui.actions.SetRingtoneAction
 import com.omar.musica.ui.actions.SongDeleteAction
 import com.omar.musica.ui.actions.SongPlaybackActions
@@ -80,6 +81,9 @@ fun MutableList<MenuActionItem>.setAsRingtone(callback: () -> Unit) =
 fun MutableList<MenuActionItem>.playbackSpeed(callback: () -> Unit) =
     add(MenuActionItem(Icons.Rounded.Speed, "Playback Speed", callback))
 
+fun MutableList<MenuActionItem>.tagEditor(callback: () -> Unit) =
+    add(MenuActionItem(Icons.Rounded.Edit, "Edit Tags", callback))
+
 
 fun buildCommonSongActions(
     song: Song,
@@ -89,7 +93,8 @@ fun buildCommonSongActions(
     addToPlaylistDialog: AddToPlaylistDialog,
     shareAction: SongShareAction,
     setAsRingtoneAction: SetRingtoneAction,
-    songDeleteAction: SongDeleteAction
+    songDeleteAction: SongDeleteAction,
+    tagEditorAction: OpenTagEditorAction
 ): MutableList<MenuActionItem> {
     val songList = listOf(song)
     val list = mutableListOf<MenuActionItem>().apply {
@@ -97,6 +102,7 @@ fun buildCommonSongActions(
         addToQueue { songPlaybackActions.addToQueue(songList) }
         addToPlaylists { addToPlaylistDialog.launch(songList) }
         share { shareAction.share(context, songList) }
+        tagEditor { tagEditorAction.open(song.uri) }
         setAsRingtone { setAsRingtoneAction.setRingtone(song.uri) }
         songInfo { songInfoDialog.open(song) }
         delete { songDeleteAction.deleteSongs(songList) }

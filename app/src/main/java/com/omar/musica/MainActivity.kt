@@ -10,8 +10,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
+import androidx.navigation.compose.rememberNavController
+import com.omar.musica.actions.RealOpenTagEditorAction
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.preferences.UserPreferencesRepository
@@ -57,11 +60,17 @@ class MainActivity : ComponentActivity() {
                     initial = initialUserPreferences
                 )
 
+            val navController = rememberNavController()
+
             MusicaTheme(
                 userPreferences = userPreferences,
             ) {
-
-                val commonSongsActions = rememberCommonSongsActions(playbackManager, mediaRepository)
+                val commonSongsActions =
+                    rememberCommonSongsActions(
+                        playbackManager,
+                        mediaRepository,
+                        remember { RealOpenTagEditorAction(navController) }
+                    )
 
                 CompositionLocalProvider(
                     LocalUserPreferences provides userPreferences,
@@ -72,7 +81,7 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                             .background(MaterialTheme.colorScheme.background)
                     ) {
-                        MusicaApp2(modifier = Modifier.fillMaxSize())
+                        MusicaApp2(modifier = Modifier.fillMaxSize(), navController)
                     }
                 }
             }

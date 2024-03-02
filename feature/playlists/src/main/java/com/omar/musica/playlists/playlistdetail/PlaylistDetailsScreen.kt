@@ -275,6 +275,7 @@ internal fun PlaylistDetailScreen(
                             shareAction = this.shareAction,
                             setAsRingtoneAction = this.setRingtoneAction,
                             songDeleteAction = this.deleteAction,
+                            tagEditorAction = this.openTagEditorAction
                         ).apply {
                             add(
                                 3,

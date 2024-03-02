@@ -8,6 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.MediaRepository
 import com.omar.musica.ui.actions.EqualizerOpener
+import com.omar.musica.ui.actions.OpenTagEditorAction
 import com.omar.musica.ui.actions.SetRingtone
 import com.omar.musica.ui.actions.SetRingtoneAction
 import com.omar.musica.ui.actions.SongDeleteAction
@@ -29,7 +30,8 @@ data class CommonSongsActions(
     val songInfoDialog: SongInfoDialog,
     val addToPlaylistDialog: AddToPlaylistDialog,
     val openEqualizer: EqualizerOpener,
-    val setRingtoneAction: SetRingtoneAction
+    val setRingtoneAction: SetRingtoneAction,
+    val openTagEditorAction: OpenTagEditorAction
 )
 
 val LocalCommonSongsAction = staticCompositionLocalOf<CommonSongsActions>
@@ -38,7 +40,8 @@ val LocalCommonSongsAction = staticCompositionLocalOf<CommonSongsActions>
 @Composable
 fun rememberCommonSongsActions(
     playbackManager: PlaybackManager,
-    mediaRepository: MediaRepository
+    mediaRepository: MediaRepository,
+    openTagEditorAction: OpenTagEditorAction
 ): CommonSongsActions {
 
     val context = LocalContext.current
@@ -58,7 +61,8 @@ fun rememberCommonSongsActions(
             songInfoDialog,
             addToPlaylistDialog,
             openEqualizer,
-            setRingtoneAction
+            setRingtoneAction,
+            openTagEditorAction
         )
     }
 }

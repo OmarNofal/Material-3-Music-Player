@@ -198,4 +198,28 @@ class MediaRepository @Inject constructor(
         }
     }
 
+    suspend fun getSongPath(uri: Uri): String = withContext(Dispatchers.IO) {
+
+        val projection =
+            arrayOf(
+                MediaStore.Audio.Media.DATA,
+            )
+        val selection = "${MediaStore.Audio.Media._ID} = ${uri.lastPathSegment!!}"
+
+        val cursor = context.contentResolver.query(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            selection,
+            null,
+            null,
+            null
+        ) ?: throw Exception("Invalid cursor")
+
+        cursor.use {
+            it.moveToFirst()
+            val pathColumn = it.getColumnIndex(MediaStore.Audio.Media.DATA)
+            return@withContext it.getString(pathColumn)
+        }
+    }
+
 }

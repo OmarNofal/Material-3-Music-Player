@@ -7,6 +7,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
 import com.omar.musica.playlists.navigation.PLAYLIST_DETAILS_ROUTE
 import com.omar.musica.songs.navigation.SEARCH_ROUTE
+import com.omar.musica.tageditor.navigation.TAG_EDITOR_GRAPH
+import com.omar.musica.tageditor.navigation.TAG_EDITOR_SCREEN
 import com.omar.nowplaying.NowPlayingState
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -57,7 +59,8 @@ class MusicaAppState(
 
     val shouldShowBottomBar = navHostController.currentBackStackEntryFlow.onEach { delay(100) }.map {
         val route = it.destination.route ?: return@map true
-        return@map !(route.contains(PLAYLIST_DETAILS_ROUTE) || route.contains(SEARCH_ROUTE))
+        return@map !(route.contains(PLAYLIST_DETAILS_ROUTE) || route.contains(SEARCH_ROUTE) || route.contains(
+            TAG_EDITOR_SCREEN))
     }
 
 

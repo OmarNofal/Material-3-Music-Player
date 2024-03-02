@@ -17,6 +17,7 @@ import com.omar.musica.ui.menu.setAsRingtone
 import com.omar.musica.ui.menu.share
 import com.omar.musica.ui.menu.sleepTimer
 import com.omar.musica.ui.menu.songInfo
+import com.omar.musica.ui.menu.tagEditor
 import com.omar.musica.ui.showShortToast
 import com.omar.musica.ui.topbar.OverflowMenu
 import com.omar.nowplaying.speed.rememberPlaybackSpeedDialog
@@ -30,6 +31,7 @@ interface NowPlayingOptions {
     fun playbackSpeed()
     fun setAsRingtone()
     fun share()
+    fun editTags()
     fun songInfo()
     fun equalizer()
     fun deleteFromDevice()
@@ -66,6 +68,7 @@ fun NowPlayingOverflowMenu(
             playbackSpeed { playbackSpeedDialog.launch() }
             setAsRingtone(options::setAsRingtone)
             share(options::share)
+            tagEditor(options::editTags)
             equalizer(options::equalizer)
             songInfo(options::songInfo)
             delete(options::deleteFromDevice)
@@ -91,6 +94,10 @@ fun rememberNowPlayingOptions(
 
             override fun sleepTimer() {
 
+            }
+
+            override fun editTags() {
+                commonSongsActions.openTagEditorAction.open(songUi.uri)
             }
 
             override fun playbackSpeed() {

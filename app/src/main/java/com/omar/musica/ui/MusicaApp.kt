@@ -8,7 +8,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.animateTo
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
@@ -30,9 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.util.Consumer
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.omar.musica.navigation.TopLevelDestination
 import com.omar.musica.navigation.navigateToTopLevelDestination
 import com.omar.musica.playback.PlaybackService
@@ -41,6 +40,7 @@ import com.omar.musica.settings.navigation.settingsGraph
 import com.omar.musica.songs.navigation.SONGS_NAVIGATION_GRAPH
 import com.omar.musica.songs.navigation.songsGraph
 import com.omar.musica.state.rememberMusicaAppState
+import com.omar.musica.tageditor.navigation.tagEditorGraph
 import com.omar.nowplaying.ui.BarState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -57,10 +57,11 @@ val topLevelDestinations =
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun MusicaApp2(
-    modifier: Modifier
+    modifier: Modifier,
+    navController: NavHostController
 ) {
 
-    val navController = rememberNavController()
+
     val widthClass = calculateWindowSizeClass(activity = LocalContext.current as Activity)
 
     val density = LocalDensity.current
@@ -102,6 +103,7 @@ fun MusicaApp2(
                     navController
                 )
                 settingsGraph(contentModifier = contentModifier)
+                tagEditorGraph(contentModifier = contentModifier, navController)
             }
         }
     }
@@ -141,6 +143,27 @@ fun MusicaApp2(
         }
     )
 
+    NowPlayingCollapser(navController = navController) {
+        if (nowPlayingScreenAnchors.currentValue == BarState.EXPANDED) {
+            nowPlayingScreenAnchors.animateTo(BarState.COLLAPSED)
+        }
+    }
+
+}
+
+/**
+ * This is responsible to collapse the NowPlayingScreen
+ * when a navigation event happens
+ */
+@Composable
+fun NowPlayingCollapser(
+    navController: NavHostController,
+    onCollapse: suspend () -> Unit
+) {
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    LaunchedEffect(key1 = currentBackStackEntry) {
+        onCollapse()
+    }
 }
 
 /*
@@ -322,6 +345,10 @@ fun MusicaApp(
 
 */
 
+/**
+ * Responsible to expand the NowPlayingScreen when an intent is received
+ * or when the app is launched from the media notification
+ */
 @Composable
 fun ViewNowPlayingScreenListenerEffect(
     navController: NavController,

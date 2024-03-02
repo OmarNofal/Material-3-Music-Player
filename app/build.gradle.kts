@@ -63,7 +63,6 @@ subprojects {
 }
 
 dependencies {
-
     implementation(project(mapOf("path" to ":feature:songs")))
     implementation(libs.core.ktx)
     implementation(libs.media3.session)
