@@ -319,7 +319,8 @@ private fun PlaylistHeader(
                         .clip(RoundedCornerShape(8.dp))
                         .aspectRatio(1.0f)
                         .weight(0.4f),
-                    songAlbumArtModel = firstSong.toSongAlbumArtModel()
+                    songAlbumArtModel = firstSong.toSongAlbumArtModel(),
+                    crossFadeDuration = 300
                 )
             }
         }

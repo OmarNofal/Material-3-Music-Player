@@ -96,14 +96,36 @@ fun MusicaApp2(
                 songsGraph(
                     contentModifier = contentModifier,
                     navController,
-                    enableBackPress = mutableStateOf(false)
+                    enableBackPress = mutableStateOf(false),
+                    enterAnimationFactory = ::getEnterAnimationForRoute,
+                    exitAnimationFactory = ::getExitAnimationForRoute,
+                    popEnterAnimationFactory = ::getPopEnterAnimationForRoute,
+                    popExitAnimationFactory = ::getPopExitAnimationForRoute
                 )
                 playlistsGraph(
                     contentModifier = contentModifier,
-                    navController
+                    navController,
+                    enterAnimationFactory = ::getEnterAnimationForRoute,
+                    exitAnimationFactory = ::getExitAnimationForRoute,
+                    popEnterAnimationFactory = ::getPopEnterAnimationForRoute,
+                    popExitAnimationFactory = ::getPopExitAnimationForRoute
                 )
-                settingsGraph(contentModifier = contentModifier)
-                tagEditorGraph(contentModifier = contentModifier, navController)
+                settingsGraph(
+                    contentModifier = contentModifier,
+                    enterAnimationFactory = ::getEnterAnimationForRoute,
+                    exitAnimationFactory = ::getExitAnimationForRoute,
+                    popEnterAnimationFactory = ::getPopEnterAnimationForRoute,
+                    popExitAnimationFactory = ::getPopExitAnimationForRoute
+                )
+                tagEditorGraph(
+                    contentModifier =
+                    contentModifier,
+                    navController,
+                    enterAnimationFactory = ::getEnterAnimationForRoute,
+                    exitAnimationFactory = ::getExitAnimationForRoute,
+                    popEnterAnimationFactory = ::getPopEnterAnimationForRoute,
+                    popExitAnimationFactory = ::getPopExitAnimationForRoute
+                )
             }
         }
     }

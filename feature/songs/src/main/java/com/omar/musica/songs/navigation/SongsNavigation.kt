@@ -2,15 +2,16 @@ package com.omar.musica.songs.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
@@ -38,7 +39,15 @@ fun NavGraphBuilder.songsGraph(
     contentModifier: MutableState<Modifier>,
     navController: NavController,
     enableBackPress: MutableState<Boolean>,
-) {
+    enterAnimationFactory:
+        (String, AnimatedContentTransitionScope<NavBackStackEntry>) -> EnterTransition,
+    exitAnimationFactory:
+        (String, AnimatedContentTransitionScope<NavBackStackEntry>) -> ExitTransition,
+    popEnterAnimationFactory:
+        (String, AnimatedContentTransitionScope<NavBackStackEntry>) -> EnterTransition,
+    popExitAnimationFactory:
+        (String, AnimatedContentTransitionScope<NavBackStackEntry>) -> ExitTransition,
+    ) {
 
     navigation(
         route = SONGS_NAVIGATION_GRAPH,
@@ -47,27 +56,16 @@ fun NavGraphBuilder.songsGraph(
         composable(
             SONGS_ROUTE,
             enterTransition = {
-                EnterTransition.None
+                enterAnimationFactory(SONGS_ROUTE, this)
             },
             exitTransition = {
-                if (targetState.destination.route != SEARCH_ROUTE) {
-                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(200))
-                } else
-                    fadeOut(tween(200)) +
-                            slideOutVertically(
-                                animationSpec = tween(200, easing = FastOutSlowInEasing),
-                                targetOffsetY = { -it / 6}
-                            )
+                exitAnimationFactory(SONGS_ROUTE, this)
             },
             popEnterTransition = {
-                if (initialState.destination.route != SEARCH_ROUTE) {
-                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(200))
-                } else
-                    fadeIn(tween(200)) +
-                            slideInVertically (
-                                animationSpec = tween(200, easing = FastOutSlowInEasing),
-                                initialOffsetY = { it -> -it / 6}
-                            )
+                popEnterAnimationFactory(SONGS_ROUTE, this)
+            },
+            popExitTransition = {
+                popExitAnimationFactory(SONGS_ROUTE, this)
             }
         ) {
             SongsScreen(
@@ -88,19 +86,16 @@ fun NavGraphBuilder.songsGraph(
         composable(
             SEARCH_ROUTE,
             enterTransition = {
-                fadeIn(tween(200)) +
-                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up,
-                            tween(200, easing = FastOutSlowInEasing),
-                            initialOffset = { it -> it / 2 }
-                        )
+                enterAnimationFactory(SEARCH_ROUTE, this)
+            },
+            exitTransition = {
+                exitAnimationFactory(SEARCH_ROUTE, this)
+            },
+            popEnterTransition = {
+                popEnterAnimationFactory(SEARCH_ROUTE, this)
             },
             popExitTransition = {
-                fadeOut(tween(200)) +
-                        slideOutOfContainer(
-                            AnimatedContentTransitionScope.SlideDirection.Down,
-                            tween(200, easing = FastOutSlowInEasing),
-                            targetOffset = { it -> it / 2}
-                        )
+                popExitAnimationFactory(SEARCH_ROUTE, this)
             }
         )
         {

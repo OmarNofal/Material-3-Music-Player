@@ -65,7 +65,7 @@ fun CoverArt(
             model = remember(bitmap) {
                 ImageRequest.Builder(context)
                     .data(bitmap)
-                    .transitionFactory(CrossfadeTransition.Factory(durationMillis = 200))
+                    .transitionFactory(CrossfadeTransition.Factory(durationMillis = 400))
                     .build()
             },
             contentDescription = "Artwork",
