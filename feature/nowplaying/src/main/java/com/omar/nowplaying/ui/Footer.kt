@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,7 +31,9 @@ fun PlayerFooter(
     songUi: Song,
     isShuffleOn: Boolean,
     repeatMode: RepeatMode,
+    isLyricsOpen: Boolean,
     onOpenQueue: () -> Unit,
+    onOpenLyrics: () -> Unit,
     onToggleRepeatMode: () -> Unit,
     onToggleShuffle: () -> Unit,
 ) {
@@ -57,6 +60,21 @@ fun PlayerFooter(
         Spacer(modifier = Modifier.weight(1f))
 
         // icons
+        TooltipBox(
+            tooltip = {
+                PlainTooltip { Text("Lyrics") }
+            },
+            state = rememberTooltipState(),
+            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+        ) {
+            IconButton(onClick = onOpenLyrics) {
+                Icon(
+                    modifier = if (isLyricsOpen) Modifier else Modifier.alpha(0.5f),
+                    imageVector = Icons.Rounded.Lyrics,
+                    contentDescription = "Lyrics"
+                )
+            }
+        }
         TooltipBox(
             tooltip = {
                 PlainTooltip {

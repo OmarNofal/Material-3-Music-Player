@@ -1,14 +1,19 @@
 package com.omar.nowplaying.ui
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,17 +23,24 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.omar.musica.model.playback.PlayerState
 import com.omar.musica.model.playback.RepeatMode
 import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.albumart.toSongAlbumArtModel
+import com.omar.nowplaying.lyrics.LiveLyricsScreen
+import com.omar.nowplaying.lyrics.fadingEdge
 import com.omar.nowplaying.viewmodel.INowPlayingViewModel
 
 
@@ -151,15 +163,46 @@ fun PortraitPlayerScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        CrossFadingAlbumArt(
-            modifier = Modifier
-                .aspectRatio(1f)
-                .shadow(32.dp, shape = RoundedCornerShape(12.dp), clip = true)
-                .clip(RoundedCornerShape(12.dp)),
-            containerModifier = Modifier.weight(1f, fill = false),
-            songAlbumArtModel = song.toSongAlbumArtModel(),
-            errorPainterType = ErrorPainterType.PLACEHOLDER
-        )
+        var isShowingLyrics by remember {
+            mutableStateOf(false)
+        }
+
+        AnimatedContent(
+            modifier = Modifier.weight(1f, fill = false),
+            targetState = isShowingLyrics, label = ""
+        ) {
+            if (it) {
+                val fadeBrush = remember {
+                    Brush.verticalGradient(
+                        0.0f to Color.Red,
+                        0.7f to Color.Red,
+                        1.0f to Color.Transparent
+                    )
+                }
+                LiveLyricsScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(16.dp))
+                        .fadingEdge(fadeBrush)
+                        .padding(horizontal = 8.dp, vertical = 18.dp)
+                        ,
+                )
+                BackHandler {
+                    isShowingLyrics = false
+                }
+            } else {
+                CrossFadingAlbumArt(
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .shadow(32.dp, shape = RoundedCornerShape(12.dp), clip = true)
+                        .clip(RoundedCornerShape(12.dp)),
+                    containerModifier = Modifier,
+                    songAlbumArtModel = song.toSongAlbumArtModel(),
+                    errorPainterType = ErrorPainterType.PLACEHOLDER
+                )
+            }
+        }
+
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
@@ -199,7 +242,9 @@ fun PortraitPlayerScreen(
             songUi = song,
             isShuffleOn = isShuffleOn,
             repeatMode = repeatMode,
+            isLyricsOpen = isShowingLyrics,
             onOpenQueue = onOpenQueue,
+            onOpenLyrics = { isShowingLyrics = !isShowingLyrics },
             onToggleRepeatMode = nowPlayingActions::toggleRepeatMode,
             onToggleShuffle = nowPlayingActions::toggleShuffleMode
         )
@@ -275,7 +320,9 @@ fun LandscapePlayerScreen(
                 songUi = song,
                 isShuffleOn = isShuffleOn,
                 repeatMode = repeatMode,
+                isLyricsOpen = false,
                 onOpenQueue = onOpenQueue,
+                onOpenLyrics = {},
                 onToggleRepeatMode = nowPlayingActions::toggleRepeatMode,
                 onToggleShuffle = nowPlayingActions::toggleShuffleMode
             )

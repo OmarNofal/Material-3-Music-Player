@@ -44,7 +44,7 @@ import kotlinx.coroutines.isActive
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun NowPlayingBarHeader(
+fun MiniPlayer(
     modifier: Modifier,
     nowPlayingState: NowPlayingState,
     showExtraControls: Boolean,

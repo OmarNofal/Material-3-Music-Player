@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -70,6 +71,7 @@ import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.PlayerThemeUi
 import com.omar.musica.ui.theme.DarkColorScheme
 import com.omar.nowplaying.NowPlayingState
+import com.omar.nowplaying.lyrics.LiveLyricsScreen
 import com.omar.nowplaying.queue.QueueScreen
 import com.omar.nowplaying.viewmodel.INowPlayingViewModel
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
@@ -101,7 +103,6 @@ fun NowPlayingScreen(
     }
 
     val uiState by viewModel.state.collectAsState()
-
 
     if (uiState is NowPlayingState.Playing)
         NowPlayingScreen(
@@ -162,8 +163,15 @@ internal fun NowPlayingScreen(
                     mutableStateOf(false)
                 }
 
+                var isShowingLyrics by remember {
+                    mutableStateOf(false)
+                }
+
+
                 FullScreenNowPlaying(
-                    Modifier.fillMaxSize(),
+                    Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) { detectTapGestures { isShowingLyrics = true } },
                     isShowingQueue,
                     { isShowingQueue = false },
                     { isShowingQueue = true },
@@ -171,10 +179,11 @@ internal fun NowPlayingScreen(
                     uiState,
                     nowPlayingActions = nowPlayingActions
                 )
+
                 LaunchedEffect(key1 = isExpanded) {
                     if (!isExpanded) isShowingQueue = false
                 }
-                NowPlayingBarHeader(
+                MiniPlayer(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(barHeight)

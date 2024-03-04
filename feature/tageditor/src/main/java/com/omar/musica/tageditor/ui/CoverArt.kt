@@ -69,7 +69,7 @@ fun CoverArt(
                     .build()
             },
             contentDescription = "Artwork",
-            placeholder = ColorPainter(Color.Black),
+            placeholder = ColorPainter(Color.Transparent),
             fallback = painterResource(id = R.drawable.placeholder),
             contentScale = ContentScale.Crop
         )

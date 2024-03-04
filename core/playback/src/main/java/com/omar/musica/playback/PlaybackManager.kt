@@ -62,6 +62,9 @@ class PlaybackManager @Inject constructor(
     val currentSongProgress: Float
         get() = mediaController.currentPosition.toFloat() / mediaController.duration.toFloat()
 
+    val currentSongProgressMillis
+        get() = mediaController.currentPosition
+
     val playbackParameters: Pair<Float, Float>
         get() {
             val p = mediaController.playbackParameters
@@ -146,6 +149,10 @@ class PlaybackManager @Inject constructor(
         val controller = mediaController
         val songDuration = controller.duration
         controller.seekTo((songDuration * progress).toLong())
+    }
+
+    fun seekToPositionMillis(millis: Long) {
+        mediaController.seekTo(millis)
     }
 
     /**

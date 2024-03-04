@@ -5,24 +5,27 @@ plugins {
 }
 
 android {
-    namespace = "com.omar.musica.store"
+    namespace = "com.omar.musica.network"
 
     buildTypes {
         release {
-            consumerProguardFile("proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            consumerProguardFile("consumer-rules.pro")
         }
     }
+
 }
 
 dependencies {
+    implementation(libs.retrofit)
+    implementation(libs.gson.converter)
+    implementation(libs.gson)
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)
-    implementation(libs.datastore)
-    implementation(libs.jaudio.tagger)
-    implementation(project(mapOf("path" to ":core:model")))
-    implementation(project(mapOf("path" to ":core:database")))
-    implementation(project(mapOf("path" to ":core:network")))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)

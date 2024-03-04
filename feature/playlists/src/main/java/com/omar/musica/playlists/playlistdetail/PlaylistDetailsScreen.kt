@@ -313,16 +313,14 @@ private fun PlaylistHeader(
     ) {
 
         if (firstSong != null) {
-            MaterialTheme(colorScheme = DarkColorScheme) {
-                SongAlbumArtImage(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .aspectRatio(1.0f)
-                        .weight(0.4f),
-                    songAlbumArtModel = firstSong.toSongAlbumArtModel(),
-                    crossFadeDuration = 300
-                )
-            }
+            SongAlbumArtImage(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .aspectRatio(1.0f)
+                    .weight(0.4f),
+                songAlbumArtModel = firstSong.toSongAlbumArtModel(),
+                crossFadeDuration = 150
+            )
         }
 
         Spacer(modifier = Modifier.width(8.dp))

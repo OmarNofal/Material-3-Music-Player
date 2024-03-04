@@ -86,16 +86,19 @@ fun NavGraphBuilder.songsGraph(
         composable(
             SEARCH_ROUTE,
             enterTransition = {
-                enterAnimationFactory(SEARCH_ROUTE, this)
-            },
-            exitTransition = {
-                exitAnimationFactory(SEARCH_ROUTE, this)
-            },
-            popEnterTransition = {
-                popEnterAnimationFactory(SEARCH_ROUTE, this)
+                fadeIn(tween(200)) +
+                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up,
+                            tween(300, easing = FastOutSlowInEasing),
+                            initialOffset = { it / 2 }
+                        )
             },
             popExitTransition = {
-                popExitAnimationFactory(SEARCH_ROUTE, this)
+                fadeOut(tween(200)) +
+                        slideOutOfContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Down,
+                            tween(200, easing = FastOutSlowInEasing),
+                            targetOffset = { it / 2}
+                        )
             }
         )
         {

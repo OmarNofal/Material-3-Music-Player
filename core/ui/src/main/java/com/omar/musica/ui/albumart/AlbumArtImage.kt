@@ -18,7 +18,7 @@ import com.omar.musica.ui.R
 fun SongAlbumArtImage(
     modifier: Modifier,
     songAlbumArtModel: SongAlbumArtModel,
-    crossFadeDuration: Int = 400,
+    crossFadeDuration: Int = 300,
 ) {
     val context = LocalContext.current
     val imageRequest = remember(songAlbumArtModel) {
@@ -33,6 +33,6 @@ fun SongAlbumArtImage(
         contentScale = ContentScale.Crop,
         imageLoader = LocalInefficientThumbnailImageLoader.current,
         error = painterResource(id = R.drawable.placeholder),
-        placeholder = ColorPainter(Color.Black)
+        placeholder = ColorPainter(Color.Transparent)
     )
 }

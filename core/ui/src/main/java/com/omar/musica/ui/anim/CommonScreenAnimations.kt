@@ -14,14 +14,14 @@ import androidx.compose.animation.slideOutVertically
 
 private val FastOutVerySlowInEasing = CubicBezierEasing(0.17f, 0.67f, 0.13f, 1.0f)
 
-const val SCALE_ENTER_DURATION = 450
+const val SCALE_ENTER_DURATION = 350
 const val FADE_ENTER_DURATION = 80
 
 const val SCALE_EXIT_DURATION = 450
 const val FADE_EXIT_DURATION = 80
 
 const val SLIDE_IN_DURATION = 300
-const val SLIDE_OUT_DURATION = 200
+const val SLIDE_OUT_DURATION = 250
 
 val OPEN_SCREEN_ENTER_ANIMATION =
     scaleIn(animationSpec = tween(SCALE_ENTER_DURATION, easing = FastOutVerySlowInEasing), initialScale = 0.85f) +
@@ -43,10 +43,10 @@ val POP_SCREEN_EXIT_ANIMATION =
     fadeOut(tween(FADE_EXIT_DURATION, 60, easing = LinearEasing))
 
 val SLIDE_UP_ENTER_ANIMATION =
-    slideInVertically(tween(SLIDE_IN_DURATION, easing = FastOutVerySlowInEasing), initialOffsetY = { -it/2 }) +
+    slideInVertically(tween(SLIDE_IN_DURATION, easing = FastOutVerySlowInEasing), initialOffsetY = { it/2 }) +
     fadeIn(tween(FADE_ENTER_DURATION, easing = LinearEasing))
 
 
 val SLIDE_DOWN_EXIT_ANIMATION =
-    slideOutVertically(tween(SLIDE_OUT_DURATION, easing = FastOutSlowInEasing), targetOffsetY = { it / 2 }) +
+    slideOutVertically(tween(SLIDE_OUT_DURATION, easing = FastOutSlowInEasing), targetOffsetY = { -it / 2 }) +
     fadeOut(tween(FADE_EXIT_DURATION, easing = LinearEasing))
