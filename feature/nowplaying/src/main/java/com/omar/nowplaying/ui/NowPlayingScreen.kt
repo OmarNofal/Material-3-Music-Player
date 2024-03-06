@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -71,7 +70,6 @@ import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.PlayerThemeUi
 import com.omar.musica.ui.theme.DarkColorScheme
 import com.omar.nowplaying.NowPlayingState
-import com.omar.nowplaying.lyrics.LiveLyricsScreen
 import com.omar.nowplaying.queue.QueueScreen
 import com.omar.nowplaying.viewmodel.INowPlayingViewModel
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
@@ -146,32 +144,28 @@ internal fun NowPlayingScreen(
 
     // We use another material theme here to force dark theme colors when the player theme is
     // set to BLUR.
-    MaterialTheme(
-        typography = MaterialTheme.typography,
-        colorScheme = if (playerTheme == PlayerThemeUi.BLUR) {
-            if (shouldUseDynamicColor) dynamicDarkColorScheme(LocalContext.current) else DarkColorScheme
-        } else MaterialTheme.colorScheme
+
+    Surface(
+        modifier = modifier,
+        tonalElevation = if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 4.dp
     ) {
+        Box(modifier = Modifier.fillMaxSize()) {
 
-        Surface(
-            modifier = modifier,
-            tonalElevation = if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 4.dp
-        ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-
-                var isShowingQueue by remember {
-                    mutableStateOf(false)
-                }
-
-                var isShowingLyrics by remember {
-                    mutableStateOf(false)
-                }
-
-
+            var isShowingQueue by remember {
+                mutableStateOf(false)
+            }
+            MaterialTheme(
+                typography = MaterialTheme.typography,
+                colorScheme = if (playerTheme == PlayerThemeUi.BLUR) {
+                    if (shouldUseDynamicColor) dynamicDarkColorScheme(LocalContext.current) else DarkColorScheme
+                } else MaterialTheme.colorScheme
+            ) {
                 FullScreenNowPlaying(
                     Modifier
                         .fillMaxSize()
-                        .pointerInput(Unit) { detectTapGestures { isShowingLyrics = true } },
+                        .graphicsLayer {
+                            alpha = ((progressProvider() - 0.15f) * 2.0f).coerceIn(0.0f, 1.0f)
+                        },
                     isShowingQueue,
                     { isShowingQueue = false },
                     { isShowingQueue = true },
@@ -179,31 +173,30 @@ internal fun NowPlayingScreen(
                     uiState,
                     nowPlayingActions = nowPlayingActions
                 )
-
-                LaunchedEffect(key1 = isExpanded) {
-                    if (!isExpanded) isShowingQueue = false
-                }
-                MiniPlayer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(barHeight)
-                        .padding(nowPlayingBarPadding)
-                        .pointerInput(Unit) {
-                            detectTapGestures { onExpandNowPlaying() }
-                        }
-                        .graphicsLayer {
-                            alpha = (1 - (progressProvider() * 6.66f).coerceAtMost(1.0f))
-                        },
-                    nowPlayingState = uiState,
-                    showExtraControls = LocalUserPreferences.current.uiSettings.showMiniPlayerExtraControls,
-                    songProgressProvider = nowPlayingActions::currentSongProgress,
-                    enabled = !isExpanded, // if the view is expanded then disable the header
-                    nowPlayingActions::togglePlayback,
-                    nowPlayingActions::nextSong,
-                    nowPlayingActions::previousSong
-                )
-
             }
+            LaunchedEffect(key1 = isExpanded) {
+                if (!isExpanded) isShowingQueue = false
+            }
+            MiniPlayer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(barHeight)
+                    .padding(nowPlayingBarPadding)
+                    .pointerInput(Unit) {
+                        detectTapGestures { onExpandNowPlaying() }
+                    }
+                    .graphicsLayer {
+                        alpha = (1 - (progressProvider() * 6.66f).coerceAtMost(1.0f))
+                    },
+                nowPlayingState = uiState,
+                showExtraControls = LocalUserPreferences.current.uiSettings.showMiniPlayerExtraControls,
+                songProgressProvider = nowPlayingActions::currentSongProgress,
+                enabled = !isExpanded, // if the view is expanded then disable the header
+                nowPlayingActions::togglePlayback,
+                nowPlayingActions::nextSong,
+                nowPlayingActions::previousSong
+            )
+
         }
     }
 }

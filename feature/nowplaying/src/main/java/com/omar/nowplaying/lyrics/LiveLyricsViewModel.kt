@@ -1,8 +1,9 @@
 package com.omar.nowplaying.lyrics
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.omar.musica.network.data.NetworkMonitor
+import com.omar.musica.network.model.NetworkStatus
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.lyrics.LyricsRepository
 import com.omar.musica.store.lyrics.LyricsResult
@@ -21,7 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 class LiveLyricsViewModel @Inject constructor(
     private val playbackManager: PlaybackManager,
-    private val lyricsRepository: LyricsRepository
+    private val lyricsRepository: LyricsRepository,
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
 
 
@@ -40,13 +42,29 @@ class LiveLyricsViewModel @Inject constructor(
                     }
                 }
         }
+        viewModelScope.launch {
+            networkMonitor.state.collect {
+                if (it == NetworkStatus.CONNECTED)
+                    onRegainedNetworkConnection()
+            }
+        }
     }
 
+    private fun onRegainedNetworkConnection() {
+        val currentState = _state.value
+        if (currentState is LyricsScreenState.NoLyrics && currentState.reason == NoLyricsReason.NETWORK_ERROR) {
+            onRetry()
+        }
+    }
+
+    fun onRetry() {
+        val currentSong = (playbackManager.state.value.currentPlayingSong) ?: return
+        viewModelScope.launch {
+            loadLyrics(currentSong)
+        }
+    }
 
     private suspend fun loadLyrics(song: Song) = withContext(Dispatchers.Default) {
-
-        Log.d("Synced", "Loading Lyrics".toString())
-
         _state.value = LyricsScreenState.SearchingLyrics
 
         val lyricsResult = lyricsRepository
@@ -66,10 +84,10 @@ class LiveLyricsViewModel @Inject constructor(
                 LyricsScreenState.NoLyrics(NoLyricsReason.NETWORK_ERROR)
 
             is LyricsResult.FoundPlainLyrics ->
-                LyricsScreenState.TextLyrics(lyricsResult.plainLyrics)
+                LyricsScreenState.TextLyrics(lyricsResult.plainLyrics, lyricsResult.lyricsSource)
 
             is LyricsResult.FoundSyncedLyrics ->
-                LyricsScreenState.SyncedLyrics(lyricsResult.syncedLyrics)
+                LyricsScreenState.SyncedLyrics(lyricsResult.syncedLyrics, lyricsResult.lyricsSource)
         }
 
         if (isActive)

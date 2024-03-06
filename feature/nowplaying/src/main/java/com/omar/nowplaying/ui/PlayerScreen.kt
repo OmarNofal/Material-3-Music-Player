@@ -1,5 +1,7 @@
 package com.omar.nowplaying.ui
 
+import android.app.Activity
+import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
@@ -11,9 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +35,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import com.omar.musica.model.playback.PlayerState
 import com.omar.musica.model.playback.RepeatMode
@@ -172,6 +175,11 @@ fun PortraitPlayerScreen(
             targetState = isShowingLyrics, label = ""
         ) {
             if (it) {
+                val context = LocalContext.current as Activity
+                DisposableEffect(key1 = Unit) {
+                    context.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    onDispose { context.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
+                }
                 val fadeBrush = remember {
                     Brush.verticalGradient(
                         0.0f to Color.Red,
@@ -184,8 +192,7 @@ fun PortraitPlayerScreen(
                         .fillMaxSize()
                         .clip(RoundedCornerShape(16.dp))
                         .fadingEdge(fadeBrush)
-                        .padding(horizontal = 8.dp, vertical = 18.dp)
-                        ,
+                        .padding(horizontal = 8.dp, vertical = 18.dp),
                 )
                 BackHandler {
                     isShowingLyrics = false
