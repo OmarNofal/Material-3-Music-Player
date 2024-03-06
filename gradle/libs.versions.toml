@@ -1,5 +1,6 @@
 [versions]
 activity-compose = "1.7.2"
+accompanist = "0.34.0"
 agp = "8.1.0"
 androidDesugarJdkLibs = "2.0.3"
 androidx-test-ext-junit = "1.1.5"
@@ -31,6 +32,7 @@ roomVersion = "2.6.0-beta01"
 timber = "5.0.1"
 
 [libraries]
+accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist"}
 android-desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "androidDesugarJdkLibs" }
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity-compose" }
