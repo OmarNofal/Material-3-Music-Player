@@ -50,6 +50,10 @@ class MediaRepository @Inject constructor(
     private var mediaSyncJob: Job? = null
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 
+
+
+    private lateinit var permissionListener: PermissionListener
+
     /** A state flow that contains all the songs in the user's device
     Automatically updates when the MediaStore changes
      */
@@ -74,6 +78,17 @@ class MediaRepository @Inject constructor(
                             send(getAllSongs())
                             mediaSyncJob = null
                         }
+                    }
+                }
+            }
+
+            permissionListener = PermissionListener {
+                if (mediaSyncJob?.isActive == true) {
+                    return@PermissionListener
+                } else {
+                    mediaSyncJob = launch {
+                        send(getAllSongs())
+                        mediaSyncJob = null
                     }
                 }
             }
@@ -220,6 +235,22 @@ class MediaRepository @Inject constructor(
             val pathColumn = it.getColumnIndex(MediaStore.Audio.Media.DATA)
             return@withContext it.getString(pathColumn)
         }
+    }
+
+    /**
+     * Called by the MainActivity to inform the repo that the user
+     * granted the READ permission, in order to refresh the music library
+     */
+    fun onPermissionAccepted() {
+        permissionListener.onPermissionGranted()
+    }
+
+    /**
+     * Interface implemented inside the callback flow of the [MediaRepository]
+     * to force refresh of the song library when the user grants the permission
+     */
+    private fun interface PermissionListener {
+        fun onPermissionGranted()
     }
 
 }
