@@ -1,45 +1,22 @@
 package com.omar.nowplaying.lyrics
 
-import android.content.Intent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CopyAll
-import androidx.compose.material.icons.rounded.Language
-import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -51,16 +28,16 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -69,14 +46,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupPositionProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.model.lyrics.LyricsFetchSource
 import com.omar.musica.model.lyrics.PlainLyrics
@@ -99,6 +71,7 @@ fun LiveLyricsScreen(
         lyricsViewModel::songProgressMillis,
         lyricsViewModel::setSongProgressMillis,
         lyricsViewModel::onRetry,
+        lyricsViewModel::saveExternalLyricsToSongFile
     )
 }
 
@@ -108,7 +81,8 @@ fun LiveLyricsScreen(
     state: LyricsScreenState,
     songProgressMillis: () -> Long,
     onSeekToPositionMillis: (Long) -> Unit,
-    onRetry: () -> Unit
+    onRetry: () -> Unit,
+    onSaveLyricsToSongFile: () -> Unit
 ) {
     when (state) {
         is LyricsScreenState.NoLyrics ->
@@ -129,7 +103,8 @@ fun LiveLyricsScreen(
                 synchronizedLyrics = state.syncedLyrics,
                 lyricsFetchSource = state.lyricsSource,
                 onSeekToPositionMillis = onSeekToPositionMillis,
-                songProgressMillis = songProgressMillis
+                songProgressMillis = songProgressMillis,
+                onSaveLyricsToSongFile = onSaveLyricsToSongFile,
             )
     }
 }
@@ -160,11 +135,7 @@ fun LyricLine(
                         onDismissContextMenu()
                     },
                     onShare = {
-                        val intent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, line)
-                        }
-                        context.startActivity(Intent.createChooser(intent, "Share lyrics"))
+                        context.shareText(line)
                         onDismissContextMenu()
                     }
                 )
@@ -282,7 +253,8 @@ fun SyncedLyricsState(
     synchronizedLyrics: SynchronizedLyrics,
     lyricsFetchSource: LyricsFetchSource,
     onSeekToPositionMillis: (Long) -> Unit,
-    songProgressMillis: () -> Long
+    songProgressMillis: () -> Long,
+    onSaveLyricsToSongFile: () -> Unit,
 ) {
 
     var lyricIndex by remember(synchronizedLyrics) {
@@ -307,6 +279,19 @@ fun SyncedLyricsState(
         mutableStateOf(true)
     }
 
+    val scrollListener = object : NestedScrollConnection {
+        override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+            if (available.y > 1.0)
+                actionsShown = true
+            return Offset.Zero
+        }
+    }
+
+    LaunchedEffect(key1 = actionsShown) {
+        delay(1000)
+        if (actionsShown) actionsShown = false
+    }
+
     LyricSynchronizerEffect(
         synchronizedLyrics = synchronizedLyrics,
         songProgressMillis = songProgressMillis
@@ -326,14 +311,13 @@ fun SyncedLyricsState(
     }
 
     val vibrationManager = LocalHapticFeedback.current
-
     Box(modifier.onGloballyPositioned { listHeightPx = it.size.height }) {
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .nestedScroll(scrollListener),
             state = listState
         ) {
-
             itemsIndexed(synchronizedLyrics.segments) { index, segment ->
                 LyricLine(
                     modifier = Modifier
@@ -357,17 +341,23 @@ fun SyncedLyricsState(
 
                 Spacer(modifier = Modifier.height(itemsSpacing))
             }
-
         }
+
+        val clipboardManager = LocalClipboardManager.current
         LyricsActions(
             modifier = Modifier
                 .fillMaxHeight()
                 .align(Alignment.CenterEnd),
             isShown = actionsShown,
             lyricsFetchSource = lyricsFetchSource,
-            onSaveToSongFile = { /*TODO*/ },
-            onFetchWebVersion = { /*TODO*/ }) {
-        }
+            onSaveToSongFile = {
+            },
+            onFetchWebVersion = { /*TODO*/ },
+            onCopy = {
+                clipboardManager.setText(AnnotatedString(synchronizedLyrics.constructStringForSharing()))
+                actionsShown = false
+            }
+        )
     }
 }
 
@@ -393,140 +383,3 @@ fun LyricSynchronizerEffect(
 }
 
 
-fun Modifier.shimmerLoadingAnimation(
-    widthOfShadowBrush: Int = 600,
-    angleOfAxisY: Float = 270f,
-    durationMillis: Int = 800,
-): Modifier {
-    return composed {
-
-        val shimmerColors = listOf(
-            Color.White.copy(alpha = 0.3f),
-            Color.White.copy(alpha = 0.5f),
-            Color.White.copy(alpha = 1.0f),
-            Color.White.copy(alpha = 0.5f),
-            Color.White.copy(alpha = 0.3f),
-        )
-
-        val transition = rememberInfiniteTransition(label = "")
-
-        val translateAnimation = transition.animateFloat(
-            initialValue = 0f,
-            targetValue = (durationMillis + widthOfShadowBrush).toFloat(),
-            animationSpec = infiniteRepeatable(
-                animation = tween(
-                    durationMillis = durationMillis,
-                    easing = LinearEasing,
-                ),
-                repeatMode = RepeatMode.Restart,
-            ),
-            label = "Shimmer loading animation",
-        )
-
-        this.drawWithContent {
-            drawContent()
-            drawRect(
-                Brush.linearGradient(
-                    colors = shimmerColors,
-                    start = Offset(x = translateAnimation.value - widthOfShadowBrush, y = 0.0f),
-                    end = Offset(x = translateAnimation.value, y = angleOfAxisY),
-                ), blendMode = BlendMode.DstIn
-            )
-        }
-    }
-}
-
-class ContextMenuPopupProvider : PopupPositionProvider {
-    override fun calculatePosition(
-        anchorBounds: IntRect,
-        windowSize: IntSize,
-        layoutDirection: LayoutDirection,
-        popupContentSize: IntSize
-    ): IntOffset {
-        val popupHeight = popupContentSize.height
-
-        val availableHeight = anchorBounds.topLeft.y
-
-        return if (availableHeight >= popupHeight + 40) return IntOffset(
-            anchorBounds.topLeft.x,
-            anchorBounds.topLeft.y - popupHeight
-        )
-        else IntOffset(anchorBounds.topLeft.x, anchorBounds.bottomLeft.y + popupHeight)
-    }
-}
-
-
-@Composable
-fun LineContextMenu(
-    modifier: Modifier,
-    onCopy: () -> Unit,
-    onShare: () -> Unit
-) {
-
-    AnimatedVisibility(
-        visible = true, enter = fadeIn(), exit = fadeOut()
-    ) {
-        Row(
-            modifier
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer),
-            verticalAlignment = Alignment.CenterVertically,
-
-            ) {
-            Text(
-                text = "Copy",
-                modifier = Modifier
-                    .clickable { onCopy() }
-                    .padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 8.dp)
-            )
-            VerticalDivider(color = MaterialTheme.colorScheme.onSecondaryContainer)
-            Text(text = "Share",
-                modifier = Modifier
-                    .clickable { onShare() }
-                    .padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 8.dp)
-            )
-        }
-    }
-}
-
-/**
- * Shows actions which can be done to the lyrics depending on whether the lyrics
- * are fetched from API or from the song metadata
- */
-@Composable
-fun LyricsActions(
-    modifier: Modifier,
-    isShown: Boolean,
-    lyricsFetchSource: LyricsFetchSource,
-    onSaveToSongFile: () -> Unit,
-    onFetchWebVersion: () -> Unit,
-    onCopy: () -> Unit,
-) {
-    AnimatedVisibility(modifier = modifier, visible = isShown, enter = fadeIn(), exit = fadeOut()) {
-        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.End) {
-
-            IconButton(
-                onClick =
-                if (lyricsFetchSource == LyricsFetchSource.FROM_INTERNET)
-                    onSaveToSongFile else
-                    onFetchWebVersion
-            ) {
-                val icon =
-                    if (lyricsFetchSource == LyricsFetchSource.FROM_INTERNET)
-                        Icons.Rounded.Save
-                    else
-                        Icons.Rounded.Language
-                Icon(imageVector = icon, contentDescription = null)
-            }
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            IconButton(
-                onClick = onCopy
-            ) {
-                Icon(imageVector = Icons.Rounded.CopyAll, contentDescription = null)
-            }
-
-        }
-    }
-}

@@ -9,6 +9,10 @@ data class SynchronizedLyrics(
 ) {
 
 
+    fun constructStringForSharing(): String {
+        return segments.joinToString(separator = "\n") { it.text }
+    }
+
     companion object {
         fun fromString(text: String?): SynchronizedLyrics? {
             if (text.isNullOrBlank()) return null

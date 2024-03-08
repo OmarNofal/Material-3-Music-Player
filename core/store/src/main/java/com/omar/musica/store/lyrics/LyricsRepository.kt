@@ -1,6 +1,8 @@
 package com.omar.musica.store.lyrics
 
+import android.content.Context
 import android.net.Uri
+import android.os.Build
 import com.omar.musica.database.dao.LyricsDao
 import com.omar.musica.database.entities.lyrics.LyricsEntity
 import com.omar.musica.model.lyrics.LyricsFetchSource
@@ -9,6 +11,7 @@ import com.omar.musica.model.lyrics.SynchronizedLyrics
 import com.omar.musica.network.data.LyricsSource
 import com.omar.musica.network.model.NotFoundException
 import com.omar.musica.store.MediaRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jaudiotagger.audio.AudioFileIO
@@ -20,6 +23,7 @@ import javax.inject.Singleton
 
 @Singleton
 class LyricsRepository @Inject constructor(
+    @ApplicationContext private val  context: Context,
     private val lyricsDataSource: LyricsSource,
     private val lyricsDao: LyricsDao,
     private val mediaRepository: MediaRepository
@@ -111,5 +115,58 @@ class LyricsRepository @Inject constructor(
         }
     }
 
+
+    suspend fun saveExternalLyricsToSongFile(
+        uri: Uri,
+        title: String,
+        album: String,
+        artist: String
+    ) = withContext(Dispatchers.IO) {
+
+        val originalSongFile = File(mediaRepository.getSongPath(uri))
+        val audioFileIO = AudioFileIO().readFile(originalSongFile)
+        val tag = audioFileIO.tagOrCreateAndSetDefault
+
+        val lyricsEntity = lyricsDao.getSongLyrics(title, album, artist) ?: throw IllegalStateException()
+
+        if (lyricsEntity.syncedLyrics.isNotBlank()) {
+            tag.setField(FieldKey.LYRICS, lyricsEntity.syncedLyrics)
+        } else {
+            tag.setField(FieldKey.LYRICS, lyricsEntity.plainLyrics)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val cacheFile = File(context.cacheDir, originalSongFile.name)
+            cacheFile.outputStream().use { cache ->
+                originalSongFile.inputStream().use {
+                    it.copyTo(cache)
+                }
+            }
+            audioFileIO.file = cacheFile
+            audioFileIO.commit()
+            // copy back to the original directory ( I hate android R)
+            // In Android Q, for some unknown reason, using the File Api directly results in permission
+            // denied, even though we have requestLegacyExternalStorage enabled
+            // but opening it with contentResolver works for some reason ¯\_(ツ)_/¯
+            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+                val os = context.contentResolver.openOutputStream(uri)!!
+                os.use { stream ->
+                    cacheFile.inputStream().use {
+                        it.copyTo(stream)
+                    }
+                }
+            } else {
+                originalSongFile.outputStream().use { original ->
+                    cacheFile.inputStream().use {
+                        it.copyTo(original)
+                    }
+                }
+            }
+            cacheFile.delete()
+        } else {
+            audioFileIO.commit()
+        }
+
+    }
 
 }
