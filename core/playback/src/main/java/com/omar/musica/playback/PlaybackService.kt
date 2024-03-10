@@ -10,10 +10,11 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC
 import androidx.media3.common.C.USAGE_MEDIA
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
-import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ShuffleOrder
+import androidx.media3.exoplayer.source.ShuffleOrder.UnshuffledShuffleOrder
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -24,11 +25,12 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.omar.musica.model.prefs.DEFAULT_JUMP_DURATION_MILLIS
 import com.omar.musica.model.prefs.PlayerSettings
 import com.omar.musica.playback.activity.ListeningAnalytics
+import com.omar.musica.playback.extensions.toDBQueueItem
+import com.omar.musica.playback.extensions.toMediaItem
 import com.omar.musica.playback.timer.SleepTimerManager
 import com.omar.musica.playback.timer.SleepTimerManagerListener
 import com.omar.musica.playback.volume.AudioVolumeChangeListener
 import com.omar.musica.playback.volume.VolumeChangeObserver
-import com.omar.musica.store.QueueItem
 import com.omar.musica.store.QueueRepository
 import com.omar.musica.store.preferences.UserPreferencesRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,6 +56,8 @@ class PlaybackService :
     AudioVolumeChangeListener,
     Player.Listener {
 
+
+    /*------------------------------ Properties ------------------------------*/
     @Inject
     lateinit var userPreferencesRepository: UserPreferencesRepository
 
@@ -63,7 +67,7 @@ class PlaybackService :
     @Inject
     lateinit var listeningAnalytics: ListeningAnalytics
 
-    private lateinit var player: Player
+    private lateinit var player: ExoPlayer
     private lateinit var mediaSession: MediaSession
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -74,10 +78,17 @@ class PlaybackService :
 
     private lateinit var sleepTimerManager: SleepTimerManager
 
+    // We use this queue to restore back the original queue when
+    // shuffle mode is enabled/disabled
+    private var originalQueue: List<MediaItem> = listOf()
+
+    /*------------------------------ Methods ------------------------------*/
+
+
     override fun onCreate() {
         super.onCreate()
 
-        player = buildPlayer()
+        player = buildPlayer().apply { addListener(this@PlaybackService) }
         attachAnalyticsListener()
 
         mediaSession = buildMediaSession()
@@ -161,7 +172,6 @@ class PlaybackService :
             .build()
     }
 
-    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     private fun buildPlayer(): ExoPlayer {
         return ExoPlayer.Builder(applicationContext)
             .setAudioAttributes(
@@ -170,10 +180,19 @@ class PlaybackService :
                 true
             )
             .setHandleAudioBecomingNoisy(true)
-            .setUseLazyPreparation(false)
             .build().apply {
                 repeatMode = Player.REPEAT_MODE_ALL
             }
+    }
+
+
+    /**
+     * Saves the currently playing queue in the database to retrieve it when starting
+     * the application.
+     */
+    private fun saveQueue() {
+        val mediaItems = List(player.mediaItemCount) { player.getMediaItemAt(it) }
+        queueRepository.saveQueueFromDBQueueItems(mediaItems.map { it.toDBQueueItem() })
     }
 
     private fun recoverQueue() {
@@ -181,14 +200,82 @@ class PlaybackService :
             val queue = queueRepository.getQueue()
 
             val (lastSongUri, lastPosition) = restorePosition()
-            val songIndex = queue.indexOfFirst { it.uri.toString() == lastSongUri }
+            val songIndex = queue.indexOfFirst { it.songUri.toString() == lastSongUri }
 
             player.setMediaItems(
-                queue.map { it.toMediaItem() },
+                queue.mapIndexed { index, item -> item.toMediaItem(index) },
                 if (songIndex in queue.indices) songIndex else 0,
                 lastPosition
             )
             player.prepare()
+        }
+    }
+
+
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+    override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+        if (shuffleModeEnabled) {
+            // user enabled shuffle, we have to store the current MediaItems
+
+            val currentMediaItemIndex = player.currentMediaItemIndex
+            val originalMediaItems = List(player.mediaItemCount) { i -> player.getMediaItemAt(i) }
+
+            val shuffledQueue = originalMediaItems.toMutableList()
+                .shuffled()
+                .toMutableList()
+                .apply {
+                    // remove the current playing media item because we will move it
+                    remove(player.getMediaItemAt(currentMediaItemIndex))
+                }
+
+            player.moveMediaItem(currentMediaItemIndex, 0)
+            player.replaceMediaItems(1, Int.MAX_VALUE, shuffledQueue)
+            player.setShuffleOrder(UnshuffledShuffleOrder(player.mediaItemCount))
+
+            originalQueue = originalMediaItems
+        } else {
+
+            // user disabled shuffle mode, now we have to restore the original queue
+            // and try to maintain the original order
+
+            val currentMediaItemIndex = player.currentMediaItemIndex
+            val currentMediaItem = player.getMediaItemAt(currentMediaItemIndex)
+
+            // hashset to determine quickly if a media item was removed when the
+            // user had shuffle enabled
+            val mediaItemsSet = HashSet<MediaItem>()
+            for (i in 0 until player.mediaItemCount) {
+                mediaItemsSet.add(player.getMediaItemAt(i))
+            }
+
+            val songsBeforeCurrentPlaying = mutableListOf<MediaItem>()
+            val songsAfterCurrentPlaying = mutableListOf<MediaItem>()
+
+            var passedCurrentPlaying = false
+            for (i in originalQueue) {
+                if (i == currentMediaItem)
+                    passedCurrentPlaying = true
+                else {
+                    if (i !in mediaItemsSet) continue
+                    if (passedCurrentPlaying)
+                        songsAfterCurrentPlaying.add(i)
+                    else
+                        songsBeforeCurrentPlaying.add(i)
+                }
+            }
+
+            player.replaceMediaItems(0, currentMediaItemIndex, songsBeforeCurrentPlaying)
+            player.replaceMediaItems(player.currentMediaItemIndex + 1, Int.MAX_VALUE, songsAfterCurrentPlaying)
+        }
+    }
+
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+    override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+        if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
+            if (player.shuffleModeEnabled) {
+                player.setShuffleOrder(UnshuffledShuffleOrder(player.mediaItemCount))
+            }
+            saveQueue()
         }
     }
 
@@ -262,10 +349,6 @@ class PlaybackService :
             pausedDueToVolume = false
     }
 
-    override fun onEvents(player: Player, events: Player.Events) {
-
-    }
-
     fun seekForward() {
         val currentPosition = player.currentPosition
         player.seekTo(currentPosition + playerSettings.value.jumpInterval)
@@ -286,7 +369,6 @@ class PlaybackService :
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         scope.cancel()
         runBlocking {
             saveCurrentPosition()
@@ -296,6 +378,7 @@ class PlaybackService :
             release()
         }
         volumeObserver.unregister()
+        super.onDestroy()
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -305,23 +388,6 @@ class PlaybackService :
             stopSelf()
         }
     }
-
-    private fun QueueItem.toMediaItem() =
-        MediaItem.Builder()
-            .setUri(uri.toString())
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                    .setArtist(artist)
-                    .setAlbumTitle(albumTitle)
-                    .setTitle(title)
-                    .build()
-            )
-            .setRequestMetadata(
-                MediaItem.RequestMetadata.Builder().setMediaUri(uri)
-                    .build() // to be able to retrieve the URI easily
-            )
-            .build()
 
 
     companion object {

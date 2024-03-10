@@ -3,10 +3,8 @@ package com.omar.nowplaying.queue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.omar.musica.playback.PlaybackManager
-import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.PlaylistsRepository
-import com.omar.musica.store.QueueRepository
-import com.omar.musica.store.model.song.Song
+import com.omar.musica.store.model.queue.Queue
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -16,22 +14,19 @@ import javax.inject.Inject
 
 @HiltViewModel
 class QueueViewModel @Inject constructor(
-    queueRepository: QueueRepository,
-    mediaRepository: MediaRepository,
     private val playlistsRepository: PlaylistsRepository,
     private val playbackManager: PlaybackManager
 ) : ViewModel() {
 
 
-    val queueScreenState = combine(
-        queueRepository.observeQueueUris(), mediaRepository.songsFlow, playbackManager.state
-    ) { uris, library, playerState ->
-        val songs = library.getSongsByUris(uris)
-        val currentSongIndex = uris.indexOf(playerState.currentPlayingSong?.uri.toString())
-        QueueScreenState.Loaded(songs, currentSongIndex)
-    }.stateIn(
-        viewModelScope, SharingStarted.WhileSubscribed(500, 500), QueueScreenState.Loading
-    )
+    val queueScreenState =
+        combine(playbackManager.queue, playbackManager.state) { queue, playerState ->
+            val currentPlayingIndex = playbackManager.getCurrentSongIndex()
+            val currentSongId = queue.items[currentPlayingIndex].originalIndex
+            QueueScreenState.Loaded(queue, currentPlayingIndex, currentSongId)
+        }.stateIn(
+            viewModelScope, SharingStarted.WhileSubscribed(500, 500), QueueScreenState.Loading
+        )
 
     fun onSongClicked(index: Int) {
         playbackManager.playSongAtIndex(index)
@@ -51,7 +46,7 @@ class QueueViewModel @Inject constructor(
 
     fun onSaveAsPlaylist(name: String) {
         val songs =
-            (queueScreenState.value as QueueScreenState.Loaded).songs.map { it.uri.toString() }
+            (queueScreenState.value as QueueScreenState.Loaded).queue.items.map { it.song.uri.toString() }
         playlistsRepository.createPlaylistAndAddSongs(name, songs)
     }
 }
@@ -60,7 +55,9 @@ class QueueViewModel @Inject constructor(
 sealed interface QueueScreenState {
 
     data class Loaded(
-        val songs: List<Song>, val currentSongIndex: Int
+        val queue: Queue,
+        val currentSongIndex: Int,
+        val currentSongId: Int
     ) : QueueScreenState
 
     data object Loading : QueueScreenState

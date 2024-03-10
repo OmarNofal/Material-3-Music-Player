@@ -147,7 +147,7 @@ internal fun NowPlayingScreen(
 
     Surface(
         modifier = modifier,
-        tonalElevation = if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 4.dp
+        tonalElevation = if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 3.dp
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
 

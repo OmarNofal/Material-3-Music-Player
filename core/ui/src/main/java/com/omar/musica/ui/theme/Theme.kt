@@ -34,27 +34,6 @@ val DarkColorScheme = darkColorScheme(
     tertiary = Pink80
 )
 
-val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-)
-
-val amoledColorScheme = darkColorScheme(
-    surface = Color.Black,
-    background = Color.Black
-)
-
 @SuppressLint("RestrictedApi")
 @Composable
 fun MusicaTheme(
@@ -83,6 +62,7 @@ fun MusicaTheme(
         }
 
         darkTheme -> {
+
             val colorScheme = Scheme.dark(userAccentColor).toDarkComposeColorScheme()
             if (userPreferences.uiSettings.blackBackgroundForDarkTheme)
                 colorScheme.copy(surface = Color.Black, background = Color.Black)

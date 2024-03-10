@@ -1,12 +1,9 @@
 package com.omar.musica.store
 
-import android.content.Context
 import android.net.Uri
 import androidx.core.net.toUri
 import com.omar.musica.database.dao.QueueDao
 import com.omar.musica.database.entities.queue.QueueEntity
-import com.omar.musica.model.song.Song
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -18,51 +15,48 @@ import javax.inject.Singleton
 
 @Singleton
 class QueueRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val queueDao: QueueDao
 ) {
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    suspend fun getQueue(): List<QueueItem> =
-        queueDao.getQueue().map { it.toQueueItem() }
+    suspend fun getQueue(): List<DBQueueItem> =
+        queueDao.getQueue()
+            .map { it.toDBQueueItem() }
 
     fun observeQueueUris(): Flow<List<String>> =
         queueDao.getQueueFlow()
             .map { it.map { queueItem -> queueItem.songUri } }
 
-
-    fun saveQueueFromSongs(songs: List<Song>) {
+    fun saveQueueFromDBQueueItems(songs: List<DBQueueItem>) {
         scope.launch {
             queueDao.changeQueue(songs.map { it.toQueueEntity() })
         }
     }
 
-    fun saveQueueFromQueueItems(songs: List<QueueItem>) {
-        scope.launch {
-            queueDao.changeQueue(songs.distinctBy { it.uri }.map { it.toQueueEntity() })
-        }
-    }
-
-    private fun QueueItem.toQueueEntity() =
+    private fun DBQueueItem.toQueueEntity() =
         QueueEntity(
-            0, this.uri.toString(), title, artist, albumTitle
+            0,
+            songUri.toString(),
+            title,
+            artist,
+            album
         )
 
-    private fun Song.toQueueEntity() =
-        QueueEntity(0, this.uriString, this.title, artist, album)
-
-    private fun QueueEntity.toQueueItem() =
-        QueueItem(
-            uri = this.songUri.toUri(),
-            title, artist, albumTitle
+    private fun QueueEntity.toDBQueueItem(): DBQueueItem {
+        return DBQueueItem(
+            songUri = songUri.toUri(),
+            title = title,
+            artist = artist.orEmpty(),
+            album = albumTitle.orEmpty(),
         )
+    }
 
 }
 
-data class QueueItem(
-    val uri: Uri,
+data class DBQueueItem(
+    val songUri: Uri,
     val title: String,
-    val artist: String?,
-    val albumTitle: String?
+    val artist: String,
+    val album: String
 )

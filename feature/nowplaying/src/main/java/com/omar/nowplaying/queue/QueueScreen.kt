@@ -117,9 +117,10 @@ internal fun QueueScreen(
         modifier = modifier,
         topBar = {
             if (state !is QueueScreenState.Loaded) return@Scaffold
-            val numberOfRemainingSongs = state.songs.size - state.currentSongIndex
-            val durationMillis = state.songs.subList(state.currentSongIndex, state.songs.size)
-                .sumOf { it.metadata.durationMillis }
+            val queueItems = state.queue.items
+            val numberOfRemainingSongs = queueItems.size - state.currentSongIndex
+            val durationMillis = queueItems.subList(state.currentSongIndex, queueItems.size)
+                .sumOf { it.song.metadata.durationMillis }
             QueueTopBar(
                 color = color,
                 numberOfSongsRemaining = numberOfRemainingSongs,
@@ -147,13 +148,13 @@ internal fun QueueScreen(
 
         if (state !is QueueScreenState.Loaded) return@Scaffold
 
-        val reorderableList = remember(state.songs) {
+        val reorderableList = remember(state.queue) {
             ReorderableList(
-                mutableStateOf(state.songs.toMutableList()),
+                mutableStateOf(state.queue.items.toMutableList()),
                 reorderSong
             )
         }
-        val songs by reorderableList.items
+        val queueItems by reorderableList.items
 
         val currentSongIndex = state.currentSongIndex
 
@@ -174,28 +175,32 @@ internal fun QueueScreen(
             state = lazyListState
         ) {
 
-            itemsIndexed(songs, key = { _, item -> item.uri.toString() }) { index, song ->
+            itemsIndexed(queueItems, key = { _, item -> item.originalIndex }) { index, queueItem ->
                 ReorderableItem(
                     reorderableLazyListState = reorderState,
-                    key = song.uri.toString(),
+                    key = queueItem.originalIndex,
                 ) { isDragging ->
 
                     val disabledModifier = Modifier.alpha(0.5f)
-                    val songModifier = if (index > currentSongIndex) Modifier
-                        .fillMaxWidth()
-                    else if (index < currentSongIndex)
-                        Modifier
+
+                    val songModifier =
+                        if (queueItem.originalIndex == state.currentSongId)
+                            Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
+                        else if (index >= currentSongIndex)
+                            Modifier
+                            .fillMaxWidth()
+                        else
+                            Modifier
                             .fillMaxWidth()
                             .then(disabledModifier)
-                    else Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
 
                     QueueSongRow(
                         modifier = songModifier
                             .clickable { onSongClicked(index) }
                             .zIndex(if (isDragging) 2.0f else 0.0f),
-                        songUi = song,
+                        songUi = queueItem.song,
                         swipeToDeleteDelay = 100,
                         this@ReorderableItem,
                         onDragStarted = { reorderableList.onDragStarted(index) },

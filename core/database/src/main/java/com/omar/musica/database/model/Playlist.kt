@@ -14,14 +14,3 @@ data class PlaylistWithSongsUri(
     @Relation(entity = PlaylistsSongsEntity::class, parentColumn = PLAYLIST_ID_COLUMN, entityColumn = PLAYLIST_ID_COLUMN)
     val songUris: List<PlaylistsSongsEntity>
 )
-
-
-//data class PlaylistWithSongsUri(
-//    @Embedded
-//    val playlistEntity: PlaylistEntity,
-//
-//    val songs: List<String>,
-//)
-//
-//typealias PlaylistWithSongsUris =
-//    Pair<PlaylistEntity, List<String>>

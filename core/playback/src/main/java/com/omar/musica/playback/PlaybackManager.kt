@@ -16,11 +16,13 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
 import com.omar.musica.model.playback.PlaybackState
 import com.omar.musica.model.playback.PlayerState
+import com.omar.musica.playback.extensions.EXTRA_SONG_ORIGINAL_INDEX
 import com.omar.musica.playback.state.MediaPlayerState
 import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.PlaylistsRepository
-import com.omar.musica.store.QueueItem
 import com.omar.musica.store.QueueRepository
+import com.omar.musica.store.model.queue.Queue
+import com.omar.musica.store.model.queue.QueueItem
 import com.omar.musica.store.model.song.Song
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -42,7 +44,6 @@ import javax.inject.Singleton
 @Singleton
 class PlaybackManager @Inject constructor(
     @ApplicationContext context: Context,
-    private val queueRepository: QueueRepository,
     private val mediaRepository: MediaRepository,
     private val playlistsRepository: PlaylistsRepository
 ) : PlaylistPlaybackActions {
@@ -58,6 +59,8 @@ class PlaybackManager @Inject constructor(
 
     val state: StateFlow<MediaPlayerState>
         get() = _state
+
+    val queue = MutableStateFlow(Queue.EMPTY)
 
     val currentSongProgress: Float
         get() = mediaController.currentPosition.toFloat() / mediaController.duration.toFloat()
@@ -159,7 +162,7 @@ class PlaybackManager @Inject constructor(
      * Changes the current playlist of the player and starts playing the song at the specified index
      */
     fun setPlaylistAndPlayAtIndex(playlist: List<Song>, index: Int = 0) {
-        val mediaItems = playlist.toMediaItems()
+        val mediaItems = playlist.toMediaItems(0)
         stopPlayback() // release everything
         mediaController.apply {
             setMediaItems(mediaItems, index, 0)
@@ -173,7 +176,7 @@ class PlaybackManager @Inject constructor(
         val shuffled = songs.shuffled()
         stopPlayback()
         mediaController.apply {
-            setMediaItems(shuffled.toMediaItems(), 0, 0)
+            setMediaItems(shuffled.toMediaItems(0), 0, 0)
             prepare()
             play()
         }
@@ -183,19 +186,19 @@ class PlaybackManager @Inject constructor(
         val shuffled = songs.shuffled()
         val currentIndex = mediaController.currentMediaItemIndex
         mediaController.apply {
-            addMediaItems(currentIndex + 1, shuffled.toMediaItems())
+            addMediaItems(currentIndex + 1, shuffled.toMediaItems(getMaximumOriginalId() + 1))
         }
     }
 
     fun playNext(songs: List<Song>) {
-        val mediaItems = songs.toMediaItems()
+        val mediaItems = songs.toMediaItems(getMaximumOriginalId() + 1)
         val currentIndex = mediaController.currentMediaItemIndex
         mediaController.addMediaItems(currentIndex + 1, mediaItems)
         mediaController.prepare()
     }
 
     fun addToQueue(songs: List<Song>) {
-        val mediaItems = songs.toMediaItems()
+        val mediaItems = songs.toMediaItems(getMaximumOriginalId() + 1)
         mediaController.addMediaItems(mediaItems)
         mediaController.prepare()
     }
@@ -245,6 +248,16 @@ class PlaybackManager @Inject constructor(
         }
     }
 
+    fun getMaximumOriginalId(): Int {
+        val count = mediaController.mediaItemCount
+        return (0 until count).maxOf {
+            val mediaItem = mediaController.getMediaItemAt(0)
+            mediaItem.requestMetadata.extras!!.getInt(EXTRA_SONG_ORIGINAL_INDEX)
+        }
+    }
+
+    fun getCurrentSongIndex() = mediaController.currentMediaItemIndex
+
     fun setSleepTimer(minutes: Int, finishLastSong: Boolean) {
         mediaController.sendCustomCommand(
             SessionCommand(Commands.SET_SLEEP_TIMER, bundleOf()),
@@ -284,7 +297,6 @@ class PlaybackManager @Inject constructor(
             mediaController.shuffleModeEnabled,
             getRepeatModeFromPlayer(mediaController.repeatMode)
         )
-
         _state.value = MediaPlayerState(song, playbackState)
     }
 
@@ -306,6 +318,7 @@ class PlaybackManager @Inject constructor(
             {
                 mediaController = mediaControllerFuture.get()
                 updateState()
+                updateQueue()
                 attachListeners()
             },
             MoreExecutors.directExecutor()
@@ -317,13 +330,12 @@ class PlaybackManager @Inject constructor(
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
                 updateState()
                 if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
-                    savePlayerQueue()
+                    updateQueue()
                 }
             }
 
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
                 updateState()
-                savePlayerQueue()
             }
 
             override fun onRepeatModeChanged(repeatMode: Int) {
@@ -351,51 +363,26 @@ class PlaybackManager @Inject constructor(
         })
     }
 
+    private fun updateQueue() {
+        val count = mediaController.mediaItemCount
 
-    private fun savePlayerQueue() {
-        val queue = getQueueFromPlayer()
-        queueRepository.saveQueueFromQueueItems(queue)
-    }
-
-    private fun getQueueFromPlayer(): List<QueueItem> {
-        val count = mediaController.currentTimeline.windowCount
-        var currentWindowIndex =
-            mediaController.currentTimeline.getFirstWindowIndex(mediaController.shuffleModeEnabled)
-        return List(count) { _ ->
-            val window = Timeline.Window()
-            mediaController.currentTimeline.getWindow(currentWindowIndex, window)
-            currentWindowIndex = mediaController.currentTimeline.getNextWindowIndex(
-                currentWindowIndex,
-                mediaController.repeatMode,
-                mediaController.shuffleModeEnabled
-            )
-            val mediaItem = window.mediaItem
-            val metadata = mediaItem.mediaMetadata
+        val songsLibrary = mediaRepository.songsFlow.value
+        val queueItems = (0 until count).mapNotNull { i ->
+            val mediaItem = mediaController.getMediaItemAt(i)
             val requestMetadata = mediaItem.requestMetadata
+            val song = songsLibrary.getSongByUri(requestMetadata.mediaUri.toString())
+                ?: return@mapNotNull null
             QueueItem(
-                requestMetadata.mediaUri!!,
-                metadata.title.toString(),
-                metadata.artist.toString(),
-                metadata.albumTitle.toString()
+                song,
+                requestMetadata.extras?.getInt(EXTRA_SONG_ORIGINAL_INDEX, i) ?: i
             )
         }
 
-        /*val count = mediaController.currentTimeline.windowCount
-            return List(count) { i ->
-
-                val mediaItem = mediaController.getMediaItemAt(i)
-                val metadata = mediaItem.mediaMetadata
-                val requestMetadata = mediaItem.requestMetadata
-                QueueItem(
-                    requestMetadata.mediaUri!!,
-                    metadata.title.toString(),
-                    metadata.artist.toString(),
-                    metadata.albumTitle.toString()
-                )
-            }*/
+        val q = Queue(queueItems)
+        queue.value = q
     }
 
-    private fun Song.toMediaItem() =
+    private fun Song.toMediaItem(index: Int) =
         MediaItem.Builder()
             .setUri(uri)
             .setMediaMetadata(
@@ -408,10 +395,13 @@ class PlaybackManager @Inject constructor(
             )
             .setRequestMetadata(
                 RequestMetadata.Builder().setMediaUri(uri)
+                    .setExtras(bundleOf(EXTRA_SONG_ORIGINAL_INDEX to index))
                     .build() // to be able to retrieve the URI easily
             )
             .build()
 
-    private fun List<Song>.toMediaItems() = map { it.toMediaItem() }
+    private fun List<Song>.toMediaItems(startingIndex: Int) = mapIndexed { index, song ->
+        song.toMediaItem(startingIndex + index)
+    }
 
 }
