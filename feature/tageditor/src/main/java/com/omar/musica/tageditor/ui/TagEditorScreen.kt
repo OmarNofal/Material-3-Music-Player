@@ -210,7 +210,10 @@ fun LoadedLandscapeTagEditorScreen(
         .padding(horizontal = 16.dp)
         .padding(bottom = 6.dp)
 
-    Row(modifier) {
+    Row(
+        modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
 
         // image
         CoverArt(

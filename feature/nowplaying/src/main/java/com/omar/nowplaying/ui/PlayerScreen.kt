@@ -408,34 +408,3 @@ fun PlayerScreenSkeleton(
     }
 }
 
-/*
-@Composable
-fun PlayerScreen(
-    modifier: Modifier,
-    song: SongUi,
-    playbackState: PlayerState,
-    screenSize: NowPlayingScreenSize,
-    nowPlayingActions: INowPlayingViewModel,
-    onOpenQueue: () -> Unit,
-) {
-    if (screenSize == NowPlayingScreenSize.LANDSCAPE)
-        Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-            PlayerScreenSkeleton(
-                song,
-                playbackState,
-                screenSize,
-                nowPlayingActions,
-                onOpenQueue
-            )
-        } else
-        Column(modifier) {
-            PlayerScreenSkeleton(
-                song,
-                playbackState,
-                screenSize,
-                nowPlayingActions,
-                onOpenQueue
-            )
-        }
-}
-*/

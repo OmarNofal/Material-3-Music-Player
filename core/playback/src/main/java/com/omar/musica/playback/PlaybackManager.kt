@@ -162,6 +162,7 @@ class PlaybackManager @Inject constructor(
      * Changes the current playlist of the player and starts playing the song at the specified index
      */
     fun setPlaylistAndPlayAtIndex(playlist: List<Song>, index: Int = 0) {
+        if (playlist.isEmpty()) return
         val mediaItems = playlist.toMediaItems(0)
         stopPlayback() // release everything
         mediaController.apply {
@@ -173,6 +174,7 @@ class PlaybackManager @Inject constructor(
 
     /** Randomize the order of the list of songs and play */
     fun shuffle(songs: List<Song>) {
+        if (songs.isEmpty()) return
         val shuffled = songs.shuffled()
         stopPlayback()
         mediaController.apply {
@@ -191,6 +193,7 @@ class PlaybackManager @Inject constructor(
     }
 
     fun playNext(songs: List<Song>) {
+        if (songs.isEmpty()) return
         val mediaItems = songs.toMediaItems(getMaximumOriginalId() + 1)
         val currentIndex = mediaController.currentMediaItemIndex
         mediaController.addMediaItems(currentIndex + 1, mediaItems)
@@ -233,6 +236,7 @@ class PlaybackManager @Inject constructor(
     override fun shufflePlaylist(playlistId: Int) {
         coroutineScope.launch(Dispatchers.IO) {
             val songs = playlistsRepository.getPlaylistSongs(playlistId)
+            if (songs.isEmpty()) return@launch
             withContext(Dispatchers.Main) {
                 shuffle(songs)
             }

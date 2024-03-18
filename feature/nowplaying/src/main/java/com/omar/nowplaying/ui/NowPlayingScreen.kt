@@ -37,7 +37,6 @@ import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -68,7 +67,6 @@ import com.omar.musica.ui.albumart.toSongAlbumArtModel
 import com.omar.musica.ui.common.LocalUserPreferences
 import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.PlayerThemeUi
-import com.omar.musica.ui.theme.DarkColorScheme
 import com.omar.nowplaying.NowPlayingState
 import com.omar.nowplaying.queue.QueueScreen
 import com.omar.nowplaying.viewmodel.INowPlayingViewModel
@@ -128,8 +126,6 @@ internal fun NowPlayingScreen(
 ) {
 
     val playerTheme = LocalUserPreferences.current.uiSettings.playerThemeUi
-    val shouldUseDynamicColor =
-        LocalUserPreferences.current.uiSettings.isUsingDynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val isDarkTheme = when (LocalUserPreferences.current.uiSettings.theme) {
         AppThemeUi.DARK -> true
         AppThemeUi.LIGHT -> false
@@ -142,24 +138,18 @@ internal fun NowPlayingScreen(
         DarkStatusBarEffect()
 
 
-    // We use another material theme here to force dark theme colors when the player theme is
-    // set to BLUR.
-
     Surface(
         modifier = modifier,
-        tonalElevation = if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 3.dp
+        tonalElevation = if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 3.dp,
     ) {
+
         Box(modifier = Modifier.fillMaxSize()) {
 
             var isShowingQueue by remember {
                 mutableStateOf(false)
             }
-            MaterialTheme(
-                typography = MaterialTheme.typography,
-                colorScheme = if (playerTheme == PlayerThemeUi.BLUR) {
-                    if (shouldUseDynamicColor) dynamicDarkColorScheme(LocalContext.current) else DarkColorScheme
-                } else MaterialTheme.colorScheme
-            ) {
+            NowPlayingMaterialTheme(playerThemeUi = playerTheme) {
+
                 FullScreenNowPlaying(
                     Modifier
                         .fillMaxSize()
@@ -196,7 +186,6 @@ internal fun NowPlayingScreen(
                 nowPlayingActions::nextSong,
                 nowPlayingActions::previousSong
             )
-
         }
     }
 }

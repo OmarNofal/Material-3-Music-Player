@@ -75,8 +75,13 @@ class MediaRepository @Inject constructor(
                         return
                     } else {
                         mediaSyncJob = launch {
-                            send(getAllSongs())
-                            mediaSyncJob = null
+                            try {
+                                send(getAllSongs())
+                            } catch (e: Exception) {
+                                Timber.e(e.message)
+                            } finally {
+                                mediaSyncJob = null
+                            }
                         }
                     }
                 }

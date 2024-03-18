@@ -73,7 +73,7 @@ fun MiniPlayer(
                 .fillMaxHeight()
                 .aspectRatio(1.0f)
                 .scale(0.7f)
-                .shadow(12.dp, shape = RoundedCornerShape(6.dp), clip = true)
+                .shadow(6.dp, shape = RoundedCornerShape(4.dp))
                 .clip(RoundedCornerShape(8.dp)),
             containerModifier = Modifier.padding(start = 8.dp),
             songAlbumArtModel = song.toSongAlbumArtModel(),

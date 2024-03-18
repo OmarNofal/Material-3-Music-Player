@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 
@@ -36,9 +37,17 @@ fun AskPermissionScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(imageVector = Icons.Rounded.LibraryMusic, contentDescription = "Icon", Modifier.size(48.dp))
+        Icon(
+            imageVector = Icons.Rounded.LibraryMusic,
+            contentDescription = "Icon",
+            Modifier.size(48.dp)
+        )
         Spacer(modifier = Modifier.height(12.dp))
-        Text(text = "Permission needed to access your music library", style = MaterialTheme.typography.bodyLarge)
+        Text(
+            text = "Permission needed to access your music library",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
+        )
         Spacer(modifier = Modifier.height(8.dp))
         if (shouldShowRationale)
             Button(onClick = onRequestPermission) {

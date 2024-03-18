@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +26,8 @@ import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
 import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
 import com.omar.musica.ui.albumart.efficientAlbumArtImageLoader
 import com.omar.musica.ui.albumart.inefficientAlbumArtImageLoader
+import com.omar.musica.ui.common.AppColorScheme
+import com.omar.musica.ui.common.LocalAppColorScheme
 import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.UserPreferencesUi
 
@@ -47,34 +50,36 @@ fun MusicaTheme(
     }
 
     val userAccentColor = userPreferences.uiSettings.accentColor
+    val context = LocalContext.current
 
-    val colorScheme: ColorScheme = when {
-        userPreferences.uiSettings.isUsingDynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) {
-                if (userPreferences.uiSettings.blackBackgroundForDarkTheme)
-                    dynamicAmoledTheme(context)
-                else
-                    dynamicDarkColorScheme(context)
-            } else {
-                dynamicLightColorScheme(context)
-            }
+    val lightColorScheme = when {
+        userPreferences.uiSettings.isUsingDynamicColor
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        -> dynamicLightColorScheme(context)
+        else -> Scheme.light(userAccentColor).toLightComposeColorScheme()
+    }
+
+    val darkColorScheme = when {
+        userPreferences.uiSettings.isUsingDynamicColor
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            if (userPreferences.uiSettings.blackBackgroundForDarkTheme)
+                dynamicAmoledTheme(context)
+            else
+                dynamicDarkColorScheme(context)
         }
 
-        darkTheme -> {
-
+        else -> {
             val colorScheme = Scheme.dark(userAccentColor).toDarkComposeColorScheme()
             if (userPreferences.uiSettings.blackBackgroundForDarkTheme)
                 colorScheme.copy(surface = Color.Black, background = Color.Black)
             else
                 colorScheme
         }
-
-        else -> {
-            val colorScheme = Scheme.light(userAccentColor).toLightComposeColorScheme()
-            colorScheme
-        }
     }
+
+    val appThemeColorScheme = AppColorScheme(lightColorScheme, darkColorScheme)
+    val colorScheme = if (darkTheme) darkColorScheme else lightColorScheme
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -100,12 +105,12 @@ fun MusicaTheme(
         windowsInsetsController.isAppearanceLightNavigationBars = !darkTheme
     }
 
-    val context = LocalContext.current
     val efficientImageLoader = remember { context.efficientAlbumArtImageLoader() }
     val inefficientImageLoader = remember { context.inefficientAlbumArtImageLoader() }
     CompositionLocalProvider(
         LocalEfficientThumbnailImageLoader provides efficientImageLoader,
-        LocalInefficientThumbnailImageLoader provides inefficientImageLoader
+        LocalInefficientThumbnailImageLoader provides inefficientImageLoader,
+        LocalAppColorScheme provides appThemeColorScheme
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
@@ -115,13 +120,8 @@ fun MusicaTheme(
     }
 }
 
-private fun dynamicAmoledTheme(context: Context): ColorScheme {
-    val darkColorScheme = dynamicDarkColorScheme(context)
-    return darkColorScheme.copy(background = Color.Black, surface = Color.Black)
-}
-
 @SuppressLint("RestrictedApi")
-private fun Scheme.toLightComposeColorScheme() =
+fun Scheme.toLightComposeColorScheme() =
     lightColorScheme(
         primary = Color(primary),
         primaryContainer = Color(primaryContainer),
@@ -134,11 +134,18 @@ private fun Scheme.toLightComposeColorScheme() =
         onSecondary = Color(onSecondary),
         tertiary = Color(tertiary),
         tertiaryContainer = Color(tertiaryContainer),
-        onTertiary = Color(onTertiaryContainer)
+        onTertiary = Color(onTertiary),
+        onTertiaryContainer = Color(onTertiaryContainer),
+        onPrimaryContainer = Color(onPrimaryContainer),
+        inversePrimary = Color(inversePrimary),
+        onSecondaryContainer = Color(onSecondaryContainer),
+        onSurface = Color(onSurface),
+        onBackground = Color(onBackground),
+        onSurfaceVariant = Color(onSurfaceVariant),
     )
 
 @SuppressLint("RestrictedApi")
-private fun Scheme.toDarkComposeColorScheme() =
+fun Scheme.toDarkComposeColorScheme() =
     darkColorScheme(
         primary = Color(primary),
         primaryContainer = Color(primaryContainer),
@@ -151,5 +158,18 @@ private fun Scheme.toDarkComposeColorScheme() =
         onSecondary = Color(onSecondary),
         tertiary = Color(tertiary),
         tertiaryContainer = Color(tertiaryContainer),
-        onTertiary = Color(onTertiaryContainer)
+        onTertiary = Color(onTertiary),
+        onTertiaryContainer = Color(onTertiaryContainer),
+        onPrimaryContainer = Color(onPrimaryContainer),
+        inversePrimary = Color(inversePrimary),
+        onSecondaryContainer = Color(onSecondaryContainer),
+        onSurface = Color(onSurface),
+        onBackground = Color(onBackground),
+        onSurfaceVariant = Color(onSurfaceVariant),
     )
+
+@RequiresApi(Build.VERSION_CODES.S)
+private fun dynamicAmoledTheme(context: Context): ColorScheme {
+    val darkColorScheme = dynamicDarkColorScheme(context)
+    return darkColorScheme.copy(background = Color.Black, surface = Color.Black)
+}
