@@ -78,6 +78,7 @@ dependencies {
     implementation(project(mapOf("path" to ":feature:settings")))
     implementation(project(mapOf("path" to ":feature:tageditor")))
     api(libs.accompanist.permissions)
+    implementation(project(":feature:albums"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)

@@ -15,4 +15,5 @@ data class SongAlbumArtModel(
     val uri: Uri
 )
 
-fun Song.toSongAlbumArtModel() = SongAlbumArtModel(albumId, uri)
+fun Song?.toSongAlbumArtModel() = if (this == null) SongAlbumArtModel(null, Uri.EMPTY)
+else SongAlbumArtModel(albumId, uri)

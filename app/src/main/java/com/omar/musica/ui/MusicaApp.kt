@@ -38,6 +38,7 @@ import com.omar.musica.playback.PlaybackService
 import com.omar.musica.playlists.navigation.playlistsGraph
 import com.omar.musica.settings.navigation.settingsGraph
 import com.omar.musica.songs.navigation.SONGS_NAVIGATION_GRAPH
+import com.omar.musica.songs.navigation.albumsGraph
 import com.omar.musica.songs.navigation.songsGraph
 import com.omar.musica.state.rememberMusicaAppState
 import com.omar.musica.tageditor.navigation.tagEditorGraph
@@ -50,6 +51,7 @@ val topLevelDestinations =
     listOf(
         TopLevelDestination.SONGS,
         TopLevelDestination.PLAYLISTS,
+        TopLevelDestination.ALBUMS,
         TopLevelDestination.SETTINGS
     )
 
@@ -105,6 +107,15 @@ fun MusicaApp2(
                 playlistsGraph(
                     contentModifier = contentModifier,
                     navController,
+                    enterAnimationFactory = ::getEnterAnimationForRoute,
+                    exitAnimationFactory = ::getExitAnimationForRoute,
+                    popEnterAnimationFactory = ::getPopEnterAnimationForRoute,
+                    popExitAnimationFactory = ::getPopExitAnimationForRoute
+                )
+                albumsGraph(
+                    contentModifier = contentModifier,
+                    navController,
+                    enableBackPress = mutableStateOf(false),
                     enterAnimationFactory = ::getEnterAnimationForRoute,
                     exitAnimationFactory = ::getExitAnimationForRoute,
                     popEnterAnimationFactory = ::getPopEnterAnimationForRoute,

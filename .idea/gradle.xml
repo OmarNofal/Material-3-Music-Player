@@ -33,6 +33,7 @@
             <option value="$PROJECT_DIR$/core/store" />
             <option value="$PROJECT_DIR$/core/ui" />
             <option value="$PROJECT_DIR$/feature" />
+            <option value="$PROJECT_DIR$/feature/albums" />
             <option value="$PROJECT_DIR$/feature/nowplaying" />
             <option value="$PROJECT_DIR$/feature/playlists" />
             <option value="$PROJECT_DIR$/feature/settings" />

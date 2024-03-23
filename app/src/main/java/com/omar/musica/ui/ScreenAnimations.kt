@@ -9,6 +9,7 @@ import androidx.navigation.NavBackStackEntry
 import com.omar.musica.playlists.navigation.PLAYLISTS_ROUTE
 import com.omar.musica.playlists.navigation.PLAYLIST_DETAILS_ROUTE
 import com.omar.musica.settings.navigation.SETTINGS_ROUTE
+import com.omar.musica.songs.navigation.ALBUMS_ROUTE
 import com.omar.musica.songs.navigation.SEARCH_ROUTE
 import com.omar.musica.songs.navigation.SONGS_ROUTE
 import com.omar.musica.tageditor.navigation.TAG_EDITOR_SCREEN
@@ -38,6 +39,9 @@ fun getEnterAnimationForRoute(
             initialRoute?.startsWith(SEARCH_ROUTE) == true -> fadeIn()
             else -> POP_SCREEN_ENTER_ANIMATION
         }
+
+    if (route == ALBUMS_ROUTE)
+        return OPEN_SCREEN_ENTER_ANIMATION
 
     if (route == PLAYLIST_DETAILS_ROUTE)
         return OPEN_SCREEN_ENTER_ANIMATION
@@ -70,6 +74,9 @@ fun getExitAnimationForRoute(
             destinationRoute?.contains(SEARCH_ROUTE) == true -> fadeOut()
             else -> OPEN_SCREEN_EXIT_ANIMATION
         }
+
+    if (route == ALBUMS_ROUTE)
+        return OPEN_SCREEN_EXIT_ANIMATION
 
     if (route == PLAYLIST_DETAILS_ROUTE)
         return OPEN_SCREEN_EXIT_ANIMATION
@@ -104,6 +111,9 @@ fun getPopEnterAnimationForRoute(
             else -> OPEN_SCREEN_ENTER_ANIMATION
         }
 
+    if (route == ALBUMS_ROUTE)
+        return POP_SCREEN_ENTER_ANIMATION
+
     if (route == PLAYLIST_DETAILS_ROUTE)
         return POP_SCREEN_ENTER_ANIMATION
 
@@ -136,6 +146,10 @@ fun getPopExitAnimationForRoute(
             destinationRoute?.contains(SEARCH_ROUTE) == true -> fadeOut()
             else -> OPEN_SCREEN_EXIT_ANIMATION
         }
+
+
+    if (route == ALBUMS_ROUTE)
+        return POP_SCREEN_EXIT_ANIMATION
 
     if (route == PLAYLIST_DETAILS_ROUTE)
         return POP_SCREEN_EXIT_ANIMATION
