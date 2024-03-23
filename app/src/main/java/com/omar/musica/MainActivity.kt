@@ -103,7 +103,8 @@ class MainActivity : ComponentActivity() {
                     rememberPermissionState(permission = permissionName)
 
                 LaunchedEffect(key1 = storagePermissionState.status.isGranted) {
-                    mediaRepository.onPermissionAccepted()
+                    if (storagePermissionState.status.isGranted)
+                        mediaRepository.onPermissionAccepted()
                 }
 
                 CompositionLocalProvider(

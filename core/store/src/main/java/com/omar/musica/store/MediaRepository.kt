@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import com.omar.musica.model.song.BasicSongMetadata
+import com.omar.musica.store.MediaRepository.PermissionListener
 import com.omar.musica.store.model.song.Song
 import com.omar.musica.store.model.song.SongLibrary
 import com.omar.musica.store.preferences.UserPreferencesRepository
@@ -18,6 +19,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -49,7 +51,6 @@ class MediaRepository @Inject constructor(
 
     private var mediaSyncJob: Job? = null
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
-
 
 
     private lateinit var permissionListener: PermissionListener
@@ -88,14 +89,12 @@ class MediaRepository @Inject constructor(
             }
 
             permissionListener = PermissionListener {
-                if (mediaSyncJob?.isActive == true) {
-                    return@PermissionListener
-                } else {
-                    mediaSyncJob = launch {
-                        send(getAllSongs())
-                        mediaSyncJob = null
-                    }
+
+                mediaSyncJob = launch {
+                    send(getAllSongs())
+                    mediaSyncJob = null
                 }
+
             }
 
             context.contentResolver.registerContentObserver(
@@ -106,7 +105,15 @@ class MediaRepository @Inject constructor(
 
             // Initial Sync
             mediaSyncJob = launch {
-                send(getAllSongs())
+                mediaSyncJob = launch {
+                    try {
+                        send(getAllSongs())
+                    } catch (e: Exception) {
+                        Timber.e(e.message)
+                    } finally {
+                        mediaSyncJob = null
+                    }
+                }
             }
 
             awaitClose {
