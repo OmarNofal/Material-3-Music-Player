@@ -39,9 +39,9 @@ import com.omar.musica.ui.common.MultiSelectState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SelectionTopAppBarScaffold(
+fun <T> SelectionTopAppBarScaffold(
     modifier: Modifier,
-    multiSelectState: MultiSelectState,
+    multiSelectState: MultiSelectState<T>,
     isMultiSelectEnabled: Boolean,
     actionItems: List<MenuActionItem>,
     numberOfVisibleIcons: Int,

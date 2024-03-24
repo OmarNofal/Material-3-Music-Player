@@ -10,7 +10,8 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.omar.musica.database.dao.BlacklistedFoldersDao
 import com.omar.musica.database.entities.prefs.BlacklistedFolderEntity
-import com.omar.musica.model.SortOption
+import com.omar.musica.model.AlbumsSortOption
+import com.omar.musica.model.SongSortOption
 import com.omar.musica.model.prefs.AppTheme
 import com.omar.musica.model.prefs.DEFAULT_ACCENT_COLOR
 import com.omar.musica.model.prefs.DEFAULT_JUMP_DURATION_MILLIS
@@ -73,9 +74,21 @@ class UserPreferencesRepository @Inject constructor(
         return songUri to songPosition
     }
 
-    suspend fun changeLibrarySortOrder(sortOption: SortOption, isAscending: Boolean) {
+    suspend fun changeLibrarySortOrder(songSortOption: SongSortOption, isAscending: Boolean) {
         context.datastore.edit {
-            it[SORT_ORDER_KEY] = "${sortOption}:$isAscending"
+            it[SONGS_SORT_ORDER_KEY] = "${songSortOption}:$isAscending"
+        }
+    }
+
+    suspend fun changeAlbumsSortOrder(order: AlbumsSortOption, isAscending: Boolean) {
+        context.datastore.edit {
+            it[ALBUMS_SORT_ORDER_KEY] = "${order}:$isAscending"
+        }
+    }
+
+    suspend fun changeAlbumsGridSize(size: Int) {
+        context.datastore.edit {
+            it[ALBUMS_GRID_SIZE_KEY] = size
         }
     }
 
@@ -172,12 +185,22 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     private fun Preferences.getLibrarySettings(excludedFolders: List<String>): LibrarySettings {
-        val sortOptionParts = this[SORT_ORDER_KEY]?.split(":")
-        val songsSortOrder = if (sortOptionParts == null)
-            SortOption.TITLE to true else SortOption.valueOf(sortOptionParts[0]) to sortOptionParts[1].toBoolean()
+        val songSortOptionsParts = this[SONGS_SORT_ORDER_KEY]?.split(":")
+        val albumsSortOptionsParts = this[ALBUMS_SORT_ORDER_KEY]?.split(":")
+
+        val albumsGridSize = this[ALBUMS_GRID_SIZE_KEY] ?: 2
+
+        val songsSortOrder = if (songSortOptionsParts == null)
+            SongSortOption.TITLE to true else SongSortOption.valueOf(songSortOptionsParts[0]) to songSortOptionsParts[1].toBoolean()
+
+        val albumsSortOrder = if (albumsSortOptionsParts == null)
+            AlbumsSortOption.NAME to true else AlbumsSortOption.valueOf(albumsSortOptionsParts[0]) to albumsSortOptionsParts[1].toBoolean()
+
+
         val cacheAlbumCoverArt = this[CACHE_ALBUM_COVER_ART_KEY] ?: true
+
         return LibrarySettings(
-            songsSortOrder, cacheAlbumCoverArt, excludedFolders
+            songsSortOrder, albumsSortOrder, albumsGridSize, cacheAlbumCoverArt, excludedFolders
         )
     }
 
@@ -191,7 +214,8 @@ class UserPreferencesRepository @Inject constructor(
     )
 
     companion object {
-        val SORT_ORDER_KEY = stringPreferencesKey("SORT")
+        val SONGS_SORT_ORDER_KEY = stringPreferencesKey("SONGS_SORT")
+        val ALBUMS_SORT_ORDER_KEY = stringPreferencesKey("ALBUMS_SORT")
         val THEME_KEY = stringPreferencesKey("THEME")
         val DYNAMIC_COLOR_KEY = booleanPreferencesKey("DYNAMIC_COLOR")
         val PLAYER_THEME_KEY = stringPreferencesKey("PLAYER_THEME")
@@ -205,6 +229,7 @@ class UserPreferencesRepository @Inject constructor(
         val RESUME_IF_VOLUME_INCREASED = booleanPreferencesKey("RESUME_IF_VOLUME_INCREASED")
         val ACCENT_COLOR_KEY = intPreferencesKey("ACCENT_COLOR")
         val MINI_PLAYER_EXTRA_CONTROLS = booleanPreferencesKey("MINI_PLAYER_EXTRA_CONTROLS")
+        val ALBUMS_GRID_SIZE_KEY = intPreferencesKey("ALBUMS_GRID_SIZE")
     }
 
 }

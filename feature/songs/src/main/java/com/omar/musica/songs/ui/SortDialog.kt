@@ -22,15 +22,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.omar.musica.model.SortOption
+import com.omar.musica.model.SongSortOption
 
 
 @Composable
 fun SortChip(
     modifier: Modifier,
-    sortOptions: List<SortOption>,
-    onSortOptionSelected: (SortOption, ascending: Boolean) -> Unit,
-    currentSortOption: SortOption,
+    songSortOptions: List<SongSortOption>,
+    onSortOptionSelected: (SongSortOption, ascending: Boolean) -> Unit,
+    currentSongSortOption: SongSortOption,
     isAscending: Boolean = true,
 ) {
 
@@ -39,7 +39,7 @@ fun SortChip(
 
     if (isDialogShown)
         SortOptionsDialog(
-            sortOptions = sortOptions,
+            songSortOptions = songSortOptions,
             onDismissRequest = { isDialogShown = false },
             onSelected = { sortOption, asc ->
                 isDialogShown = false; onSortOptionSelected(sortOption, asc)
@@ -52,7 +52,7 @@ fun SortChip(
         onClick = { isDialogShown = !isDialogShown },
         label = {
             val ascendingText = if (isAscending) "Ascending" else "Descending"
-            Text(text = "${currentSortOption.getString()} - $ascendingText")
+            Text(text = "${currentSongSortOption.getString()} - $ascendingText")
         },
         icon = { Icon(Icons.Rounded.Sort, contentDescription = null) })
 
@@ -61,9 +61,9 @@ fun SortChip(
 
 @Composable
 fun SortOptionsDialog(
-    sortOptions: List<SortOption>,
+    songSortOptions: List<SongSortOption>,
     onDismissRequest: () -> Unit,
-    onSelected: (SortOption, ascending: Boolean) -> Unit,
+    onSelected: (SongSortOption, ascending: Boolean) -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -77,16 +77,16 @@ fun SortOptionsDialog(
         text = {
             LazyColumn(Modifier.fillMaxWidth()) {
 
-                sortOptions.forEach { sortOption: SortOption ->
+                songSortOptions.forEach { songSortOption: SongSortOption ->
 
                     item {
                         Text(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(4.dp))
-                                .clickable { onSelected(sortOption, true) }
+                                .clickable { onSelected(songSortOption, true) }
                                 .padding(12.dp),
-                            text = sortOption.getString() + " Ascending",
+                            text = songSortOption.getString() + " Ascending",
                             fontWeight = FontWeight.Normal
                         )
                     }
@@ -95,9 +95,9 @@ fun SortOptionsDialog(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(8.dp))
-                                .clickable { onSelected(sortOption, false) }
+                                .clickable { onSelected(songSortOption, false) }
                                 .padding(12.dp),
-                            text = sortOption.getString() + " Descending",
+                            text = songSortOption.getString() + " Descending",
                             fontWeight = FontWeight.Normal
                         )
                     }
@@ -109,10 +109,10 @@ fun SortOptionsDialog(
 }
 
 
-fun SortOption.getString() = when (this) {
-    SortOption.TITLE -> "Title"
-    SortOption.ALBUM -> "Album"
-    SortOption.ARTIST -> "Artist"
-    SortOption.FileSize -> "File Size"
-    SortOption.Duration -> "Duration"
+fun SongSortOption.getString() = when (this) {
+    SongSortOption.TITLE -> "Title"
+    SongSortOption.ALBUM -> "Album"
+    SongSortOption.ARTIST -> "Artist"
+    SongSortOption.FileSize -> "File Size"
+    SongSortOption.Duration -> "Duration"
 }

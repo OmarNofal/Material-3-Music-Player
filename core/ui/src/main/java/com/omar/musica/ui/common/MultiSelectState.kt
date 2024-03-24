@@ -1,20 +1,19 @@
 package com.omar.musica.ui.common
 
 import androidx.compose.runtime.mutableStateListOf
-import com.omar.musica.store.model.song.Song
 
-data class MultiSelectState(
-    val selected: MutableList<Song> = mutableStateListOf()
+data class MultiSelectState<T>(
+    val selected: MutableList<T> = mutableStateListOf()
 ) {
-    private fun selectSong(songUi: Song) {
-        selected.add(songUi)
+    private fun select(item: T) {
+        selected.add(item)
     }
 
-    fun toggleSong(songUi: Song) {
-        if (selected.contains(songUi)) {
-            deselectSong(songUi)
+    fun toggle(item: T) {
+        if (selected.contains(item)) {
+            deselect(item)
         } else {
-            selectSong(songUi)
+            select(item)
         }
     }
 
@@ -22,7 +21,7 @@ data class MultiSelectState(
         selected.clear()
     }
 
-    private fun deselectSong(songUi: Song) {
-        selected.remove(songUi)
+    private fun deselect(item: T) {
+        selected.remove(item)
     }
 }

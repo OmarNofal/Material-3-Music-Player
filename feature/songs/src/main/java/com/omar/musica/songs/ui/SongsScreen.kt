@@ -31,7 +31,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.omar.musica.model.SortOption
+import com.omar.musica.model.SongSortOption
 import com.omar.musica.songs.SongsScreenUiState
 import com.omar.musica.songs.viewmodel.SongsViewModel
 import com.omar.musica.store.model.song.Song
@@ -68,7 +68,7 @@ internal fun SongsScreen(
     uiState: SongsScreenUiState,
     onSongClicked: (Song, Int) -> Unit,
     onSearchClicked: () -> Unit,
-    onSortOptionChanged: (SortOption, isAscending: Boolean) -> Unit
+    onSortOptionChanged: (SongSortOption, isAscending: Boolean) -> Unit
 ) {
 
     val context = LocalContext.current
@@ -77,7 +77,7 @@ internal fun SongsScreen(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     val multiSelectState = remember {
-        MultiSelectState()
+        MultiSelectState<Song>()
     }
 
     val multiSelectEnabled by remember {
@@ -150,9 +150,9 @@ internal fun SongsScreen(
                 AnimatedVisibility(visible = !multiSelectEnabled) {
                     SortChip(
                         modifier = Modifier.padding(top = 8.dp, start = 12.dp, bottom = 4.dp),
-                        sortOptions = SortOption.entries,
+                        songSortOptions = SongSortOption.entries,
                         onSortOptionSelected = onSortOptionChanged,
-                        currentSortOption = uiState.sortOption,
+                        currentSongSortOption = uiState.songSortOption,
                         isAscending = uiState.isSortedAscendingly
                     )
                 }

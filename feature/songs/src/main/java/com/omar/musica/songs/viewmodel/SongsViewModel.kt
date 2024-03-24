@@ -2,7 +2,7 @@ package com.omar.musica.songs.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.omar.musica.model.SortOption
+import com.omar.musica.model.SongSortOption
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.songs.SongsScreenUiState
 import com.omar.musica.store.MediaRepository
@@ -63,9 +63,9 @@ class SongsViewModel @Inject constructor(
     /**
      * User changed the sorting order of the songs screen
      */
-    fun onSortOptionChanged(sortOption: SortOption, isAscending: Boolean) {
+    fun onSortOptionChanged(songSortOption: SongSortOption, isAscending: Boolean) {
         viewModelScope.launch {
-            userPreferencesRepository.changeLibrarySortOrder(sortOption, isAscending)
+            userPreferencesRepository.changeLibrarySortOrder(songSortOption, isAscending)
         }
     }
 
@@ -79,23 +79,23 @@ class SongsViewModel @Inject constructor(
         mediaRepository.deleteSong(songs[0])
     }
 
-    private fun List<Song>.sortedByOptionAscending(sortOption: SortOption): List<Song> =
-        when (sortOption) {
-            SortOption.TITLE -> this.sortedBy { it.metadata.title.lowercase() }
-            SortOption.ARTIST -> this.sortedBy { it.metadata.artistName?.lowercase() }
-            SortOption.FileSize -> this.sortedBy { it.metadata.sizeBytes }
-            SortOption.ALBUM -> this.sortedBy { it.metadata.albumName }
-            SortOption.Duration -> this.sortedBy { it.metadata.durationMillis }
+    private fun List<Song>.sortedByOptionAscending(songSortOption: SongSortOption): List<Song> =
+        when (songSortOption) {
+            SongSortOption.TITLE -> this.sortedBy { it.metadata.title.lowercase() }
+            SongSortOption.ARTIST -> this.sortedBy { it.metadata.artistName?.lowercase() }
+            SongSortOption.FileSize -> this.sortedBy { it.metadata.sizeBytes }
+            SongSortOption.ALBUM -> this.sortedBy { it.metadata.albumName }
+            SongSortOption.Duration -> this.sortedBy { it.metadata.durationMillis }
         }
 
 
-    private fun List<Song>.sortedByOptionDescending(sortOption: SortOption): List<Song> =
-        when (sortOption) {
-            SortOption.TITLE -> this.sortedByDescending { it.metadata.title.lowercase() }
-            SortOption.ARTIST -> this.sortedByDescending { it.metadata.artistName?.lowercase() }
-            SortOption.FileSize -> this.sortedByDescending { it.metadata.sizeBytes }
-            SortOption.ALBUM -> this.sortedByDescending { it.metadata.albumName }
-            SortOption.Duration -> this.sortedByDescending { it.metadata.durationMillis }
+    private fun List<Song>.sortedByOptionDescending(songSortOption: SongSortOption): List<Song> =
+        when (songSortOption) {
+            SongSortOption.TITLE -> this.sortedByDescending { it.metadata.title.lowercase() }
+            SongSortOption.ARTIST -> this.sortedByDescending { it.metadata.artistName?.lowercase() }
+            SongSortOption.FileSize -> this.sortedByDescending { it.metadata.sizeBytes }
+            SongSortOption.ALBUM -> this.sortedByDescending { it.metadata.albumName }
+            SongSortOption.Duration -> this.sortedByDescending { it.metadata.durationMillis }
         }
 
 

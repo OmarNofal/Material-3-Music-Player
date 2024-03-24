@@ -18,7 +18,7 @@ import com.omar.musica.ui.menu.MenuActionItem
 @OptIn(ExperimentalFoundationApi::class)
 fun LazyListScope.selectableSongsList(
     songs: List<Song>,
-    multiSelectState: MultiSelectState,
+    multiSelectState: MultiSelectState<Song>,
     multiSelectEnabled: Boolean,
     animateItemPlacement: Boolean = true,
     menuActionsBuilder: (Song) -> List<MenuActionItem>?,
@@ -44,11 +44,11 @@ fun LazyListScope.selectableSongsList(
                 .fillMaxWidth()
                 .combinedClickable(
                     onLongClick = {
-                        multiSelectState.toggleSong(song)
+                        multiSelectState.toggle(song)
                     }
                 ) {
                     if (multiSelectEnabled)
-                        multiSelectState.toggleSong(song)
+                        multiSelectState.toggle(song)
                     else
                         onSongClicked(song, index)
                 },

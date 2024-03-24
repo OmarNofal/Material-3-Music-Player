@@ -152,7 +152,7 @@ internal fun PlaylistDetailScreen(
     }
 
     val multiSelectState = remember {
-        MultiSelectState()
+        MultiSelectState<Song>()
     }
 
     val multiSelectEnabled by remember {

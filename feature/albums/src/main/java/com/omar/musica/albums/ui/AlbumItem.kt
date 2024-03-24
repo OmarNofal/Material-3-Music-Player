@@ -1,5 +1,6 @@
 package com.omar.musica.albums.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -10,6 +11,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,11 +30,13 @@ import com.omar.musica.ui.albumart.toSongAlbumArtModel
 @Composable
 fun AlbumRow(
     modifier: Modifier,
-    album: BasicAlbum
+    album: BasicAlbum,
+    isSelected: Boolean = false,
 ) {
 
     Row(
-        modifier = modifier.height(IntrinsicSize.Min),
+        modifier = modifier
+            .height(IntrinsicSize.Min),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -67,6 +73,10 @@ fun AlbumRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+        }
+
+        if (isSelected) {
+            Icon(imageVector = Icons.Rounded.CheckCircle, contentDescription = "Selected")
         }
     }
 

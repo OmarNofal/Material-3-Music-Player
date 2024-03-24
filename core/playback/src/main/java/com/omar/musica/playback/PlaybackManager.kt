@@ -255,7 +255,7 @@ class PlaybackManager @Inject constructor(
     fun getMaximumOriginalId(): Int {
         val count = mediaController.mediaItemCount
         return (0 until count).maxOf {
-            val mediaItem = mediaController.getMediaItemAt(0)
+            val mediaItem = mediaController.getMediaItemAt(it)
             mediaItem.requestMetadata.extras!!.getInt(EXTRA_SONG_ORIGINAL_INDEX)
         }
     }

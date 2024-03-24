@@ -101,7 +101,7 @@ internal fun SearchScreen(
 
     val context = LocalContext.current
 
-    val multiSelectState = remember { MultiSelectState() }
+    val multiSelectState = remember { MultiSelectState<Song>() }
 
     val multiSelectEnabled by remember {
         derivedStateOf { multiSelectState.selected.size > 0 }
