@@ -37,6 +37,7 @@ import com.omar.musica.navigation.navigateToTopLevelDestination
 import com.omar.musica.playback.PlaybackService
 import com.omar.musica.playlists.navigation.playlistsGraph
 import com.omar.musica.settings.navigation.settingsGraph
+import com.omar.musica.songs.navigation.ALBUMS_NAVIGATION_GRAPH
 import com.omar.musica.songs.navigation.SONGS_NAVIGATION_GRAPH
 import com.omar.musica.songs.navigation.albumsGraph
 import com.omar.musica.songs.navigation.songsGraph
@@ -93,7 +94,7 @@ fun MusicaApp2(
             NavHost(
                 modifier = navHostModifier,
                 navController = appState.navHostController,
-                startDestination = SONGS_NAVIGATION_GRAPH
+                startDestination = ALBUMS_NAVIGATION_GRAPH
             ) {
                 songsGraph(
                     contentModifier = contentModifier,

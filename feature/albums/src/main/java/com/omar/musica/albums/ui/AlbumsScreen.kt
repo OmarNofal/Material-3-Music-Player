@@ -32,12 +32,18 @@ import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
 @Composable
 fun AlbumsScreen(
     modifier: Modifier,
+    onAlbumClicked: (name: String, artist: String) -> Unit,
     viewModel: AlbumsViewModel = hiltViewModel()
 ) {
 
     val state by viewModel.state.collectAsState()
 
-    AlbumsScreen(modifier = modifier, state = state, actions = viewModel)
+    AlbumsScreen(
+        modifier = modifier,
+        state = state,
+        actions = viewModel,
+        onNavigateToAlbum = onAlbumClicked,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,7 +51,8 @@ fun AlbumsScreen(
 fun AlbumsScreen(
     modifier: Modifier,
     state: AlbumsScreenState,
-    actions: AlbumsScreenActions
+    actions: AlbumsScreenActions,
+    onNavigateToAlbum: (name: String, artist: String) -> Unit
 ) {
 
     val albums = state.albums
@@ -124,6 +131,7 @@ fun AlbumsScreen(
                         onAlbumClicked = {
                             if (multiSelectEnabled) multiSelectState.toggle(it)
                             else {
+                                onNavigateToAlbum(it.albumInfo.name, it.albumInfo.artist)
                             }
                         },
                         onAlbumLongClicked = {
@@ -144,6 +152,7 @@ fun AlbumsScreen(
                         onAlbumClicked = {
                             if (multiSelectEnabled) multiSelectState.toggle(it)
                             else {
+                                onNavigateToAlbum(it.albumInfo.name, it.albumInfo.artist)
                             }
                         },
                         onAlbumLongClicked = {

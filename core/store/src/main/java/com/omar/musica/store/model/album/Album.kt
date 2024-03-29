@@ -12,3 +12,8 @@ data class BasicAlbum(
      */
     val firstSong: Song? = null
 )
+
+data class AlbumWithSongs(
+    val albumInfo: BasicAlbumInfo,
+    val songs: List<AlbumSong>
+)
