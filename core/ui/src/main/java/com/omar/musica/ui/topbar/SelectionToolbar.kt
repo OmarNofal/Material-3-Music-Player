@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.omar.musica.ui.menu.MenuActionItem
@@ -122,13 +123,14 @@ fun SelectionToolbar(
 fun OverflowMenu(
     actionItems: List<MenuActionItem>,
     showIcons: Boolean = true,
+    icon: ImageVector = Icons.Rounded.MoreVert,
     contentPaddingValues: PaddingValues = PaddingValues(horizontal = 16.dp , vertical = 4.dp)
 ) {
     var visible by remember { mutableStateOf(false) }
     Box {
 
         IconButton(onClick = { visible = !visible }) {
-            Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = null)
+            Icon(imageVector = icon, contentDescription = null)
         }
 
         DropdownMenu(

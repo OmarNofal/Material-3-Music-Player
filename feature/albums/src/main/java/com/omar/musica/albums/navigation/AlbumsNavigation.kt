@@ -14,8 +14,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import com.omar.musica.albums.ui.AlbumDetailsScreen
-import com.omar.musica.albums.ui.AlbumsScreen
+import com.omar.musica.albums.ui.albumdetail.AlbumDetailsScreen
+import com.omar.musica.albums.ui.albumsscreen.AlbumsScreen
 import com.omar.musica.albums.viewmodel.AlbumDetailsViewModel
 
 
@@ -93,7 +93,11 @@ fun NavGraphBuilder.albumsGraph(
             )
         )
         {
-            AlbumDetailsScreen(modifier = contentModifier.value)
+            AlbumDetailsScreen(
+                modifier = contentModifier.value,
+                onBackClicked = { navController.popBackStack() },
+                onNavigateToAlbum = { album, artist -> navController.navigateToAlbumDetail(album, artist) }
+            )
         }
     }
 

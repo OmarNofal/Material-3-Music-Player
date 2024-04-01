@@ -152,7 +152,8 @@ class MediaRepository @Inject constructor(
                 MediaStore.Audio.Media.DURATION,
                 MediaStore.Audio.Media.SIZE,
                 MediaStore.Audio.Media.ALBUM,
-                MediaStore.Audio.Media.ALBUM_ID
+                MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media.TRACK
             )
 
         with(context) {
@@ -175,6 +176,7 @@ class MediaRepository @Inject constructor(
                     val pathColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
                     val albumColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
                     val albumIdColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
+                    val trackNumberColumn = cursor.getColumnIndex(MediaStore.Audio.Media.TRACK)
 
                     val fileUri = ContentUris.withAppendedId(
                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -186,7 +188,8 @@ class MediaRepository @Inject constructor(
                         artistName = c.getString(artistColumn) ?: "<unknown>",
                         albumName = c.getString(albumColumn) ?: "<unknown>",
                         durationMillis = c.getLong(durationColumn),
-                        sizeBytes = c.getLong(sizeColumn)
+                        sizeBytes = c.getLong(sizeColumn),
+                        trackNumber = c.getInt(trackNumberColumn) % 1000
                     )
 
                     try {

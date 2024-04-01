@@ -28,6 +28,7 @@ import com.omar.musica.ui.albumart.efficientAlbumArtImageLoader
 import com.omar.musica.ui.albumart.inefficientAlbumArtImageLoader
 import com.omar.musica.ui.common.AppColorScheme
 import com.omar.musica.ui.common.LocalAppColorScheme
+import com.omar.musica.ui.common.LocalUserPreferences
 import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.UserPreferencesUi
 
@@ -172,4 +173,13 @@ fun Scheme.toDarkComposeColorScheme() =
 private fun dynamicAmoledTheme(context: Context): ColorScheme {
     val darkColorScheme = dynamicDarkColorScheme(context)
     return darkColorScheme.copy(background = Color.Black, surface = Color.Black)
+}
+
+@Composable
+fun isAppInDarkTheme(): Boolean {
+    return when(LocalUserPreferences.current.uiSettings.theme) {
+        AppThemeUi.DARK -> true
+        AppThemeUi.LIGHT -> false
+        AppThemeUi.SYSTEM -> isSystemInDarkTheme()
+    }
 }

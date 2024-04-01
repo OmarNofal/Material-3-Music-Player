@@ -1,4 +1,4 @@
-package com.omar.musica.albums.ui
+package com.omar.musica.albums.ui.albumsscreen
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent

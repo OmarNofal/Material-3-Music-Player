@@ -1,4 +1,4 @@
-package com.omar.musica.albums.ui
+package com.omar.musica.albums.ui.albumsscreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

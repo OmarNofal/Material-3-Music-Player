@@ -9,7 +9,8 @@ data class BasicSongMetadata(
     val artistName: String?,
     val albumName: String?,
     val durationMillis: Long,
-    val sizeBytes: Long
+    val sizeBytes: Long,
+    val trackNumber: Int? = null
 )
 
 /**

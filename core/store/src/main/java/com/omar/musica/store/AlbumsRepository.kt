@@ -78,7 +78,12 @@ class AlbumsRepository @Inject constructor(
                         albumSongs.first().metadata.artistName ?: "<unknown>",
                         albumSongs.size
                     ),
-                    albumSongs.map { s -> AlbumSong(s, 0) } // we will get track number in later update
+                    albumSongs.map { s ->
+                        AlbumSong(
+                            s,
+                            s.metadata.trackNumber
+                        )
+                    }.sortedBy { it.trackNumber } // we will get track number in later update
                 )
             }
         }
