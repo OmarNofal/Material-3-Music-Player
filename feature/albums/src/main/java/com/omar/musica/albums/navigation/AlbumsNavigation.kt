@@ -14,9 +14,12 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
+import com.omar.musica.albums.navigation.encodeToBase64
 import com.omar.musica.albums.ui.albumdetail.AlbumDetailsScreen
 import com.omar.musica.albums.ui.albumsscreen.AlbumsScreen
 import com.omar.musica.albums.viewmodel.AlbumDetailsViewModel
+import java.net.URLEncoder
+import java.util.Base64
 
 
 const val ALBUMS_NAVIGATION_GRAPH = "albums_graph"
@@ -29,8 +32,8 @@ fun NavController.navigateToAlbums(navOptions: NavOptions? = null) {
 }
 
 fun NavController.navigateToAlbumDetail(albumName: String, artistName: String, navOptions: NavOptions? = null) {
-    val encodedAlbum = Uri.encode(albumName)
-    val encodedArtist = Uri.encode(artistName)
+    val encodedAlbum = albumName.encodeToBase64()
+    val encodedArtist = artistName.encodeToBase64()
     navigate("album/${encodedAlbum}/${encodedArtist}", navOptions)
 }
 

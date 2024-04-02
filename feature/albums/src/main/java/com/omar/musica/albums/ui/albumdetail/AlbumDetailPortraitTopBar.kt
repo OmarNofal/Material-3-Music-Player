@@ -64,7 +64,7 @@ fun AlbumDetailPortraitTopBar(
                     alpha = collapsePercentage
                 },
                 text = name,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         },

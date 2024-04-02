@@ -3,7 +3,6 @@ package com.omar.musica.albums.ui.albumdetail
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreHoriz
@@ -36,7 +35,9 @@ fun AlbumSongRow(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
 
-        val trackString = number?.toString() ?: "-"
+        val trackString =
+            if (number != null && number != 0)
+                number.toString() else "-"
         Text(
             modifier = Modifier.width(30.dp),
             textAlign = TextAlign.Center,

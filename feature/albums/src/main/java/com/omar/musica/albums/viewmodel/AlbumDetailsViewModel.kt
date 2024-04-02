@@ -1,9 +1,9 @@
 package com.omar.musica.albums.viewmodel
 
-import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.omar.musica.albums.navigation.decodeFromBase64
 import com.omar.musica.albums.ui.albumdetail.AlbumDetailActions
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.AlbumsRepository
@@ -24,8 +24,8 @@ class AlbumDetailsViewModel @Inject constructor(
     private val playbackManager: PlaybackManager
 ) : ViewModel(), AlbumDetailActions {
 
-    private val albumName = Uri.decode(savedStateHandle.get<String>(ALBUM_NAME_KEY)!!)
-    private val artistName = Uri.decode(savedStateHandle.get<String>(ARTIST_NAME_KEY)!!)
+    private val albumName = savedStateHandle.get<String>(ALBUM_NAME_KEY)!!.decodeFromBase64()
+    private val artistName = savedStateHandle.get<String>(ARTIST_NAME_KEY)!!.decodeFromBase64()
 
     val state: StateFlow<AlbumDetailsScreenState> =
         combine(

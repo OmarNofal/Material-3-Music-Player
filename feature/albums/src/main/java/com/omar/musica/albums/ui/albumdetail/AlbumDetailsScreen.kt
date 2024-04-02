@@ -1,7 +1,8 @@
 package com.omar.musica.albums.ui.albumdetail
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -14,7 +15,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +30,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -35,8 +39,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.albums.ui.effects.AlbumDetailStatusBarColorEffect
 import com.omar.musica.albums.viewmodel.AlbumDetailsScreenState
 import com.omar.musica.albums.viewmodel.AlbumDetailsViewModel
+import com.omar.musica.store.model.album.AlbumSong
 import com.omar.musica.ui.albumart.toSongAlbumArtModel
+import com.omar.musica.ui.common.LocalCommonSongsAction
+import com.omar.musica.ui.common.MultiSelectState
+import com.omar.musica.ui.menu.buildCommonMultipleSongsActions
+import com.omar.musica.ui.showShortToast
 import com.omar.musica.ui.theme.isAppInDarkTheme
+import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
 
 @Composable
 fun AlbumDetailsScreen(
@@ -62,6 +72,7 @@ fun AlbumDetailsScreen(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumDetailsPortraitScreen(
     modifier: Modifier,
@@ -107,15 +118,19 @@ fun AlbumDetailsPortraitScreen(
             fadeEdge = isAppInDarkTheme()
         )
 
+        val multiSelectState = remember {
+            MultiSelectState<AlbumSong>()
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = with(density) { collapseSystem.topBarHeightPx.toDp() })
                 .offset {
-                    IntOffset(
-                        0,
-                        (collapseSystem.totalCollapsableHeightPx * (1 - collapseSystem.collapsePercentage)).toInt()
-                    )
+                    // offset by 8dp to show rounded corners
+                    val yOffset =
+                        ((collapseSystem.totalCollapsableHeightPx - 8.dp.toPx()) * (1 - collapseSystem.collapsePercentage)).toInt()
+                    IntOffset(0, yOffset)
                 }
                 .then(
                     if (isAppInDarkTheme())
@@ -123,10 +138,10 @@ fun AlbumDetailsPortraitScreen(
                     else
                         Modifier.shadow((24 * (1 - collapseSystem.collapsePercentage)).dp)
                 )
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp))
 
         ) {
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             AlbumPlaybackButtons(
                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -154,7 +169,20 @@ fun AlbumDetailsPortraitScreen(
                     AlbumSongRow(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { actions.playAtIndex(num) }
+                            .clickableAndSelectable(
+                                multiSelectState,
+                                song
+                            ) { actions.playAtIndex(num) }
+                            .then(
+                                if (multiSelectState.selected.contains(song))
+                                    Modifier.background(
+                                        MaterialTheme.colorScheme.onSurface.copy(
+                                            0.15f
+                                        )
+                                    )
+                                else
+                                    Modifier
+                            )
                             .padding(start = 24.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
                         song = song,
                         song.trackNumber
@@ -186,20 +214,69 @@ fun AlbumDetailsPortraitScreen(
                 }
             }
         }
-        AlbumDetailPortraitTopBar(
+
+        val localCommonSongActions = LocalCommonSongsAction.current
+        val addToPlaylistDialog = localCommonSongActions.addToPlaylistDialog
+
+        val context = LocalContext.current
+
+        SelectionTopAppBarScaffold(
             modifier = Modifier.fillMaxWidth(),
-            name = albumInfo.name,
-            collapseSystem.collapsePercentage,
-            onBarHeightChanged = { collapseSystem.topBarHeightPx = it },
-            onBackClicked = onBackClicked,
-            onPlayNext = actions::playNext,
-            onAddToQueue = actions::addToQueue,
-            onShuffleNext = actions::shuffleNext,
-        )
+            multiSelectState = multiSelectState,
+            isMultiSelectEnabled = multiSelectState.selected.isNotEmpty(),
+            actionItems = buildCommonMultipleSongsActions(
+                multiSelectState.selected.map { it.song },
+                context,
+                localCommonSongActions.playbackActions,
+                localCommonSongActions.addToPlaylistDialog,
+                localCommonSongActions.shareAction
+            ),
+            numberOfVisibleIcons = 3
+        ) {
+            AlbumDetailPortraitTopBar(
+                modifier = Modifier.fillMaxWidth(),
+                name = albumInfo.name,
+                collapseSystem.collapsePercentage,
+                onBarHeightChanged = { collapseSystem.topBarHeightPx = it },
+                onBackClicked = onBackClicked,
+                onPlayNext = {
+                    actions.playNext()
+                    context.showShortToast("${albumInfo.name} will play next")
+                },
+                onAddToQueue = {
+                    actions.addToQueue()
+                    context.showShortToast("${albumInfo.name} added to queue")
+                },
+                onShuffleNext = {
+                    actions.shuffleNext()
+                    context.showShortToast("${albumInfo.name} will play next")
+                },
+                onAddToPlaylists = {
+                    addToPlaylistDialog.launch(albumSongs.map { it.song })
+                }
+            )
+        }
     }
 
 
 }
+
+@OptIn(ExperimentalFoundationApi::class)
+fun <T> Modifier.clickableAndSelectable(
+    multiSelectState: MultiSelectState<T>,
+    item: T,
+    onNormalClick: () -> Unit
+): Modifier = this.combinedClickable(
+    onLongClick = {
+        multiSelectState.toggle(item)
+    },
+    onClick = {
+        if (multiSelectState.selected.isNotEmpty())
+            multiSelectState.toggle(item)
+        else
+            onNormalClick()
+    }
+)
 
 @Composable
 fun AlbumDetailsLoadingScreen(modifier: Modifier) {
