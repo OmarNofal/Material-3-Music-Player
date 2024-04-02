@@ -38,8 +38,8 @@ import com.omar.musica.playback.PlaybackService
 import com.omar.musica.playlists.navigation.playlistsGraph
 import com.omar.musica.settings.navigation.settingsGraph
 import com.omar.musica.songs.navigation.ALBUMS_NAVIGATION_GRAPH
-import com.omar.musica.songs.navigation.SONGS_NAVIGATION_GRAPH
 import com.omar.musica.songs.navigation.albumsGraph
+import com.omar.musica.songs.navigation.navigateToAlbumDetail
 import com.omar.musica.songs.navigation.songsGraph
 import com.omar.musica.state.rememberMusicaAppState
 import com.omar.musica.tageditor.navigation.tagEditorGraph
@@ -100,6 +100,12 @@ fun MusicaApp2(
                     contentModifier = contentModifier,
                     navController,
                     enableBackPress = mutableStateOf(false),
+                    onNavigateToAlbum = {
+                        navController.navigateToAlbumDetail(
+                            it.albumInfo.name,
+                            it.albumInfo.artist
+                        )
+                    },
                     enterAnimationFactory = ::getEnterAnimationForRoute,
                     exitAnimationFactory = ::getExitAnimationForRoute,
                     popEnterAnimationFactory = ::getPopEnterAnimationForRoute,
@@ -200,184 +206,6 @@ fun NowPlayingCollapser(
     }
 }
 
-/*
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun MusicaApp(
-    modifier: Modifier
-) {
-
-    val navController = rememberNavController()
-
-    val scope = rememberCoroutineScope()
-    val density = LocalDensity.current
-    val anchorState = remember {
-        AnchoredDraggableState(
-            BarState.COLLAPSED,
-            positionalThreshold = { distance: Float -> 0.5f * distance },
-            velocityThreshold = { with(density) { 50.dp.toPx() } },
-            animationSpec = tween()
-        )
-    }
-
-
-    val nowPlayingBarHeight = 64.dp
-    val barHeightPx = with(density) { nowPlayingBarHeight.toPx() }
-
-    var boxMinOffset by remember { mutableFloatStateOf(0.0f) }
-
-    val scrollProvider = { 1 - (anchorState.offset / boxMinOffset) }
-
-
-    val isExpanded = anchorState.currentValue == BarState.EXPANDED
-
-    val appState = rememberMusicaAppState(
-        navHostController = navController,
-        isNowPlayingExpanded = isExpanded,
-        nowPlayingViewModel = hiltViewModel(),
-        nowPlayingScreenOffset = scrollProvider,
-    )
-
-    val shouldShowBottomBar by appState.shouldShowBottomBar.collectAsState(initial = true)
-    val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = false)
-
-    val bottomNavBarOffset by animateDpAsState(
-        targetValue = if (shouldShowBottomBar) 0.dp else 80.dp,
-        label = "BottomBar Offset"
-    )
-
-
-    var layoutHeightPx = remember { 0 }
-    val bottomNavBarHeightPx =
-        with(density) { 80.dp.toPx() }
-
-
-    // App itself
-    Box(modifier = modifier) {
-
-        // DrawContentFirst
-        NavHost(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(
-                    bottom = calculateBottomPaddingForContent(
-                        shouldShowNowPlayingBar,
-                        80.dp - bottomNavBarOffset,
-                        nowPlayingBarHeight
-                    )
-                )
-                .fillMaxSize()
-                .navigationBarsPadding(),
-            navController = navController,
-            startDestination = SONGS_NAVIGATION_GRAPH
-        ) {
-            songsGraph(navController, enableBackPress = mutableStateOf(false))
-
-            playlistsGraph(navController)
-
-            settingsGraph()
-        }
-
-        val navigationBarInsets = WindowInsets.navigationBars
-        AnimatedVisibility(
-            visible = shouldShowNowPlayingBar,
-            enter = slideInVertically(
-                tween(500),
-                initialOffsetY = { barHeightPx.roundToInt() * 2 }),
-            exit = slideOutVertically(spring(), targetOffsetY = { -barHeightPx.roundToInt() })
-        ) {
-
-            NowPlayingScreen(
-                barHeight = nowPlayingBarHeight,
-                nowPlayingBarPadding = PaddingValues(0.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .offset {
-                        IntOffset(
-                            // 2
-                            x = 0,
-                            y = anchorState
-                                .requireOffset()
-                                .roundToInt() - ((1 - scrollProvider()) * navigationBarInsets.getBottom(
-                                this
-                            )).toInt(),
-                        )
-                    }
-
-                    .onSizeChanged { layoutSize ->
-                        layoutHeightPx = layoutSize.height
-                        boxMinOffset = anchorState
-                            .update(
-                                layoutHeightPx,
-                                barHeightPx.toInt(),
-                                with(density) {
-                                    bottomNavBarHeightPx.toInt() - bottomNavBarOffset
-                                        .toPx()
-                                        .toInt()
-                                }
-                            )
-                            .toFloat()
-                    }
-                    .anchoredDraggable(anchorState, Orientation.Vertical),
-                onCollapseNowPlaying = {
-                    scope.launch {
-                        anchorState.animateTo(BarState.COLLAPSED)
-                    }
-                },
-                onExpandNowPlaying = {
-                    scope.launch {
-                        anchorState.animateTo(BarState.EXPANDED)
-                    }
-                },
-                isExpanded = isExpanded,
-                progressProvider = { 1 - (anchorState.offset / boxMinOffset) },
-                viewModel = appState.nowPlayingViewModel
-            )
-        }
-
-
-        LaunchedEffect(key1 = shouldShowBottomBar) {
-            anchorState.update(
-                layoutHeightPx,
-                barHeightPx.toInt(),
-                with(density) { bottomNavBarHeightPx.toInt() - bottomNavBarOffset.toPx().toInt() },
-            )
-        }
-
-        // Finally draw the bottom nav bar
-        val backStackState by appState.navHostController.currentBackStackEntryAsState()
-
-        MusicaBottomNavBar(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .graphicsLayer { alpha = 1 - scrollProvider() }
-                .offset {
-                    val navigationBarHeight = 80.dp.toPx()
-                    IntOffset(0, (navigationBarHeight * scrollProvider()).toInt()) +
-                            IntOffset(
-                                0,
-                                bottomNavBarOffset
-                                    .toPx()
-                                    .toInt()
-                            )
-                },
-            topLevelDestinations = topLevelDestinations,
-            currentDestination = backStackState?.destination,
-            onDestinationSelected = {
-                navController.navigateToTopLevelDestination(it)
-            }
-        )
-
-        ViewNowPlayingScreenListenerEffect(
-            navController = navController,
-            onViewNowPlayingScreen = { scope.launch { anchorState.animateTo(BarState.EXPANDED) } }
-        )
-
-    }
-}
-
-*/
 
 /**
  * Responsible to expand the NowPlayingScreen when an intent is received

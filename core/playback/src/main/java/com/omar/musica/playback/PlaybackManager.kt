@@ -371,6 +371,13 @@ class PlaybackManager @Inject constructor(
         val count = mediaController.mediaItemCount
 
         val songsLibrary = mediaRepository.songsFlow.value
+
+        if (count <= 0) {
+            val q = Queue(listOf())
+            queue.value = q
+            return
+        }
+
         val queueItems = (0 until count).mapNotNull { i ->
             val mediaItem = mediaController.getMediaItemAt(i)
             val requestMetadata = mediaItem.requestMetadata

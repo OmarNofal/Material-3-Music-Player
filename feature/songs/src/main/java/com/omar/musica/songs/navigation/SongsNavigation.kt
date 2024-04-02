@@ -7,8 +7,6 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
@@ -18,8 +16,9 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.navOptions
 import androidx.navigation.navigation
-import com.omar.musica.songs.ui.SearchScreen
+import com.omar.musica.songs.ui.search.SearchScreen
 import com.omar.musica.songs.ui.SongsScreen
+import com.omar.musica.store.model.album.BasicAlbum
 
 
 const val SONGS_NAVIGATION_GRAPH = "songs_graph"
@@ -39,6 +38,7 @@ fun NavGraphBuilder.songsGraph(
     contentModifier: MutableState<Modifier>,
     navController: NavController,
     enableBackPress: MutableState<Boolean>,
+    onNavigateToAlbum: (BasicAlbum) -> Unit,
     enterAnimationFactory:
         (String, AnimatedContentTransitionScope<NavBackStackEntry>) -> EnterTransition,
     exitAnimationFactory:
@@ -105,6 +105,7 @@ fun NavGraphBuilder.songsGraph(
             SearchScreen(
                 modifier = contentModifier.value,
                 onBackPressed = navController::popBackStack,
+                onNavigateToAlbum = onNavigateToAlbum,
                 enableBackPress = enableBackPress.value
             )
         }
