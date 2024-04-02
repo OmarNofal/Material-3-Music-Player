@@ -21,6 +21,7 @@ class QueueViewModel @Inject constructor(
 
     val queueScreenState =
         combine(playbackManager.queue, playbackManager.state) { queue, playerState ->
+            if (queue.items.isEmpty()) return@combine QueueScreenState.Loading
             val currentPlayingIndex = playbackManager.getCurrentSongIndex()
             val currentSongId = queue.items[currentPlayingIndex].originalIndex
             QueueScreenState.Loaded(queue, currentPlayingIndex, currentSongId)
