@@ -240,7 +240,7 @@ private fun AlbumsRow(
     albums: List<BasicAlbum>,
     onAlbumClicked: (BasicAlbum) -> Unit
 ) {
-    LazyRow(modifier, horizontalArrangement = Arrangement.SpaceBetween) {
+    LazyRow(modifier) {
         item { Spacer(modifier = Modifier.width(6.dp)) }
         items(albums) { album ->
             Album(modifier = Modifier

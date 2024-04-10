@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -179,6 +180,10 @@ internal fun SongsScreen(
                 },
                 onSongClicked = onSongClicked
             )
+
+            item {
+                Spacer(modifier = Modifier.navigationBarsPadding())
+            }
         }
     }
 

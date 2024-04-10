@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 @Composable
 fun InputStringDialog(
     title: String,
+    placeholder: String? = null,
     icon: ImageVector? = null,
     focusRequester: FocusRequester = FocusRequester(),
     isInputValid: (String) -> Boolean,
@@ -59,7 +60,8 @@ fun InputStringDialog(
                 onValueChange = {
                     input = it
                 },
-                isError = isError
+                isError = isError,
+                placeholder = { Text(text = placeholder.orEmpty()) }
             )
         }
     )

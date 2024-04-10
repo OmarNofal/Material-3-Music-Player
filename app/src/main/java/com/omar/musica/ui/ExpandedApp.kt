@@ -24,10 +24,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -59,7 +61,7 @@ fun ExpandedAppScaffold(
     content: @Composable (Modifier, MutableState<Modifier>) -> Unit
 ) {
 
-    var nowPlayingMinOffset by remember { mutableStateOf(0) }
+    var nowPlayingMinOffset by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
 
     // Navhost takes the whole available screen.
@@ -71,14 +73,40 @@ fun ExpandedAppScaffold(
 
     val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = true)
 
-    LaunchedEffect(shouldShowNowPlayingBar) {
+
+    val navigationBarInsets = WindowInsets.navigationBars
+
+    var screenHeightPx by remember {
+        mutableIntStateOf(0)
+    }
+
+    LaunchedEffect(shouldShowNowPlayingBar, screenHeightPx, nowPlayingMinOffset) {
         contentModifier.value =
-            Modifier.padding(bottom = if (shouldShowNowPlayingBar) EXPANDED_SCREEN_NOW_PLAYING_HEIGHT else 0.dp)
+            if (shouldShowNowPlayingBar)
+                Modifier
+                    .padding(bottom = with(density) { (screenHeightPx - nowPlayingMinOffset).toDp() })
+                    .consumeWindowInsets(navigationBarInsets)
+            else
+                Modifier
         if (!shouldShowNowPlayingBar)
             nowPlayingScreenAnchors.snapTo(BarState.COLLAPSED)
     }
 
-    Box(modifier = modifier) {
+
+
+    LaunchedEffect(key1 = navigationBarInsets, key2 = screenHeightPx) {
+        nowPlayingMinOffset = nowPlayingScreenAnchors.update(
+            screenHeightPx,
+            with(density) {
+                EXPANDED_SCREEN_NOW_PLAYING_HEIGHT.toPx().toInt() + navigationBarInsets.getBottom(
+                    this
+                )
+            },
+            0
+        )
+    }
+
+    Box(modifier = modifier.onGloballyPositioned { screenHeightPx = it.size.height }) {
         Row(Modifier.fillMaxSize()) {
 
             MusicaNavigationRail(
@@ -88,18 +116,16 @@ fun ExpandedAppScaffold(
                 onDestinationSelected = onDestinationSelected,
             )
 
-            val layoutDirection = LocalLayoutDirection.current
             content(
                 Modifier
                     .fillMaxSize()
-                    .consumeRailInsets(layoutDirection, density, WindowInsets.navigationBars),
+                    .consumeRailInsets(LocalLayoutDirection.current, density, WindowInsets.navigationBars),
                 contentModifier,
             )
 
         }
 
         val nowPlayingBarHeightPx = with(density) { EXPANDED_SCREEN_NOW_PLAYING_HEIGHT.toPx() }
-        val navigationBarInsets = WindowInsets.navigationBars
         AnimatedVisibility(
             visible = appState.shouldShowNowPlayingScreen.collectAsState(initial = false).value,
             enter = slideInVertically(
@@ -121,11 +147,11 @@ fun ExpandedAppScaffold(
                         )
                     }
                     .onSizeChanged {
-                        nowPlayingMinOffset = nowPlayingScreenAnchors.update(
+                        /*nowPlayingMinOffset = nowPlayingScreenAnchors.update(
                             it.height,
                             with(density) { EXPANDED_SCREEN_NOW_PLAYING_HEIGHT.toPx() }.toInt(),
                             0
-                        ) - with(density) { navigationBarInsets.getBottom(this) }
+                        )*/
                     }
                     .anchoredDraggable(nowPlayingScreenAnchors, Orientation.Vertical),
                 nowPlayingBarPadding =

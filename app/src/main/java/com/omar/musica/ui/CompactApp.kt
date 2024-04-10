@@ -123,7 +123,7 @@ fun CompactAppScaffold(
         AnimatedVisibility(
             visible = shouldShowNowPlayingBar,
             enter = slideInVertically(
-                tween(500),
+                tween(2000),
                 initialOffsetY = { nowPlayingBarHeightPx.roundToInt() * 2 }),
             exit = slideOutVertically(
                 spring(),
@@ -215,9 +215,7 @@ fun CompactAppScaffold(
             navController = appState.navHostController,
             onViewNowPlayingScreen = {
                 appState.coroutineScope.launch {
-                    nowPlayingScreenAnchors.animateTo(
-                        BarState.EXPANDED
-                    )
+                    nowPlayingScreenAnchors.animateTo(BarState.EXPANDED)
                 }
             }
         )

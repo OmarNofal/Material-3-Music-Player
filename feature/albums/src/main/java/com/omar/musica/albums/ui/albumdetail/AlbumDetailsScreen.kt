@@ -1,5 +1,6 @@
 package com.omar.musica.albums.ui.albumdetail
 
+import android.app.Activity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -20,6 +21,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -48,6 +53,7 @@ import com.omar.musica.ui.showShortToast
 import com.omar.musica.ui.theme.isAppInDarkTheme
 import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun AlbumDetailsScreen(
     modifier: Modifier,
@@ -58,6 +64,19 @@ fun AlbumDetailsScreen(
     val state by viewModel.state.collectAsState()
     if (state !is AlbumDetailsScreenState.Loaded) {
         AlbumDetailsLoadingScreen(Modifier.fillMaxSize())
+        return
+    }
+
+    val widthClass = calculateWindowSizeClass(activity = LocalContext.current as Activity)
+
+    if (widthClass.widthSizeClass >= WindowWidthSizeClass.Medium && widthClass.heightSizeClass < WindowHeightSizeClass.Medium) {
+        LandscapeAlbumDetailScreen(
+            modifier = modifier,
+            state = state as AlbumDetailsScreenState.Loaded,
+            actions = viewModel,
+            onBackClicked = onBackClicked,
+            onNavigateToAlbum
+        )
         return
     }
 
@@ -105,10 +124,9 @@ fun AlbumDetailsPortraitScreen(
                 .fillMaxWidth()
                 .aspectRatio(1.0f)
                 .offset {
-                    IntOffset(
-                        0,
-                        (-(collapseSystem.collapsePercentage * 0.15) * collapseSystem.screenWidthPx).toInt()
-                    )
+                    val yOffset =
+                        (-collapseSystem.collapsePercentage * 0.15 * collapseSystem.screenWidthPx).toInt()
+                    IntOffset(0, yOffset)
                 }
                 .graphicsLayer {
                     alpha = (1 - collapseSystem.collapsePercentage * 2).coerceIn(0.0f, 1.0f)
