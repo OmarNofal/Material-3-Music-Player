@@ -65,13 +65,13 @@ fun ExpandedAppScaffold(
     val density = LocalDensity.current
 
     // Navhost takes the whole available screen.
-    // contentModifier is added to the screens (composables) themselves to handle cases
+    // contentModifier is added to the screens (composable) themselves to handle cases
     // such as when NowPlayingBar is hidden or visible
     val contentModifier = remember {
         mutableStateOf<Modifier>(Modifier)
     }
 
-    val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = true)
+    val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = false)
 
 
     val navigationBarInsets = WindowInsets.navigationBars

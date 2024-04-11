@@ -8,7 +8,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.animateTo
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
@@ -44,6 +43,7 @@ import com.omar.musica.songs.navigation.navigateToAlbumDetail
 import com.omar.musica.songs.navigation.songsGraph
 import com.omar.musica.state.rememberMusicaAppState
 import com.omar.musica.tageditor.navigation.tagEditorGraph
+import com.omar.musica.ui.compact.CompactAppScaffold
 import com.omar.nowplaying.ui.BarState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

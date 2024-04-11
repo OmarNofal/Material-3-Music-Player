@@ -1,8 +1,6 @@
-package com.omar.musica.ui
+package com.omar.musica.ui.compact
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -13,10 +11,8 @@ import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -25,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -33,12 +30,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import com.omar.musica.navigation.MusicaBottomNavBar
 import com.omar.musica.navigation.TopLevelDestination
 import com.omar.musica.state.MusicaAppState
+import com.omar.musica.ui.ViewNowPlayingScreenListenerEffect
+import com.omar.musica.ui.calculateBottomPaddingForContent
+import com.omar.musica.ui.update
 import com.omar.nowplaying.ui.BarState
 import com.omar.nowplaying.ui.NowPlayingScreen
 import kotlinx.coroutines.launch
@@ -60,35 +59,21 @@ fun CompactAppScaffold(
 ) {
 
     val density = LocalDensity.current
-    val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = true)
+    val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = false)
     val nowPlayingBarHeightPx = with(density) { COMPACT_NOW_PLAYING_BAR_HEIGHT.toPx() }
     val shouldShowBottomBar by appState.shouldShowBottomBar.collectAsState(initial = true)
-
-    val navigationBarInsets = WindowInsets.navigationBars
-
-    val bottomNavBarOffset by animateDpAsState(
-        targetValue = if (shouldShowBottomBar) 0.dp else 80.dp + with(density) {
-            navigationBarInsets.getBottom(this).toDp()
-        },
-        label = "BottomBar Offset",
-        animationSpec = tween(300)
-    )
 
     var layoutHeightPx = remember { 0 }
     val bottomNavBarHeightPx =
         with(density) { 80.dp.toPx() }
 
     var nowPlayingBarMinOffset by remember {
-        mutableStateOf(0)
+        mutableIntStateOf(0)
     }
 
     val scrollProvider = { 1 - (appState.nowPlayingScreenOffset() / nowPlayingBarMinOffset) }
-    val barHeightPx = with(density) { COMPACT_NOW_PLAYING_BAR_HEIGHT.toPx() }
 
-
-    val contentModifier = remember {
-        mutableStateOf<Modifier>(Modifier)
-    }
+    val contentModifier = remember { mutableStateOf<Modifier>(Modifier) }
 
     LaunchedEffect(key1 = shouldShowNowPlayingBar) {
         if (!shouldShowNowPlayingBar)
@@ -104,6 +89,18 @@ fun CompactAppScaffold(
             )
         )
     }
+
+
+    val uiState = rememberCompactScreenUiState(
+        screenHeightPx = layoutHeightPx,
+        nowPlayingAnchors = nowPlayingScreenAnchors,
+        scrollProvider = scrollProvider,
+        bottomBarHeightPx = bottomNavBarHeightPx.toInt(),
+        density = density,
+        isPinnedMode = false,
+        isNowPlayingVisible = shouldShowNowPlayingBar,
+        showBottomBar = shouldShowBottomBar
+    )
 
     // App itself
     Box(modifier = modifier) {
@@ -123,10 +120,10 @@ fun CompactAppScaffold(
         AnimatedVisibility(
             visible = shouldShowNowPlayingBar,
             enter = slideInVertically(
-                tween(2000),
+                tween(600),
                 initialOffsetY = { nowPlayingBarHeightPx.roundToInt() * 2 }),
             exit = slideOutVertically(
-                spring(),
+                tween(600),
                 targetOffsetY = { -nowPlayingBarHeightPx.roundToInt() })
         ) {
 
@@ -136,30 +133,8 @@ fun CompactAppScaffold(
                 modifier = Modifier
                     .fillMaxSize()
                     .offset {
-                        IntOffset(
-                            x = 0,
-                            y = nowPlayingScreenAnchors
-                                .requireOffset()
-                                .roundToInt() - ((1 - scrollProvider()) * navigationBarInsets.getBottom(
-                                this
-                            )).toInt(),
-                        ) + if (!shouldShowBottomBar || bottomNavBarOffset != 0.dp)
-                            IntOffset(
-                                x = 0,
-                                y = ((bottomNavBarOffset.toPx() - navigationBarInsets.getBottom(
-                                    this
-                                )) * (1 - scrollProvider()))
-                                    .toInt()
-                                    .coerceIn(
-                                        0,
-                                        80.dp
-                                            .toPx()
-                                            .toInt()
-                                    )
-                            )
-                        else IntOffset.Zero
+                        uiState.getNowPlayingOffset()
                     }
-
                     .onSizeChanged { layoutSize ->
                         layoutHeightPx = layoutSize.height
                         nowPlayingBarMinOffset = nowPlayingScreenAnchors
@@ -190,26 +165,30 @@ fun CompactAppScaffold(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .graphicsLayer { alpha = 1 - scrollProvider() }
+                .graphicsLayer { alpha = uiState.bottomBarAlpha }
                 .offset {
-                    val navigationBarHeight = 80.dp.toPx()
-                    if (!shouldShowBottomBar || bottomNavBarOffset != 0.dp)
-                        IntOffset(
-                            0,
-                            bottomNavBarOffset
-                                .toPx()
-                                .toInt()
-                        )
-                    else
-                        IntOffset(
-                            0,
-                            (navigationBarHeight * scrollProvider()).toInt()
-                        )
+                    uiState.getBottomBarOffset()
                 },
             topLevelDestinations = topLevelDestinations,
             currentDestination = currentDestination,
             onDestinationSelected = onDestinationSelected
         )
+
+        /*val nowPlayingViewModel = hiltViewModel<NowPlayingViewModel>()
+        FloatingMiniPlayer(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 128.dp, end = 16.dp)
+                .fillMaxWidth(0.6f)
+                .height(58.dp)
+                .clip(RoundedCornerShape(12.dp)),
+            nowPlayingState = nowPlayingViewModel.state.collectAsState().value,
+            showExtraControls = true,
+            songProgressProvider = { 0.5f },
+            enabled = true,
+            onTogglePlayback = { *//*TODO*//* },
+            onNext = { *//*TODO*//* }) {
+        }*/
 
         ViewNowPlayingScreenListenerEffect(
             navController = appState.navHostController,
