@@ -53,12 +53,12 @@ import com.omar.musica.ui.showShortToast
 import com.omar.musica.ui.theme.isAppInDarkTheme
 import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+
 @Composable
 fun AlbumDetailsScreen(
     modifier: Modifier,
     viewModel: AlbumDetailsViewModel = hiltViewModel(),
-    onNavigateToAlbum: (album: String, artist: String) -> Unit,
+    onNavigateToAlbum: (albumId: Int) -> Unit,
     onBackClicked: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
@@ -67,8 +67,6 @@ fun AlbumDetailsScreen(
         return
     }
 
-    val widthClass = calculateWindowSizeClass(activity = LocalContext.current as Activity)
-
     BoxWithConstraints {
         if (maxWidth > maxHeight)
             AlbumDetailsLandscapeScreen(
@@ -76,7 +74,7 @@ fun AlbumDetailsScreen(
                 state = state as AlbumDetailsScreenState.Loaded,
                 actions = viewModel,
                 onBackClicked = onBackClicked,
-                onNavigateToAlbum
+                onNavigateToAlbum = onNavigateToAlbum
             )
         else
             AlbumDetailsPortraitScreen(
@@ -98,7 +96,7 @@ fun AlbumDetailsPortraitScreen(
     state: AlbumDetailsScreenState.Loaded,
     actions: AlbumDetailActions,
     onBackClicked: () -> Unit,
-    onNavigateToAlbum: (String, String) -> Unit
+    onNavigateToAlbum: (albumId: Int) -> Unit
 ) {
 
     val albumInfo = state.albumWithSongs.albumInfo

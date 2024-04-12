@@ -6,9 +6,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
 import com.omar.musica.playlists.navigation.PLAYLIST_DETAILS_ROUTE
-import com.omar.musica.songs.navigation.ALBUM_DETAIL_ROUTE
+import com.omar.musica.albums.navigation.ALBUM_DETAIL_ROUTE
 import com.omar.musica.songs.navigation.SEARCH_ROUTE
-import com.omar.musica.tageditor.navigation.TAG_EDITOR_GRAPH
 import com.omar.musica.tageditor.navigation.TAG_EDITOR_SCREEN
 import com.omar.nowplaying.NowPlayingState
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel

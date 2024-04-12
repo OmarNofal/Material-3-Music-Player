@@ -1,6 +1,5 @@
-package com.omar.musica.songs.navigation
+package com.omar.musica.albums.navigation
 
-import android.net.Uri
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -14,27 +13,22 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import com.omar.musica.albums.navigation.encodeToBase64
 import com.omar.musica.albums.ui.albumdetail.AlbumDetailsScreen
 import com.omar.musica.albums.ui.albumsscreen.AlbumsScreen
 import com.omar.musica.albums.viewmodel.AlbumDetailsViewModel
-import java.net.URLEncoder
-import java.util.Base64
 
 
 const val ALBUMS_NAVIGATION_GRAPH = "albums_graph"
 const val ALBUMS_ROUTE = "albums"
-const val ALBUM_DETAIL_ROUTE = "album/{${AlbumDetailsViewModel.ALBUM_NAME_KEY}}/{${AlbumDetailsViewModel.ARTIST_NAME_KEY}}"
+const val ALBUM_DETAIL_ROUTE = "album/{${AlbumDetailsViewModel.ALBUM_ID_KEY}}"
 
 
 fun NavController.navigateToAlbums(navOptions: NavOptions? = null) {
     navigate(ALBUMS_NAVIGATION_GRAPH, navOptions)
 }
 
-fun NavController.navigateToAlbumDetail(albumName: String, artistName: String, navOptions: NavOptions? = null) {
-    val encodedAlbum = albumName.encodeToBase64()
-    val encodedArtist = artistName.encodeToBase64()
-    navigate("album/${encodedAlbum}/${encodedArtist}", navOptions)
+fun NavController.navigateToAlbumDetail(albumId: Int, navOptions: NavOptions? = null) {
+    navigate("album/$albumId", navOptions)
 }
 
 fun NavGraphBuilder.albumsGraph(
@@ -72,9 +66,7 @@ fun NavGraphBuilder.albumsGraph(
         ) {
             AlbumsScreen(
                 modifier = contentModifier.value,
-                onAlbumClicked = { name: String, artist: String ->
-                    navController.navigateToAlbumDetail(name, artist)
-                }
+                onAlbumClicked = { albumId -> navController.navigateToAlbumDetail(albumId) }
             )
         }
 
@@ -87,11 +79,8 @@ fun NavGraphBuilder.albumsGraph(
                 popExitAnimationFactory(ALBUM_DETAIL_ROUTE, this)
             },
             arguments = listOf(
-                navArgument(AlbumDetailsViewModel.ALBUM_NAME_KEY) {
-                    type = NavType.StringType
-                },
-                navArgument(AlbumDetailsViewModel.ARTIST_NAME_KEY) {
-                    type = NavType.StringType
+                navArgument(AlbumDetailsViewModel.ALBUM_ID_KEY) {
+                    type = NavType.IntType
                 }
             )
         )
@@ -99,7 +88,7 @@ fun NavGraphBuilder.albumsGraph(
             AlbumDetailsScreen(
                 modifier = contentModifier.value,
                 onBackClicked = { navController.popBackStack() },
-                onNavigateToAlbum = { album, artist -> navController.navigateToAlbumDetail(album, artist) }
+                onNavigateToAlbum = { albumId -> navController.navigateToAlbumDetail(albumId) }
             )
         }
     }

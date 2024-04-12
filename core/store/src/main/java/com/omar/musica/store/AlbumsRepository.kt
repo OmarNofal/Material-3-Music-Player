@@ -17,76 +17,65 @@ class AlbumsRepository @Inject constructor(
     val mediaRepository: MediaRepository
 ) {
 
+    private val scope = CoroutineScope(Dispatchers.Default)
+
+    /**
+     * All the albums of the device alongside their songs
+     */
+    val albums: StateFlow<List<AlbumWithSongs>> = mediaRepository.songsFlow
+        .map {
+
+            val songs = it.songs
+
+            val albumsNames = songs
+                .groupBy { song -> song.metadata.albumName }
+                .filter { entry -> entry.key != null }
+
+            var counter = 1
+            albumsNames.map { entry ->
+                val firstSong = entry.value[0]
+                AlbumWithSongs(
+                    BasicAlbumInfo(
+                        counter++,
+                        entry.key!!,
+                        firstSong.metadata.artistName.orEmpty(),
+                        entry.value.size
+                    ),
+                    entry.value.map { AlbumSong(it, it.metadata.trackNumber) }
+                )
+            }
+        }
+        .stateIn(
+            scope,
+            SharingStarted.Eagerly,
+            listOf()
+        )
+
     /**
      * Contains simplified information about all albums
      * Used inside the Albums Screen
      */
-    val basicAlbums: StateFlow<List<BasicAlbum>> = mediaRepository.songsFlow.map {
-        val songs = it.songs
-
-        val albumsNames = songs
-            .groupBy { song -> song.metadata.albumName }
-            .filter { entry -> entry.key != null }
-
-        val albums = albumsNames.map { entry ->
-            val firstSong = entry.value[0]
-            BasicAlbum(
-                BasicAlbumInfo(
-                    entry.key!!,
-                    firstSong.metadata.artistName.orEmpty(),
-                    entry.value.size
-                ),
-                firstSong = firstSong
-            )
-        }
-
-        albums
-    }
+    val basicAlbums: StateFlow<List<BasicAlbum>> = albums
+        .map { albums -> albums.map { BasicAlbum(it.albumInfo, it.songs.firstOrNull()?.song) } }
         .stateIn(
-            scope = CoroutineScope(Dispatchers.Default),
-            started = SharingStarted.Eagerly,
-            initialValue = listOf()
+            scope,
+            SharingStarted.Eagerly,
+            listOf()
         )
 
     fun getArtistAlbums(artistName: String) =
-        mediaRepository.songsFlow.map {
-            val songs = it.songs
-            val artistAlbums = songs
-                .filter { it.metadata.artistName == artistName }
-                .groupBy { it.metadata.albumName }
+        basicAlbums.map { it.filter { album -> album.albumInfo.artist == artistName } }
 
-            return@map artistAlbums.map {
-                val albumInfo = BasicAlbumInfo(it.key!!, artistName, it.value.size)
-                BasicAlbum(albumInfo, it.value.firstOrNull())
-            }
+    fun getAlbumWithSongs(albumId: Int) =
+        albums.map { allAlbums ->
+            allAlbums
+                .firstOrNull { it.albumInfo.id == albumId }
+                .let {
+                    if (it == null) return@let it
+                    // sort the songs by track number
+                    val sortedSongs = it.songs.sortedBy { song -> song.trackNumber }
+                    it.copy(songs = sortedSongs)
+                }
         }
-
-    fun getAlbumWithSongs(albumName: String) =
-        mediaRepository.songsFlow.map {
-            val songs = it.songs
-
-            val albumSongs = songs.filter { s -> s.metadata.albumName == albumName }
-            if (albumSongs.isEmpty())
-                return@map AlbumWithSongs(
-                    albumInfo = BasicAlbumInfo(albumName, "", 0),
-                    songs = listOf()
-                )
-            else {
-                return@map AlbumWithSongs(
-                    albumInfo = BasicAlbumInfo(
-                        albumName,
-                        albumSongs.first().metadata.artistName ?: "<unknown>",
-                        albumSongs.size
-                    ),
-                    albumSongs.map { s ->
-                        AlbumSong(
-                            s,
-                            s.metadata.trackNumber
-                        )
-                    }.sortedBy { it.trackNumber } // we will get track number in later update
-                )
-            }
-        }
-
 
 }

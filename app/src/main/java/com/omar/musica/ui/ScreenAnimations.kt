@@ -9,8 +9,8 @@ import androidx.navigation.NavBackStackEntry
 import com.omar.musica.playlists.navigation.PLAYLISTS_ROUTE
 import com.omar.musica.playlists.navigation.PLAYLIST_DETAILS_ROUTE
 import com.omar.musica.settings.navigation.SETTINGS_ROUTE
-import com.omar.musica.songs.navigation.ALBUMS_ROUTE
-import com.omar.musica.songs.navigation.ALBUM_DETAIL_ROUTE
+import com.omar.musica.albums.navigation.ALBUMS_ROUTE
+import com.omar.musica.albums.navigation.ALBUM_DETAIL_ROUTE
 import com.omar.musica.songs.navigation.SEARCH_ROUTE
 import com.omar.musica.songs.navigation.SONGS_ROUTE
 import com.omar.musica.tageditor.navigation.TAG_EDITOR_SCREEN

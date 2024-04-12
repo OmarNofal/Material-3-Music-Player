@@ -29,7 +29,7 @@ import com.omar.musica.ui.albumart.toSongAlbumArtModel
 fun OtherAlbumsRow(
     modifier: Modifier,
     otherAlbums: List<BasicAlbum>,
-    onAlbumClicked: (album: String, artist: String) -> Unit
+    onAlbumClicked: (albumId: Int) -> Unit
 ) {
     Row(
         modifier = modifier
@@ -44,8 +44,7 @@ fun OtherAlbumsRow(
                     .clip(RoundedCornerShape(6.dp))
                     .clickable {
                         onAlbumClicked(
-                            album.albumInfo.name,
-                            album.albumInfo.artist
+                            album.albumInfo.id
                         )
                     }
                     .padding(6.dp),

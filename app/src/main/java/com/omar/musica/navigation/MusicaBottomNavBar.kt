@@ -14,7 +14,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.navOptions
 import com.omar.musica.settings.navigation.SETTINGS_NAVIGATION_GRAPH
 import com.omar.musica.playlists.navigation.PLAYLISTS_NAVIGATION_GRAPH
-import com.omar.musica.songs.navigation.ALBUMS_NAVIGATION_GRAPH
+import com.omar.musica.albums.navigation.ALBUMS_NAVIGATION_GRAPH
 import com.omar.musica.songs.navigation.SONGS_NAVIGATION_GRAPH
 
 

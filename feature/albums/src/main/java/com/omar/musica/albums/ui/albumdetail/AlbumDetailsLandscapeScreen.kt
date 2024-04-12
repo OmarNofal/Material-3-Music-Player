@@ -69,7 +69,7 @@ fun AlbumDetailsLandscapeScreen(
     state: AlbumDetailsScreenState.Loaded,
     actions: AlbumDetailActions,
     onBackClicked: () -> Unit,
-    onNavigateToAlbum: (String, String) -> Unit
+    onNavigateToAlbum: (Int) -> Unit
 ) {
 
     val albumInfo = state.albumWithSongs.albumInfo
@@ -157,7 +157,7 @@ private fun MainContent(
     otherAlbums: List<BasicAlbum>,
     multiSelectState: MultiSelectState<AlbumSong>,
     albumInfo: BasicAlbumInfo,
-    onNavigateToAlbum: (String, String) -> Unit
+    onNavigateToAlbum: (Int) -> Unit
 ) {
     LazyColumn(
         modifier = modifier
