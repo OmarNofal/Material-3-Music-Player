@@ -30,6 +30,7 @@ class CompactAppOffsetCalculator @OptIn(ExperimentalFoundationApi::class) constr
     private val navigationInsets: WindowInsets,
     private val bottomBarHeightPx: Int,
     private val density: Density,
+    private val isNowPlayingVisible: Boolean,
     private val isPinnedMode: Boolean,
 ) {
 
@@ -62,10 +63,11 @@ class CompactAppOffsetCalculator @OptIn(ExperimentalFoundationApi::class) constr
         val navigationInsetsPx = getBottomNavInsetsPx()
         val totalBarHeightPx = bottomBarHeightPx + navigationInsetsPx
 
-        val nowPlayingExpansionProgress = scrollProvider()
-        val y =
-            totalBarHeightPx * nowPlayingExpansionProgress +
-                    bottomBarOffsetAnimation.value
+        val nowPlayingExpansionProgress = scrollProvider().coerceIn(0.0f, 1.0f)
+        var y: Float = bottomBarOffsetAnimation.value.toFloat()
+
+        if (isNowPlayingVisible)
+            y += totalBarHeightPx * nowPlayingExpansionProgress
 
         return IntOffset(0, y.toInt())
     }
@@ -115,6 +117,7 @@ fun rememberCompactScreenUiState(
             navigationInsets,
             bottomBarHeightPx,
             density,
+            isNowPlayingVisible,
             isPinnedMode
         )
     }

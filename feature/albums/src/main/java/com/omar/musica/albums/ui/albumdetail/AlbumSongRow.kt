@@ -71,7 +71,7 @@ fun AlbumSongRow(
             }
         }
 
-        OverflowMenu(actionItems = actions, icon = Icons.Rounded.MoreHoriz)
+        OverflowMenu(actionItems = actions, icon = Icons.Rounded.MoreHoriz, showIcons = false)
     }
 
 }

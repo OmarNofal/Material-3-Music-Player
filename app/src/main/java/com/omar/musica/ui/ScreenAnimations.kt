@@ -10,6 +10,7 @@ import com.omar.musica.playlists.navigation.PLAYLISTS_ROUTE
 import com.omar.musica.playlists.navigation.PLAYLIST_DETAILS_ROUTE
 import com.omar.musica.settings.navigation.SETTINGS_ROUTE
 import com.omar.musica.songs.navigation.ALBUMS_ROUTE
+import com.omar.musica.songs.navigation.ALBUM_DETAIL_ROUTE
 import com.omar.musica.songs.navigation.SEARCH_ROUTE
 import com.omar.musica.songs.navigation.SONGS_ROUTE
 import com.omar.musica.tageditor.navigation.TAG_EDITOR_SCREEN
@@ -41,6 +42,9 @@ fun getEnterAnimationForRoute(
         }
 
     if (route == ALBUMS_ROUTE)
+        return OPEN_SCREEN_ENTER_ANIMATION
+
+    if (route == ALBUM_DETAIL_ROUTE)
         return OPEN_SCREEN_ENTER_ANIMATION
 
     if (route == PLAYLIST_DETAILS_ROUTE)
@@ -76,6 +80,9 @@ fun getExitAnimationForRoute(
         }
 
     if (route == ALBUMS_ROUTE)
+        return OPEN_SCREEN_EXIT_ANIMATION
+
+    if (route == ALBUM_DETAIL_ROUTE)
         return OPEN_SCREEN_EXIT_ANIMATION
 
     if (route == PLAYLIST_DETAILS_ROUTE)
@@ -114,6 +121,9 @@ fun getPopEnterAnimationForRoute(
     if (route == ALBUMS_ROUTE)
         return POP_SCREEN_ENTER_ANIMATION
 
+    if (route == ALBUM_DETAIL_ROUTE)
+        return POP_SCREEN_ENTER_ANIMATION
+
     if (route == PLAYLIST_DETAILS_ROUTE)
         return POP_SCREEN_ENTER_ANIMATION
 
@@ -149,6 +159,9 @@ fun getPopExitAnimationForRoute(
 
 
     if (route == ALBUMS_ROUTE)
+        return POP_SCREEN_EXIT_ANIMATION
+
+    if (route == ALBUM_DETAIL_ROUTE)
         return POP_SCREEN_EXIT_ANIMATION
 
     if (route == PLAYLIST_DETAILS_ROUTE)

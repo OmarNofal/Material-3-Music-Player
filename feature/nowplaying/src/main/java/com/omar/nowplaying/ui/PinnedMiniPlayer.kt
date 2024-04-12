@@ -73,7 +73,7 @@ fun MiniPlayer(
                 .fillMaxHeight()
                 .aspectRatio(1.0f)
                 .scale(0.7f)
-                .shadow(6.dp, shape = RoundedCornerShape(4.dp))
+                .shadow(2.dp, shape = RoundedCornerShape(4.dp))
                 .clip(RoundedCornerShape(8.dp)),
             containerModifier = Modifier.padding(start = 8.dp),
             songAlbumArtModel = song.toSongAlbumArtModel(),
@@ -104,7 +104,7 @@ fun MiniPlayer(
 
         Row {
             AnimatedVisibility(visible = showExtraControls) {
-                IconButton(onClick = onPrevious) {
+                IconButton(onClick = onPrevious, enabled = enabled) {
                     Icon(imageVector = Icons.TwoTone.SkipPrevious, contentDescription = "Previous")
                 }
             }
@@ -124,7 +124,7 @@ fun MiniPlayer(
                 )
             }
             AnimatedVisibility(visible = showExtraControls) {
-                IconButton(onClick = onNext) {
+                IconButton(onClick = onNext, enabled = enabled) {
                     Icon(imageVector = Icons.TwoTone.SkipNext, contentDescription = "Next")
                 }
             }

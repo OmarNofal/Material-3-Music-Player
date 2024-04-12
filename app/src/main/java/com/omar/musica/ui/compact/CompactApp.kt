@@ -61,7 +61,7 @@ fun CompactAppScaffold(
     val density = LocalDensity.current
     val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = false)
     val nowPlayingBarHeightPx = with(density) { COMPACT_NOW_PLAYING_BAR_HEIGHT.toPx() }
-    val shouldShowBottomBar by appState.shouldShowBottomBar.collectAsState(initial = true)
+    val shouldShowBottomBar by appState.shouldShowBottomBar.collectAsState(initial = false)
 
     var layoutHeightPx = remember { 0 }
     val bottomNavBarHeightPx =
