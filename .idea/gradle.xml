@@ -39,6 +39,7 @@
             <option value="$PROJECT_DIR$/feature/settings" />
             <option value="$PROJECT_DIR$/feature/songs" />
             <option value="$PROJECT_DIR$/feature/tageditor" />
+            <option value="$PROJECT_DIR$/feature/widgets" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />

@@ -1,5 +1,8 @@
 import java.net.URI
 
+include(":feature:widgets")
+
+
 include(":feature:albums")
 
 

@@ -82,6 +82,7 @@ dependencies {
     implementation(project(mapOf("path" to ":feature:nowplaying")))
     implementation(project(mapOf("path" to ":feature:settings")))
     implementation(project(mapOf("path" to ":feature:tageditor")))
+    implementation(project(mapOf("path" to ":feature:widgets")))
     api(libs.accompanist.permissions)
     implementation(project(":feature:albums"))
 

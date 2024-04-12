@@ -31,11 +31,11 @@ class AlbumDetailsViewModel @Inject constructor(
             if (album == null) return@map AlbumDetailsScreenState.Loading
             val artistName = album.albumInfo.artist
 
-            /*val otherAlbums = albumsRepository.getArtistAlbums(artistName)
-                .map { it.filter { it.albumInfo.id != albumId } }.firstOrNull() ?: listOf()*/
+            val otherAlbums = albumsRepository.getArtistAlbums(artistName)
+                .map { it.filter { it.albumInfo.id != albumId } }.firstOrNull() ?: listOf()
 
 
-            AlbumDetailsScreenState.Loaded(album, listOf())
+            AlbumDetailsScreenState.Loaded(album, otherAlbums)
         }
             .stateIn(viewModelScope, SharingStarted.Eagerly, AlbumDetailsScreenState.Loading)
 
