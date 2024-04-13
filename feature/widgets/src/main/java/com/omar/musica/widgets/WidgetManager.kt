@@ -2,69 +2,76 @@ package com.omar.musica.widgets
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import androidx.glance.appwidget.updateAll
+import coil.request.ImageRequest
+import coil.request.SuccessResult
+import coil.size.Size
+import coil.transform.CircleCropTransformation
 import com.omar.musica.model.playback.PlayerState
 import com.omar.musica.playback.PlaybackManager
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.android.EntryPointAccessors
+import com.omar.musica.ui.albumart.SongAlbumArtModel
+import com.omar.musica.ui.albumart.inefficientAlbumArtImageLoader
+import com.omar.musica.ui.albumart.toSongAlbumArtModel
+import com.omar.musica.widgets.ui.WidgetState
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 
 @Singleton
 class WidgetManager @Inject constructor(
-    private val playbackManager: PlaybackManager,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    playbackManager: PlaybackManager
 ) {
 
     private val scope = CoroutineScope(Dispatchers.IO)
-
-    private fun updateWidgets() {
-        scope.launch {
-            PlaybackWidget().updateAll(context)
-        }
-    }
+    private val imageLoader = context.inefficientAlbumArtImageLoader()
 
     val state = playbackManager.state.map {
         updateWidgets()
+
         if (it.currentPlayingSong == null)
             return@map WidgetState.NoQueue
+
         val metadata = it.currentPlayingSong!!.metadata
+        val bitmap = getSongBitmap(it.currentPlayingSong.toSongAlbumArtModel())
+        val isPlaying = it.playbackState.playerState == PlayerState.PLAYING
+
         WidgetState.Playback(
-            metadata.title,
-            metadata.artistName ?: "<unknown>",
-            isPlaying = it.playbackState.playerState == PlayerState.PLAYING,
-            null
+            title = metadata.title,
+            artist = metadata.artistName ?: "<unknown>",
+            isPlaying = isPlaying,
+            image = bitmap
         )
+    }.stateIn(scope, SharingStarted.Eagerly, WidgetState.NoQueue)
+
+    private suspend fun getSongBitmap(songAlbumArtModel: SongAlbumArtModel): Bitmap? =
+        withContext(Dispatchers.IO) {
+            val request = ImageRequest.Builder(context)
+                .data(songAlbumArtModel)
+                .transformations(CircleCropTransformation())
+                .build()
+
+            val result = imageLoader.execute(request)
+            if (result !is SuccessResult) return@withContext null
+
+            (result.drawable as BitmapDrawable).bitmap
+        }
+
+
+    private fun updateWidgets() {
+        scope.launch {
+            CardWidget().updateAll(context)
+            CircleWidget().updateAll(context)
+        }
     }
 
-    fun toggle() {
-        playbackManager.togglePlayback()
-    }
-
-    fun next() {
-        playbackManager.playNextSong()
-    }
-
-    fun previous() {
-        playbackManager.playPreviousSong()
-    }
-
-}
-
-sealed interface WidgetState {
-    data object NoQueue : WidgetState
-    data class Playback(
-        val title: String,
-        val artist: String,
-        val isPlaying: Boolean,
-        val image: Bitmap?
-    ) : WidgetState
 }

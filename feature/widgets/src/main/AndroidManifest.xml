@@ -3,14 +3,24 @@
 
 
     <application>
-        <receiver android:name=".PlaybackWidgetReceiver"
+        <receiver android:name=".CardWidgetReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
         <meta-data
             android:name="android.appwidget.provider"
-            android:resource="@xml/my_app_widget_info" />
+            android:resource="@xml/card_widget_info" />
+        </receiver>
+
+        <receiver android:name=".CircleWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/circle_widget_info" />
         </receiver>
     </application>
 

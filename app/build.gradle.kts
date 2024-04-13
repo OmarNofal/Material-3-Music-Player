@@ -34,7 +34,7 @@ android {
 
         debug {
             applicationIdSuffix = ".debug"
-
+            resValue("string", "app_name", "MP debug")
         }
     }
 
@@ -47,33 +47,14 @@ android {
 }
 
 
-subprojects {
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        kotlinOptions {
-            val directory = "C:\\Users\\omarw\\Downloads\\Travis Scott - ASTROWORLD (2018) Mp3 (320kbps) [Hunter]"
-            if (project.findProperty("composeCompilerReports") == "true") {
-                freeCompilerArgs += listOf(
-                    "-P",
-                    "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=${directory}/compose_compiler"
-                )
-            }
-            if (project.findProperty("composeCompilerMetrics") == "true") {
-                freeCompilerArgs += listOf(
-                    "-P",
-                    "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=${directory}/compose_compiler"
-                )
-            }
-        }
-    }
-}
-
 dependencies {
-    implementation(project(mapOf("path" to ":feature:songs")))
     implementation(libs.core.ktx)
     implementation(libs.media3.session)
     implementation(libs.media3.exoplayer)
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.timber)
+    implementation(project(mapOf("path" to ":feature:songs")))
+    implementation(project(":feature:albums"))
     implementation(project(mapOf("path" to ":core:ui")))
     implementation(project(mapOf("path" to ":core:store")))
     implementation(project(mapOf("path" to ":core:model")))
@@ -84,7 +65,6 @@ dependencies {
     implementation(project(mapOf("path" to ":feature:tageditor")))
     implementation(project(mapOf("path" to ":feature:widgets")))
     api(libs.accompanist.permissions)
-    implementation(project(":feature:albums"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)

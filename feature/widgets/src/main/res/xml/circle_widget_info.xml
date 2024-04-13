@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:description="@string/circle_widget_name"
+    android:minResizeWidth="50dp"
+    android:minWidth="50dp"
+    android:minHeight="50dp"
+    android:minResizeHeight="50dp"
+    android:resizeMode="horizontal|vertical"
+    >
+</appwidget-provider>

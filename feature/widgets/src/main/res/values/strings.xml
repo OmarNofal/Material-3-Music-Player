@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widget_name">Playback Widget</string>
+    <string name="card_widget_name">Card Widget</string>
+    <string name="circle_widget_name">Circle Widget</string>
 </resources>

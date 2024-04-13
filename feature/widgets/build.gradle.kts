@@ -19,6 +19,8 @@ dependencies {
     implementation(project(mapOf("path" to ":core:database")))
     implementation(libs.glance)
     implementation(libs.glance.material)
+    implementation(libs.androidx.media3.session)
+    implementation("androidx.palette:palette:1.0.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)
