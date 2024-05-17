@@ -16,9 +16,11 @@ import com.omar.musica.ui.actions.SongPlaybackActions
 import com.omar.musica.ui.actions.SongPlaybackActionsImpl
 import com.omar.musica.ui.actions.SongShareAction
 import com.omar.musica.ui.actions.SongsSharer
+import com.omar.musica.ui.actions.rememberCreatePlaylistShortcutDialog
 import com.omar.musica.ui.actions.rememberSongDeleter
 import com.omar.musica.ui.playlist.AddToPlaylistDialog
 import com.omar.musica.ui.playlist.rememberAddToPlaylistDialog
+import com.omar.musica.ui.shortcut.ShortcutDialog
 import com.omar.musica.ui.songs.SongInfoDialog
 import com.omar.musica.ui.songs.rememberSongDialog
 
@@ -31,7 +33,8 @@ data class CommonSongsActions(
     val addToPlaylistDialog: AddToPlaylistDialog,
     val openEqualizer: EqualizerOpener,
     val setRingtoneAction: SetRingtoneAction,
-    val openTagEditorAction: OpenTagEditorAction
+    val openTagEditorAction: OpenTagEditorAction,
+    val createShortcutDialog: ShortcutDialog
 )
 
 val LocalCommonSongsAction = staticCompositionLocalOf<CommonSongsActions>
@@ -52,6 +55,7 @@ fun rememberCommonSongsActions(
     val addToPlaylistDialog = rememberAddToPlaylistDialog()
     val openEqualizer = remember { EqualizerOpener(context as Activity) }
     val setRingtoneAction = remember { SetRingtone(context) }
+    val shortcutDialog = rememberCreatePlaylistShortcutDialog()
 
     return remember {
         CommonSongsActions(
@@ -62,7 +66,8 @@ fun rememberCommonSongsActions(
             addToPlaylistDialog,
             openEqualizer,
             setRingtoneAction,
-            openTagEditorAction
+            openTagEditorAction,
+            shortcutDialog
         )
     }
 }

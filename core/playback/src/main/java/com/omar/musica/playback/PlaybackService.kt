@@ -386,7 +386,6 @@ class PlaybackService :
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
         if (!player.playWhenReady) {
-            onDestroy()
             stopSelf()
         }
     }

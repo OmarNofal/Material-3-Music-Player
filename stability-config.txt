@@ -1,0 +1,6 @@
+kotlin.collections.*
+com.omar.musica.model.**
+com.omar.musica.ui.model.**
+com.omar.musica.store.model.song.*
+com.omar.musica.store.model.playlist.*
+com.omar.musica.store.model.lyrics.*

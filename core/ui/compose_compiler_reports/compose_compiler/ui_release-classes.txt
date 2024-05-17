@@ -1,0 +1,116 @@
+unstable class EqualizerOpener {
+  unstable val activity: Activity
+  <runtime stability> = Unstable
+}
+unstable class SetRingtone {
+  unstable val context: Context
+  <runtime stability> = Unstable
+}
+stable class SongsSharer {
+  <runtime stability> = Stable
+}
+unstable class AndroidRAboveDeleter {
+  unstable val activityResultLauncher: ActivityResultLauncher<IntentSenderRequest>
+  unstable val context: Context
+  <runtime stability> = Unstable
+}
+unstable class AndroidQBelowDeleter {
+  unstable val mediaRepository: MediaRepository
+  <runtime stability> = Unstable
+}
+unstable class SongPlaybackActionsImpl {
+  unstable val context: Context
+  unstable val playbackManager: PlaybackManager
+  <runtime stability> = Unstable
+}
+stable class AlbumKeyer {
+  <runtime stability> = Stable
+}
+stable class SongKeyer {
+  <runtime stability> = Stable
+}
+stable class Factory {
+  <runtime stability> = Stable
+}
+unstable class AlbumArtFetcher {
+  stable val data: SongUi
+  unstable val options: Options
+  <runtime stability> = Unstable
+}
+stable class BlurTransformation {
+  stable val radius: Int
+  stable val scale: Float
+  stable val cacheKey: String
+  <runtime stability> = Stable
+}
+unstable class CommonSongsActions {
+  runtime val playbackActions: SongPlaybackActions
+  runtime val shareAction: SongShareAction
+  runtime val deleteAction: SongDeleteAction
+  runtime val songInfoDialog: SongInfoDialog
+  runtime val addToPlaylistDialog: AddToPlaylistDialog
+  unstable val openEqualizer: EqualizerOpener
+  runtime val setRingtoneAction: SetRingtoneAction
+  <runtime stability> = Unstable
+}
+unstable class MultiSelectState {
+  unstable val selected: MutableList<SongUi>
+  <runtime stability> = Unstable
+}
+stable class MenuActionItem {
+  stable val icon: ImageVector
+  stable val title: String
+  stable val callback: Function0<Unit>
+  <runtime stability> = Stable
+}
+stable class LibrarySettingsUi {
+  stable val songsSortOrder: Pair<SortOption, Boolean>
+  stable val cacheAlbumCoverArt: Boolean
+  unstable val excludedFolders: List<String>
+}
+stable class PlayerSettingsUi {
+  stable val jumpInterval: Int
+  stable val pauseOnVolumeZero: Boolean
+  stable val resumeWhenVolumeIncreases: Boolean
+}
+stable class SongUi {
+  stable val fileName: String
+  stable val title: String
+  stable val artist: String?
+  stable val length: Long
+  stable val size: Long
+  stable val album: String?
+  stable val location: String
+  stable val uriString: String
+  stable val albumId: Long?
+}
+stable class UiSettingsUi {
+  stable val theme: AppThemeUi
+  stable val isUsingDynamicColor: Boolean
+  stable val playerThemeUi: PlayerThemeUi
+  stable val blackBackgroundForDarkTheme: Boolean
+  stable val accentColor: Int
+  stable val showMiniPlayerExtraControls: Boolean
+}
+stable class UserPreferencesUi {
+  stable val librarySettings: LibrarySettingsUi
+  stable val uiSettings: UiSettingsUi
+  stable val playerSettings: PlayerSettingsUi
+}
+unstable class AddToPlaylistDialogEntry {
+  unstable val playlist: PlaylistInfo
+  stable val isSelected: Boolean
+  <runtime stability> = Unstable
+}
+unstable class AddToPlaylistViewModel {
+  unstable val playlistsRepository: PlaylistsRepository
+  unstable val state: StateFlow<AddToPlaylistState>
+  <runtime stability> = Unstable
+}
+stable class Loading {
+  <runtime stability> = Stable
+}
+unstable class Success {
+  unstable val playlists: List<PlaylistInfo>
+  <runtime stability> = Unstable
+}

@@ -1,6 +1,7 @@
 package com.omar.musica.playlists.playlistdetail
 
 import android.content.Context
+import android.graphics.drawable.BitmapDrawable
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -64,13 +65,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.request.ImageRequest
+import coil.request.SuccessResult
+import coil.size.Size
 import com.omar.musica.store.model.song.Song
+import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
 import com.omar.musica.ui.albumart.SongAlbumArtImage
 import com.omar.musica.ui.albumart.toSongAlbumArtModel
 import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.MultiSelectState
 import com.omar.musica.ui.common.RenamableTextView
 import com.omar.musica.ui.menu.MenuActionItem
+import com.omar.musica.ui.menu.addShortcutToHomeScreen
 import com.omar.musica.ui.menu.addToQueue
 import com.omar.musica.ui.menu.buildCommonMultipleSongsActions
 import com.omar.musica.ui.menu.buildCommonSongActions
@@ -81,12 +87,15 @@ import com.omar.musica.ui.menu.removeFromPlaylist
 import com.omar.musica.ui.menu.rename
 import com.omar.musica.ui.menu.shuffleNext
 import com.omar.musica.ui.millisToTime
+import com.omar.musica.ui.shortcut.ShortcutDialogData
 import com.omar.musica.ui.showShortToast
 import com.omar.musica.ui.songs.selectableSongsList
-import com.omar.musica.ui.theme.DarkColorScheme
 import com.omar.musica.ui.topbar.OverflowMenu
 import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 @Composable
@@ -193,6 +202,8 @@ internal fun PlaylistDetailScreen(
             ) {
                 PlaylistDetailTopBar(
                     name = state.name,
+                    id = state.id,
+                    firstSong = state.songs.firstOrNull(),
                     showName = shouldShowTopBarTitle,
                     onBackPressed = onBackPressed,
                     playlistActions = playlistActions,
@@ -418,6 +429,8 @@ fun EmptyPlaylist(
 fun PlaylistDetailTopBar(
     modifier: Modifier = Modifier,
     name: String,
+    id: Int,
+    firstSong: Song? = null,
     showName: Boolean,
     onBackPressed: () -> Unit,
     playlistActions: PlaylistActions,
@@ -428,6 +441,10 @@ fun PlaylistDetailTopBar(
 ) {
 
     val context = LocalContext.current
+    val createShortcutDialog = LocalCommonSongsAction.current.createShortcutDialog
+
+    val scope = CoroutineScope(Dispatchers.IO)
+
     TopAppBar(
         modifier = modifier,
         title = {
@@ -446,14 +463,41 @@ fun PlaylistDetailTopBar(
             }
         },
         actions = {
+            val imageLoader = LocalInefficientThumbnailImageLoader.current
+            val onCreateShortcut = {
+
+                scope.launch {
+                    // get bitmap
+                    val request = ImageRequest.Builder(context)
+                        .data(firstSong.toSongAlbumArtModel())
+                        .size(Size.ORIGINAL)
+                        .build()
+
+                    val result = withContext(Dispatchers.IO) { imageLoader.execute(request) }
+                    val bitmap = if (result is SuccessResult)
+                        (result.drawable as BitmapDrawable).bitmap
+                    else
+                        null
+                    createShortcutDialog.launchForPlaylist(
+                        ShortcutDialogData.PlaylistShortcutDialogData(
+                            name,
+                            id,
+                            bitmap
+                        )
+                    )
+                }
+                Unit
+            }
+
             val actionItems =
                 remember {
                     buildPlaylistActions(
                         context,
                         playlistActions,
                         onRename,
+                        onCreateShortcut,
                         onEdit,
-                        onDelete
+                        onDelete,
                     )
                 }
             OverflowMenu(actionItems = actionItems)
@@ -466,6 +510,7 @@ fun buildPlaylistActions(
     context: Context,
     playlistActions: PlaylistActions,
     renameAction: () -> Unit,
+    createShortcut: () -> Unit,
     editAction: () -> Unit,
     deleteAction: () -> Unit,
 ): MutableList<MenuActionItem> {
@@ -475,6 +520,7 @@ fun buildPlaylistActions(
         addToQueue { playlistActions.addToQueue(); context.showShortToast("Playlist added to queue") }
         shuffleNext { playlistActions.shuffleNext(); context.showShortToast("Playlist will play next") }
         rename(renameAction)
+        addShortcutToHomeScreen(createShortcut)
         edit(editAction)
         delete(deleteAction)
     }

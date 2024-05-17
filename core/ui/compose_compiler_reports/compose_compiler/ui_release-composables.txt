@@ -1,0 +1,93 @@
+fun deleteRequestLauncher()
+fun rememberSongDeleter(
+  unstable mediaRepository: MediaRepository
+): SongDeleteAction
+restartable skippable fun SongAlbumArtImage(
+  stable modifier: Modifier
+  stable song: SongUi
+)
+scheme("[androidx.compose.ui.UiComposable]") fun rememberCommonSongsActions(
+  unstable playbackManager: PlaybackManager
+  unstable mediaRepository: MediaRepository
+): CommonSongsActions
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun RenamableTextView(
+  stable modifier: Modifier
+  stable inRenameMode: Boolean
+  stable text: String
+  stable fontSize: Int
+  stable fontWeight: FontWeight
+  stable enableLongPressToEdit: Boolean = @static false
+  stable onEnableRenameMode: Function0<Unit>
+  stable onRename: Function1<String, Unit>
+)
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun InputStringDialog(
+  stable title: String
+  stable icon: ImageVector? = @static null
+  stable focusRequester: FocusRequester? = @dynamic FocusRequester()
+  stable isInputValid: Function1<String, Boolean>
+  stable onConfirm: Function1<String, Unit>
+  stable onDismissRequest: Function0<Unit>
+)
+restartable scheme("[androidx.compose.ui.UiComposable]") fun SongDropdownMenu(
+  stable expanded: Boolean
+  stable onDismissRequest: Function0<Unit>
+  unstable actions: List<MenuActionItem>
+)
+restartable scheme("[androidx.compose.ui.UiComposable]") fun AddToPlaylistDialog(
+  unstable viewModel: AddToPlaylistViewModel? = @dynamic hiltViewModel(null, null, $composer, 0, 0b0011)
+  unstable songs: List<SongUi>
+  stable onDismissRequest: Function0<Unit>
+)
+scheme("[androidx.compose.ui.UiComposable]") fun rememberAddToPlaylistDialog()
+scheme("[androidx.compose.ui.UiComposable]") fun rememberSongDialog()
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun SongMetadataRow(
+  stable modifier: Modifier
+  stable title: String
+  stable value: String
+)
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun SongMetadataSpacer()
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun SongRow(
+  stable modifier: Modifier
+  stable song: SongUi
+  unstable menuOptions: List<MenuActionItem>? = @static null
+  stable songRowState: SongRowState
+)
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun SongInfoRow(
+  stable modifier: Modifier
+  stable song: SongUi
+  stable efficientThumbnailLoading: Boolean
+)
+restartable scheme("[androidx.compose.ui.UiComposable]") fun SongOverflowMenu(
+  unstable menuOptions: List<MenuActionItem>
+)
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun SongsSummary(
+  stable modifier: Modifier? = @static Companion
+  stable numberOfSongs: Int
+  stable totalDuration: Long
+)
+restartable skippable scheme("[0, [0]]") fun MusicaTheme(
+  stable userPreferences: UserPreferencesUi
+  stable content: Function2<Composer, Int, Unit>
+)
+restartable scheme("[androidx.compose.ui.UiComposable, [androidx.compose.ui.UiComposable]]") fun SelectionTopAppBarScaffold(
+  stable modifier: Modifier
+  unstable multiSelectState: MultiSelectState
+  stable isMultiSelectEnabled: Boolean
+  unstable actionItems: List<MenuActionItem>
+  stable numberOfVisibleIcons: Int
+  stable scrollBehavior: TopAppBarScrollBehavior? = @static null
+  stable content: Function2<Composer, Int, Unit>
+)
+restartable scheme("[androidx.compose.ui.UiComposable]") fun SelectionToolbar(
+  stable modifier: Modifier? = @static Companion
+  stable numberOfSelected: Int
+  unstable actionItems: List<MenuActionItem>
+  stable numberOfVisibleIcons: Int = @static 2
+  stable scrollBehavior: TopAppBarScrollBehavior? = @static null
+  stable onNavigationIconClicked: Function0<Unit>
+)
+restartable scheme("[androidx.compose.ui.UiComposable]") fun OverflowMenu(
+  unstable actionItems: List<MenuActionItem>
+  stable showIcons: Boolean = @static true
+  stable contentPaddingValues: PaddingValues? = @static PaddingValues(16.dp, 4.dp)
+)

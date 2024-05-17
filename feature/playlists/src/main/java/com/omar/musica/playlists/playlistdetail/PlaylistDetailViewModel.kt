@@ -37,6 +37,7 @@ class PlaylistDetailViewModel @Inject constructor(
                 .collect {
                     _state.emit(
                         PlaylistDetailScreenState.Loaded(
+                            it.playlistInfo.id,
                             it.playlistInfo.name,
                             it.songs
                         )

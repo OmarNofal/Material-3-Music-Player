@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AddToPhotos
 import androidx.compose.material.icons.rounded.Alarm
+import androidx.compose.material.icons.rounded.AppShortcut
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Equalizer
@@ -83,6 +84,9 @@ fun MutableList<MenuActionItem>.playbackSpeed(callback: () -> Unit) =
 
 fun MutableList<MenuActionItem>.tagEditor(callback: () -> Unit) =
     add(MenuActionItem(Icons.Rounded.Edit, "Edit Tags", callback))
+
+fun MutableList<MenuActionItem>.addShortcutToHomeScreen(callback: () -> Unit) =
+    add(MenuActionItem(Icons.Rounded.AppShortcut, "Add Shortcut to Homescreen", callback))
 
 
 fun buildCommonSongActions(
