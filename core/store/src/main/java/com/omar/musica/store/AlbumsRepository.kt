@@ -4,6 +4,7 @@ import com.omar.musica.model.album.BasicAlbumInfo
 import com.omar.musica.store.model.album.AlbumSong
 import com.omar.musica.store.model.album.AlbumWithSongs
 import com.omar.musica.store.model.album.BasicAlbum
+import com.omar.musica.store.model.song.Song
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -78,4 +79,9 @@ class AlbumsRepository @Inject constructor(
                 }
         }
 
+    fun getSongAlbumId(song: Song): Int? {
+        val album = albums.value.firstOrNull { it.songs.map { it.song }.any { it.uri == song.uri } }
+        val albumId = album?.albumInfo?.id
+        return albumId
+    }
 }

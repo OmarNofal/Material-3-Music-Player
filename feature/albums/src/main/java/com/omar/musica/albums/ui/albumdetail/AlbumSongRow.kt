@@ -66,7 +66,8 @@ fun AlbumSongRow(
                     shareAction,
                     setRingtoneAction,
                     deleteAction,
-                    openTagEditorAction
+                    openTagEditorAction,
+                    goToAlbumAction = null
                 )
             }
         }

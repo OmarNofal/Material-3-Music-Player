@@ -223,7 +223,8 @@ fun SearchScreenContent(
                         shareAction = this.shareAction,
                         setAsRingtoneAction = this.setRingtoneAction,
                         songDeleteAction = this.deleteAction,
-                        tagEditorAction = this.openTagEditorAction
+                        tagEditorAction = this.openTagEditorAction,
+                        goToAlbumAction = this.goToAlbumAction
                     )
                 }
             },

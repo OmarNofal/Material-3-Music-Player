@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AddToPhotos
 import androidx.compose.material.icons.rounded.Alarm
+import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.AppShortcut
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.TextFormat
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.omar.musica.store.model.song.Song
+import com.omar.musica.ui.actions.GoToAlbumAction
 import com.omar.musica.ui.actions.OpenTagEditorAction
 import com.omar.musica.ui.actions.SetRingtoneAction
 import com.omar.musica.ui.actions.SongDeleteAction
@@ -88,6 +90,8 @@ fun MutableList<MenuActionItem>.tagEditor(callback: () -> Unit) =
 fun MutableList<MenuActionItem>.addShortcutToHomeScreen(callback: () -> Unit) =
     add(MenuActionItem(Icons.Rounded.AppShortcut, "Add Shortcut to Homescreen", callback))
 
+fun MutableList<MenuActionItem>.goToAlbum(callback: () -> Unit) =
+    add(MenuActionItem(Icons.Rounded.Album, "Go to Album", callback))
 
 fun buildCommonSongActions(
     song: Song,
@@ -98,13 +102,18 @@ fun buildCommonSongActions(
     shareAction: SongShareAction,
     setAsRingtoneAction: SetRingtoneAction,
     songDeleteAction: SongDeleteAction,
-    tagEditorAction: OpenTagEditorAction
+    tagEditorAction: OpenTagEditorAction,
+    goToAlbumAction: GoToAlbumAction?
 ): MutableList<MenuActionItem> {
     val songList = listOf(song)
     val list = mutableListOf<MenuActionItem>().apply {
         playNext { songPlaybackActions.playNext(songList) }
         addToQueue { songPlaybackActions.addToQueue(songList) }
         addToPlaylists { addToPlaylistDialog.launch(songList) }
+
+        if (song.albumId != null && goToAlbumAction != null)
+            goToAlbum { goToAlbumAction.open(song) }
+
         share { shareAction.share(context, songList) }
         tagEditor { tagEditorAction.open(song.uri) }
         setAsRingtone { setAsRingtoneAction.setRingtone(song.uri) }
