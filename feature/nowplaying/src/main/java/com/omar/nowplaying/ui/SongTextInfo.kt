@@ -22,7 +22,8 @@ fun SongTextInfo(
     modifier: Modifier,
     song: Song,
     showArtist: Boolean = true,
-    showAlbum: Boolean = true
+    showAlbum: Boolean = true,
+    marqueeEffect: Boolean = true,
 ) {
 
 
@@ -31,10 +32,14 @@ fun SongTextInfo(
         Text(
             modifier = Modifier
                 .fillMaxWidth()
-                .basicMarquee(
-                    iterations = Int.MAX_VALUE,
-                    delayMillis = 1000,
-                    animationMode = MarqueeAnimationMode.Immediately
+                .then(
+                    if (marqueeEffect)
+                        Modifier.basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            delayMillis = 1000,
+                            animationMode = MarqueeAnimationMode.Immediately
+                        )
+                    else Modifier
                 ),
             text = song.metadata.title,
             fontWeight = FontWeight.Bold,

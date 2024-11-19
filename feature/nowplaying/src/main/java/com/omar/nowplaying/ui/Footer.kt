@@ -33,7 +33,7 @@ fun PlayerFooter(
     repeatMode: RepeatMode,
     isLyricsOpen: Boolean,
     onOpenQueue: () -> Unit,
-    onOpenLyrics: () -> Unit,
+    onToggleLyrics: () -> Unit,
     onToggleRepeatMode: () -> Unit,
     onToggleShuffle: () -> Unit,
 ) {
@@ -67,7 +67,7 @@ fun PlayerFooter(
             state = rememberTooltipState(),
             positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
         ) {
-            IconButton(onClick = onOpenLyrics) {
+            IconButton(onClick = onToggleLyrics) {
                 Icon(
                     modifier = if (isLyricsOpen) Modifier else Modifier.alpha(0.5f),
                     imageVector = Icons.Rounded.Lyrics,
