@@ -1,5 +1,6 @@
 package com.omar.musica.albums.ui.albumdetail
 
+import android.graphics.drawable.BitmapDrawable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -31,6 +32,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +44,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.SuccessResult
+import coil.size.Size
 import com.omar.musica.albums.ui.menuactions.buildSingleAlbumMenuActions
 import com.omar.musica.albums.viewmodel.AlbumDetailsScreenState
 import com.omar.musica.model.album.BasicAlbumInfo
@@ -55,8 +60,12 @@ import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.MultiSelectState
 import com.omar.musica.ui.menu.buildCommonMultipleSongsActions
 import com.omar.musica.ui.playlist.rememberAddToPlaylistDialog
+import com.omar.musica.ui.shortcut.ShortcutDialogData
 import com.omar.musica.ui.topbar.OverflowMenu
 import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.max
 
 
@@ -80,6 +89,11 @@ fun AlbumDetailsLandscapeScreen(
 
     val topBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
+    val context = LocalContext.current
+    val imageLoader = LocalInefficientThumbnailImageLoader.current
+    val scope = rememberCoroutineScope()
+    val createShortcutDialog = LocalCommonSongsAction.current.createShortcutDialog
+
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -91,6 +105,29 @@ fun AlbumDetailsLandscapeScreen(
                 onAddToQueue = actions::addToQueue,
                 onShuffleNext = actions::shuffleNext,
                 onAddToPlaylists = { addToPlaylistDialog.launch(albumSongs.map { it.song }) },
+                onCreateShortcut = {
+                    scope.launch {
+                        // get bitmap
+                        val request = ImageRequest.Builder(context)
+                            .data(albumSongs.first().song.toSongAlbumArtModel())
+                            .size(Size.ORIGINAL)
+                            .build()
+
+                        val result = withContext(Dispatchers.IO) { imageLoader.execute(request) }
+                        val bitmap = if (result is SuccessResult)
+                            (result.drawable as BitmapDrawable).bitmap
+                        else
+                            null
+
+                        createShortcutDialog.launchForAlbum(
+                            ShortcutDialogData.AlbumShortcutDialogData(
+                                albumInfo.name,
+                                albumInfo.id,
+                                bitmap
+                            )
+                        )
+                    }
+                },
                 scrollBehavior = topBarScrollBehavior
             )
         },
@@ -311,6 +348,7 @@ private fun LandscapeAlbumDetailTopBar(
     onAddToQueue: () -> Unit,
     onShuffleNext: () -> Unit,
     onAddToPlaylists: () -> Unit,
+    onCreateShortcut: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior
 ) {
 
@@ -346,7 +384,8 @@ private fun LandscapeAlbumDetailTopBar(
                         onPlayNext,
                         onAddToQueue,
                         onShuffleNext,
-                        onAddToPlaylists
+                        onAddToPlaylists,
+                        onCreateShortcut
                     )
                 )
             },

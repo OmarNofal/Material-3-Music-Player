@@ -10,6 +10,7 @@ import com.omar.musica.ui.shortcut.ShortcutAction
 import com.omar.musica.ui.shortcut.ShortcutDialog
 import com.omar.musica.ui.shortcut.ShortcutDialogData
 import com.omar.musica.ui.shortcut.ShortcutDialogUi
+import com.omar.musica.ui.shortcut.ShortcutUtils.createPinnedShortcutAlbum
 import com.omar.musica.ui.shortcut.ShortcutUtils.createPinnedShortcutPlaylist
 
 
@@ -34,7 +35,12 @@ fun rememberCreatePlaylistShortcutDialog(): ShortcutDialog {
 
         val onSubmit: (String, ShortcutAction) -> Unit = { shortcutName, action ->
             when (data) {
-                is ShortcutDialogData.AlbumShortcutDialogData -> TODO()
+                is ShortcutDialogData.AlbumShortcutDialogData -> context.createPinnedShortcutAlbum(
+                    shortcutName,
+                    data.albumId,
+                    data.albumBitmap,
+                    action
+                )
                 is ShortcutDialogData.PlaylistShortcutDialogData -> context.createPinnedShortcutPlaylist(
                     shortcutName,
                     data.playlistId,
@@ -42,7 +48,7 @@ fun rememberCreatePlaylistShortcutDialog(): ShortcutDialog {
                     action
                 )
 
-                null -> TODO()
+                else -> TODO()
             }
         }
 
@@ -60,7 +66,7 @@ fun rememberCreatePlaylistShortcutDialog(): ShortcutDialog {
             }
 
             override fun launchForAlbum(data: ShortcutDialogData.AlbumShortcutDialogData) {
-                TODO("Not yet implemented")
+                currentData = data
             }
         }
     }

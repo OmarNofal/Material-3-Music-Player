@@ -19,6 +19,8 @@ sealed class ShortcutDialogData {
     ) : ShortcutDialogData()
 
     data class AlbumShortcutDialogData(
-        val albumName: String
+        val albumName: String,
+        val albumId: Int,
+        val albumBitmap: Bitmap? = null
     ) : ShortcutDialogData()
 }

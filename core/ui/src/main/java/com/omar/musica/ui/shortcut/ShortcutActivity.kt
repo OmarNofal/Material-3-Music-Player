@@ -34,7 +34,7 @@ class ShortcutActivity : ComponentActivity() {
 
         try {
             if (type == ALBUM_TYPE)
-                handleAlbum(command, data.getString(KEY_ID, ""))
+                handleAlbum(command, data.getInt(KEY_ID, -1))
             else if (type == PLAYLIST_TYPE)
                 handlePlaylist(command, data.getInt(KEY_ID, -1))
         } catch (_: Exception) {
@@ -44,20 +44,20 @@ class ShortcutActivity : ComponentActivity() {
         }
     }
 
-    private fun handleAlbum(command: String, albumName: String) {
+    private fun handleAlbum(command: String, albumId: Int) {
 
-        if (albumName.isEmpty()) return
+        Thread.sleep(200)
 
         val albumSongs = albumsRepository.albums
-            .value.find { it.albumInfo.name == albumName } ?: return
+            .value.find { it.albumInfo.id == albumId } ?: return
 
-        val songs = albumSongs.songs.map { it.song }
+        val songs = albumSongs.songs.sortedBy { it.trackNumber }.map { it.song }
         if (command == SHUFFLE_COMMAND)
             playbackManager.shuffle(songs)
         else if (command == PLAY_COMMAND)
             playbackManager.setPlaylistAndPlayAtIndex(songs)
 
-        showShortToast("$albumName started playing")
+        showShortToast("${albumSongs.albumInfo.name} started playing")
     }
 
     private fun handlePlaylist(command: String, playlist: Int) {
@@ -65,7 +65,7 @@ class ShortcutActivity : ComponentActivity() {
         if (playlist == -1) return
 
         // we have to delay to give time for the playback manager to connect to the service
-        Thread.sleep(100)
+        Thread.sleep(200)
 
         val playlistInfo = runBlocking {
             playlistsRepository.getPlaylistWithSongsFlow(playlist)

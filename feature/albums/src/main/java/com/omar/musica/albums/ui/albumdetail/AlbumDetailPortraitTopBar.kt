@@ -36,7 +36,8 @@ fun AlbumDetailPortraitTopBar(
     onPlayNext: () -> Unit = {},
     onAddToQueue: () -> Unit = {},
     onShuffleNext: () -> Unit = {},
-    onAddToPlaylists: () -> Unit = {}
+    onAddToPlaylists: () -> Unit = {},
+    onOpenShortcutDialog: () -> Unit = {},
 ) {
 
 
@@ -89,7 +90,8 @@ fun AlbumDetailPortraitTopBar(
                             onPlayNext,
                             onAddToQueue,
                             onShuffleNext,
-                            onAddToPlaylists
+                            onAddToPlaylists,
+                            onOpenShortcutDialog
                         )
                     )
                 }

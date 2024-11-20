@@ -10,6 +10,9 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.os.bundleOf
 import com.omar.musica.ui.R
+import com.omar.musica.ui.shortcut.ShortcutUtils.createPinnedShortcutPlaylist
+import com.omar.musica.ui.shortcut.ShortcutUtils.getShortcutManager
+import kotlin.random.Random
 
 object ShortcutUtils {
 
@@ -56,7 +59,7 @@ object ShortcutUtils {
             else
                 Icon.createWithBitmap(bitmap)
 
-        val shortcutInfo = ShortcutInfo.Builder(this, "PLAYLIST_$playlistId")
+        val shortcutInfo = ShortcutInfo.Builder(this, "PLAYLIST_${playlistId}_" + Random.nextInt(0, 100))
             .setShortLabel(name)
             .setLongLabel(name)
             .setIcon(icon)
@@ -65,8 +68,47 @@ object ShortcutUtils {
         sm.requestPinShortcut(shortcutInfo.build(), null)
     }
 
-    fun createPinnedShortcutAlbum() {
+    fun Context.createPinnedShortcutAlbum(
+        name: String,
+        albumId: Int,
+        bitmap: Bitmap?,
+        action: ShortcutAction
+    ) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
+        val sm = getShortcutManager() ?: return
+
+        val command = when (action) {
+            ShortcutAction.OPEN_IN_APP -> ""
+            ShortcutAction.PLAY -> ShortcutActivity.PLAY_COMMAND
+            ShortcutAction.SHUFFLE -> ShortcutActivity.SHUFFLE_COMMAND
+        }
+
+        val extras = bundleOf(
+            ShortcutActivity.KEY_COMMAND to command,
+            ShortcutActivity.KEY_TYPE to ShortcutActivity.ALBUM_TYPE,
+            ShortcutActivity.KEY_ID to albumId
+        )
+
+        val intent = Intent(this, ShortcutActivity::class.java)
+            .apply {
+                this.action = Intent.ACTION_VIEW
+                putExtras(extras)
+            }
+
+        val icon =
+            if (bitmap == null)
+                Icon.createWithResource(this, R.drawable.placeholder)
+            else
+                Icon.createWithBitmap(bitmap)
+
+        val shortcutInfo = ShortcutInfo.Builder(this, "ALBUM_${albumId}_" + Random.nextInt(0, 100))
+            .setShortLabel(name)
+            .setLongLabel(name)
+            .setIcon(icon)
+            .setIntent(intent)
+
+        sm.requestPinShortcut(shortcutInfo.build(), null)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

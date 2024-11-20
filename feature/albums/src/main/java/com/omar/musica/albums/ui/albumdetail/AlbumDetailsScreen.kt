@@ -1,6 +1,7 @@
 package com.omar.musica.albums.ui.albumdetail
 
 import android.app.Activity
+import android.graphics.drawable.BitmapDrawable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -28,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -41,17 +43,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.imageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
+import coil.size.Size
 import com.omar.musica.albums.ui.effects.AlbumDetailStatusBarColorEffect
 import com.omar.musica.albums.viewmodel.AlbumDetailsScreenState
 import com.omar.musica.albums.viewmodel.AlbumDetailsViewModel
 import com.omar.musica.store.model.album.AlbumSong
+import com.omar.musica.ui.actions.rememberCreatePlaylistShortcutDialog
+import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
 import com.omar.musica.ui.albumart.toSongAlbumArtModel
 import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.MultiSelectState
 import com.omar.musica.ui.menu.buildCommonMultipleSongsActions
+import com.omar.musica.ui.shortcut.ShortcutDialogData
 import com.omar.musica.ui.showShortToast
 import com.omar.musica.ui.theme.isAppInDarkTheme
 import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 @Composable
@@ -236,6 +248,9 @@ fun AlbumDetailsPortraitScreen(
         val addToPlaylistDialog = localCommonSongActions.addToPlaylistDialog
 
         val context = LocalContext.current
+        val scope = rememberCoroutineScope()
+        val createShortcutDialog = LocalCommonSongsAction.current.createShortcutDialog
+        val imageLoader = LocalInefficientThumbnailImageLoader.current
 
         SelectionTopAppBarScaffold(
             modifier = Modifier.fillMaxWidth(),
@@ -270,6 +285,29 @@ fun AlbumDetailsPortraitScreen(
                 },
                 onAddToPlaylists = {
                     addToPlaylistDialog.launch(albumSongs.map { it.song })
+                },
+                onOpenShortcutDialog = {
+                    scope.launch {
+                        // get bitmap
+                        val request = ImageRequest.Builder(context)
+                            .data(albumSongs.first().song.toSongAlbumArtModel())
+                            .size(Size.ORIGINAL)
+                            .build()
+
+                        val result = withContext(Dispatchers.IO) { imageLoader.execute(request) }
+                        val bitmap = if (result is SuccessResult)
+                            (result.drawable as BitmapDrawable).bitmap
+                        else
+                            null
+
+                        createShortcutDialog.launchForAlbum(
+                            ShortcutDialogData.AlbumShortcutDialogData(
+                                albumInfo.name,
+                                albumInfo.id,
+                                bitmap
+                            )
+                        )
+                    }
                 }
             )
         }
