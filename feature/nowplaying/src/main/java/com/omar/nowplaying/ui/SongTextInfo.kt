@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -42,8 +44,9 @@ fun SongTextInfo(
                     else Modifier
                 ),
             text = song.metadata.title,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium,
             fontSize = 22.sp,
             maxLines = 1
         )
@@ -53,10 +56,12 @@ fun SongTextInfo(
             Text(
                 modifier = Modifier.fillMaxWidth(),
                 text = song.metadata.artistName ?: "<unknown>",
+                style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Normal,
                 textAlign = TextAlign.Center,
                 fontSize = 14.sp,
-                maxLines = 1
+                maxLines = 1,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
             )
         }
 

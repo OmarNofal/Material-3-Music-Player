@@ -47,7 +47,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 
-private val EXPANDED_SCREEN_NOW_PLAYING_HEIGHT = 56.dp
+private val EXPANDED_SCREEN_NOW_PLAYING_HEIGHT = 72.dp
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

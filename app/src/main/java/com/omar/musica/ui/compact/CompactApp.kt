@@ -44,7 +44,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 
-private val COMPACT_NOW_PLAYING_BAR_HEIGHT = 56.dp
+private val COMPACT_NOW_PLAYING_BAR_HEIGHT = 68.dp
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

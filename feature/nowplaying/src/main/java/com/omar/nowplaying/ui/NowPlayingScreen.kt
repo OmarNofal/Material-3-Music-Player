@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -28,13 +29,24 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FastForward
+import androidx.compose.material.icons.outlined.FastRewind
+import androidx.compose.material.icons.outlined.SkipNext
+import androidx.compose.material.icons.outlined.SkipPrevious
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.FastRewind
 import androidx.compose.material.icons.rounded.PauseCircle
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material.icons.sharp.FastForward
+import androidx.compose.material.icons.sharp.FastRewind
+import androidx.compose.material.icons.sharp.PauseCircle
+import androidx.compose.material.icons.sharp.PlayCircle
+import androidx.compose.material.icons.sharp.SkipNext
+import androidx.compose.material.icons.sharp.SkipPrevious
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
@@ -50,10 +62,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.LinearGradient
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -102,7 +117,7 @@ fun NowPlayingScreen(
 
     if (uiState is NowPlayingState.Playing)
         NowPlayingScreen(
-            modifier = modifier.clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)),
+            modifier = modifier.clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
             nowPlayingBarPadding = nowPlayingBarPadding,
             uiState = uiState as NowPlayingState.Playing,
             barHeight = barHeight,
@@ -139,9 +154,9 @@ internal fun NowPlayingScreen(
 
 
     Surface(
-        modifier = modifier,
-        tonalElevation = if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 3.dp,
-    ) {
+        modifier = modifier, //if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 3.dp,
+        tonalElevation = 3.dp
+        ) {
 
         Box(modifier = Modifier.fillMaxSize()) {
 
@@ -216,18 +231,39 @@ fun FullScreenNowPlaying(
             visible = playerTheme == PlayerThemeUi.BLUR,
             enter = fadeIn(), exit = fadeOut()
         ) {
-            CrossFadingAlbumArt(
-                modifier = Modifier.fillMaxSize(),
-                songAlbumArtModel = song.toSongAlbumArtModel(),
-                errorPainterType = ErrorPainterType.SOLID_COLOR,
-                blurTransformation = remember { BlurTransformation(radius = 40, scale = 0.15f) },
-                colorFilter = remember {
-                    ColorFilter.tint(
-                        Color(0xFF999999),
-                        BlendMode.Multiply
-                    )
-                }
-            )
+
+            Box(modifier = Modifier.matchParentSize()) {
+
+                CrossFadingAlbumArt(
+                    modifier = Modifier.fillMaxSize(),
+                    songAlbumArtModel = song.toSongAlbumArtModel(),
+                    errorPainterType = ErrorPainterType.SOLID_COLOR,
+                    blurTransformation = remember {
+                        BlurTransformation(
+                            radius = 25,
+                            scale = 0.2f
+                        )
+                    },
+                    colorFilter = remember {
+                        ColorFilter.tint(
+                            Color(0xFFCCCCCC),
+                            BlendMode.Multiply
+                        )
+                    }
+                )
+                val screenHeight = LocalContext.current.resources.displayMetrics.heightPixels
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color.Black.copy(0.7f), Color.Black.copy(alpha = 1.0f)),
+                                startY = screenHeight * 0.2f,
+                                endY = Float.POSITIVE_INFINITY
+                            )
+                        )
+                )
+            }
         }
 
 
@@ -312,65 +348,66 @@ fun SongControls(
 
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.Center,
+        horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
 
         ControlButton(
             modifier = Modifier
-                .size(34.dp)
+                .size(26.dp)
                 .clip(RoundedCornerShape(4.dp)),
-            icon = Icons.Rounded.SkipPrevious,
-            "Skip Previous",
-            onPrevious
+            icon = Icons.Outlined.SkipPrevious,
+            contentDescription = "Skip Previous",
+            onClick = onPrevious
         )
 
-        Spacer(modifier = Modifier.width(8.dp))
+        //Spacer(modifier = Modifier.width(16.dp))
 
         ControlButton(
             modifier = Modifier
-                .size(34.dp)
-                .clip(RoundedCornerShape(4.dp)),
-            icon = Icons.Rounded.FastRewind,
-            "Jump Back",
-            onJumpBackward
+                .size(26.dp)
+                .clip(RoundedCornerShape(16.dp)),
+            icon = Icons.Outlined.FastRewind,
+            contentDescription = "Jump Back",
+            onClick = onJumpBackward
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
+        //Spacer(modifier = Modifier.width(16.dp))
 
         val pausePlayButton = remember(isPlaying) {
-            if (isPlaying) Icons.Rounded.PauseCircle else Icons.Rounded.PlayCircle
+            if (isPlaying) Icons.Sharp.PauseCircle else Icons.Sharp.PlayCircle
         }
 
         ControlButton(
             modifier = Modifier
-                .size(64.dp)
+                .size(72.dp)
                 .clip(CircleShape),
             icon = pausePlayButton,
-            "Skip Previous",
-            onTogglePlayback
+            tint = MaterialTheme.colorScheme.primary,
+            contentDescription = "Skip Previous",
+            onClick = onTogglePlayback
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
+        //Spacer(modifier = Modifier.width(16.dp))
 
         ControlButton(
             modifier = Modifier
-                .size(36.dp)
+                .size(26.dp)
                 .clip(RoundedCornerShape(4.dp)),
-            icon = Icons.Rounded.FastForward,
-            "Jump Forward",
-            onJumpForward
+            icon = Icons.Outlined.FastForward,
+            contentDescription = "Jump Forward",
+            onClick = onJumpForward
         )
 
-        Spacer(modifier = Modifier.width(8.dp))
+        //Spacer(modifier = Modifier.width(16.dp))
 
         ControlButton(
             modifier = Modifier
-                .size(36.dp)
+                .size(26.dp)
                 .clip(RoundedCornerShape(4.dp)),
-            icon = Icons.Rounded.SkipNext,
-            "Skip To Next",
-            onNext
+            icon = Icons.Outlined.SkipNext,
+            contentDescription = "Skip To Next",
+            onClick = onNext
         )
 
 
@@ -383,6 +420,7 @@ fun SongControls(
 fun ControlButton(
     modifier: Modifier,
     icon: ImageVector,
+    tint: Color? = null,
     contentDescription: String? = null,
     onClick: () -> Unit
 ) {
@@ -392,6 +430,7 @@ fun ControlButton(
     Icon(
         modifier = iconModifier,
         imageVector = icon,
+        tint = tint ?: LocalContentColor.current,
         contentDescription = contentDescription
     )
 

@@ -5,12 +5,15 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +25,7 @@ import androidx.compose.material.icons.twotone.SkipPrevious
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.omar.musica.model.playback.PlayerState
@@ -62,73 +67,92 @@ fun MiniPlayer(
     val state = (nowPlayingState as NowPlayingState.Playing)
     val song = state.song
 
+    Column(modifier = modifier) {
 
-    Row(
-        modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        CrossFadingAlbumArt(
+        Row(
             modifier = Modifier
-                .fillMaxHeight()
-                .aspectRatio(1.0f)
-                .scale(0.7f)
-                .shadow(2.dp, shape = RoundedCornerShape(4.dp))
-                .clip(RoundedCornerShape(8.dp)),
-            containerModifier = Modifier.padding(start = 8.dp),
-            songAlbumArtModel = song.toSongAlbumArtModel(),
-            errorPainterType = ErrorPainterType.PLACEHOLDER
-        )
-
-        Spacer(modifier = Modifier.width(4.dp))
-
-        Column(
-            modifier = Modifier.weight(1f),
-            horizontalAlignment = Alignment.Start
+                .fillMaxWidth()
+                .weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                modifier = Modifier.basicMarquee(Int.MAX_VALUE),
-                text = song.metadata.title,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                modifier = Modifier,
-                text = song.metadata.artistName.orEmpty(),
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Light,
-                maxLines = 1
-            )
-        }
 
-        Spacer(modifier = Modifier.width(8.dp))
+            CrossFadingAlbumArt(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .aspectRatio(1.0f)
+                    .scale(0.8f)
+                    .shadow(2.dp, shape = RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(8.dp)),
+                containerModifier = Modifier.padding(start = 4.dp),
+                songAlbumArtModel = song.toSongAlbumArtModel(),
+                errorPainterType = ErrorPainterType.PLACEHOLDER
+            )
 
-        Row {
-            AnimatedVisibility(visible = showExtraControls) {
-                IconButton(onClick = onPrevious, enabled = enabled) {
-                    Icon(imageVector = Icons.TwoTone.SkipPrevious, contentDescription = "Previous")
-                }
-            }
-            Box(contentAlignment = Alignment.Center) {
-                IconButton(
-                    modifier = Modifier.padding(end = 4.dp),
-                    onClick = onTogglePlayback,
-                    enabled = enabled
-                ) {
-                    val icon =
-                        if (state.playbackState == PlayerState.PLAYING) Icons.TwoTone.Pause else Icons.TwoTone.PlayArrow
-                    Icon(imageVector = icon, contentDescription = null)
-                }
-                SongCircularProgressIndicator(
-                    modifier = Modifier.padding(end = 4.dp),
-                    songProgressProvider
+            Spacer(modifier = Modifier.width(4.dp))
+
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    modifier = Modifier.basicMarquee(Int.MAX_VALUE),
+                    text = song.metadata.title,
+                    fontWeight = FontWeight.Medium,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(3.dp))
+                Text(
+                    modifier = Modifier,
+                    text = song.metadata.artistName.orEmpty(),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1
                 )
             }
-            AnimatedVisibility(visible = showExtraControls) {
-                IconButton(onClick = onNext, enabled = enabled) {
-                    Icon(imageVector = Icons.TwoTone.SkipNext, contentDescription = "Next")
+
+            Spacer(modifier = Modifier.width(4.dp))
+
+            Row {
+                AnimatedVisibility(visible = showExtraControls) {
+                    IconButton(onClick = onPrevious, enabled = enabled) {
+                        Icon(
+                            imageVector = Icons.TwoTone.SkipPrevious,
+                            contentDescription = "Previous"
+                        )
+                    }
+                }
+                Box(contentAlignment = Alignment.Center) {
+                    IconButton(
+                        onClick = onTogglePlayback,
+                        enabled = enabled
+                    ) {
+                        val icon =
+                            if (state.playbackState == PlayerState.PLAYING) Icons.TwoTone.Pause else Icons.TwoTone.PlayArrow
+                        Icon(imageVector = icon, contentDescription = null)
+                    }
+                    /*SongCircularProgressIndicator(
+                        modifier = Modifier.padding(end = 4.dp),
+                        songProgressProvider = songProgressProvider
+                    )*/
+                }
+                AnimatedVisibility(visible = showExtraControls) {
+                    IconButton(onClick = onNext, enabled = enabled) {
+                        Icon(imageVector = Icons.TwoTone.SkipNext, contentDescription = "Next")
+                    }
                 }
             }
+
         }
+
+        SongLinearProgressIndicator(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp)
+                .height(1.dp),
+            songProgressProvider
+        )
     }
 
 }
@@ -156,6 +180,31 @@ fun SongCircularProgressIndicator(
         trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
     )
 }
+
+@Composable
+fun SongLinearProgressIndicator(
+    modifier: Modifier,
+    songProgressProvider: () -> Float,
+) {
+    val progress = remember {
+        Animatable(0.0f)
+    }
+    LaunchedEffect(key1 = Unit) {
+        while (isActive) {
+            val newProgress = songProgressProvider()
+            progress.animateTo(newProgress)
+            delay(1000)
+        }
+    }
+    LinearProgressIndicator(
+        progress = { progress.value },
+        modifier = modifier,
+        strokeCap = StrokeCap.Square,
+        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+
+    )
+}
+
 
 enum class BarState {
     COLLAPSED, EXPANDED

@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -174,7 +175,7 @@ fun PortraitPlayerScreen(
         }
 
         AnimatedContent(
-            modifier = Modifier.weight(1f, fill = false),
+            modifier = Modifier.weight(1f),
             targetState = isShowingLyrics, label = ""
         ) {
             if (it) {
@@ -192,10 +193,10 @@ fun PortraitPlayerScreen(
                 }
                 LiveLyricsScreen(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
                         .fadingEdge(fadeBrush)
-                        .padding(horizontal = 8.dp, vertical = 18.dp),
+                        .padding(horizontal = 8.dp, vertical = 2.dp),
                 )
                 BackHandler {
                     isShowingLyrics = false
@@ -215,21 +216,25 @@ fun PortraitPlayerScreen(
 
 
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
         ) {
-            SongTextInfo(
-                modifier = Modifier.fillMaxWidth(),
-                song = song,
-                showAlbum = false
-            )
 
-            Spacer(modifier = Modifier.height(8.dp))
 
             SongProgressInfo(
                 modifier = Modifier.fillMaxWidth(),
                 songDuration = song.metadata.durationMillis,
                 songProgressProvider = nowPlayingActions::currentSongProgress,
                 onUserSeek = nowPlayingActions::onUserSeek
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            SongTextInfo(
+                modifier = Modifier.fillMaxWidth(),
+                song = song,
+                showAlbum = false
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -329,6 +334,8 @@ fun LandscapePlayerScreen(
         }
 
 
+        Spacer(modifier = Modifier.width(8.dp))
+        VerticalDivider(modifier = Modifier.height(1000.dp))
         Spacer(modifier = Modifier.width(8.dp))
 
         Column(

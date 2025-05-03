@@ -2,18 +2,23 @@ package com.omar.nowplaying.ui
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
@@ -101,6 +106,7 @@ fun CrossFadingAlbumArt(
     )
 
     Crossfade(modifier = containerModifier, targetState = isUsingFirstPainter, label = "") {
+
         Image(
             modifier = modifier,
             painter = if (it) firstPainter else secondPainter,
@@ -108,5 +114,6 @@ fun CrossFadingAlbumArt(
             colorFilter = colorFilter,
             contentScale = contentScale
         )
+
     }
 }
