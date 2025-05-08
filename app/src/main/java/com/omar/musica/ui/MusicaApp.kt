@@ -54,7 +54,7 @@ val topLevelDestinations =
         TopLevelDestination.SONGS,
         TopLevelDestination.PLAYLISTS,
         TopLevelDestination.ALBUMS,
-        TopLevelDestination.SETTINGS
+        //TopLevelDestination.SETTINGS
     )
 
 
@@ -103,6 +103,11 @@ fun MusicaApp2(
                     enableBackPress = mutableStateOf(false),
                     onNavigateToAlbum = {
                         navController.navigateToAlbumDetail(it.albumInfo.id)
+                    },
+                    onNavigateToSettings = {
+                        navController.navigateToTopLevelDestination(
+                            TopLevelDestination.SETTINGS
+                        )
                     },
                     enterAnimationFactory = ::getEnterAnimationForRoute,
                     exitAnimationFactory = ::getExitAnimationForRoute,

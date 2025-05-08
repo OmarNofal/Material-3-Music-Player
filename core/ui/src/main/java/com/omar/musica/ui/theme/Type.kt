@@ -17,7 +17,17 @@ val QuickSandFontFamily = FontFamily(
     Font(R.font.quicksand_semibold, FontWeight.Bold)
 )
 
-val font = FontFamily.Default
+val ManropeFontFamily = FontFamily(
+    Font(R.font.manrope_light, FontWeight.Light),
+    Font(R.font.manrope_regular, FontWeight.Normal),
+    Font(R.font.manrope_medium, FontWeight.Medium),
+    Font(R.font.manrope_bold, FontWeight.Bold),
+    Font(R.font.manrope_extrabold, FontWeight.ExtraBold),
+    Font(R.font.manrope_extralight, FontWeight.ExtraLight),
+    Font(R.font.manrope_semibold, FontWeight.SemiBold)
+)
+
+val font = ManropeFontFamily//FontFamily.Default
 
 // Set of Material typography styles to start with
 val Typography = Typography(
@@ -26,6 +36,14 @@ val Typography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
+        letterSpacing = 0.5.sp,
+        platformStyle = PlatformTextStyle(true)
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = font,
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp,
+        lineHeight = 18.sp,
         letterSpacing = 0.5.sp,
         platformStyle = PlatformTextStyle(true)
     ),

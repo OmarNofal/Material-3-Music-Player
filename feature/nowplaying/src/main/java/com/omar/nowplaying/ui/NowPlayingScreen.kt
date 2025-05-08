@@ -64,6 +64,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -72,6 +73,7 @@ import androidx.compose.ui.graphics.LinearGradient
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.LookaheadScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.Dp
@@ -339,6 +341,7 @@ fun FullScreenNowPlaying(
 fun SongControls(
     modifier: Modifier,
     isPlaying: Boolean,
+    playButtonColor: Color,
     onPrevious: () -> Unit,
     onTogglePlayback: () -> Unit,
     onNext: () -> Unit,
@@ -383,7 +386,7 @@ fun SongControls(
                 .size(72.dp)
                 .clip(CircleShape),
             icon = pausePlayButton,
-            tint = MaterialTheme.colorScheme.primary,
+            tint = playButtonColor,
             contentDescription = "Skip Previous",
             onClick = onTogglePlayback
         )
@@ -410,6 +413,9 @@ fun SongControls(
             onClick = onNext
         )
 
+        LookaheadScope {
+
+        }
 
     }
 

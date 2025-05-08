@@ -13,11 +13,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.MusicNote
@@ -97,12 +100,15 @@ fun SongRow(
             }
 
             androidx.compose.animation.AnimatedVisibility(
-                visible = songRowState == SongRowState.SELECTION_STATE_SELECTED,
+                visible = songRowState in listOf(
+                    SongRowState.SELECTION_STATE_SELECTED,
+                    SongRowState.SELECTION_STATE_NOT_SELECTED
+                ),
                 enter = scaleIn(spring(Spring.DampingRatioMediumBouncy)),
                 exit = scaleOut()
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.CheckCircle,
+                    imageVector = if (songRowState == SongRowState.SELECTION_STATE_SELECTED) Icons.Rounded.CheckCircle else Icons.Outlined.Circle,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.tertiary
                 )
@@ -132,7 +138,7 @@ fun SongInfoRow(
 
         AsyncImage(
             modifier = Modifier
-                .size(54.dp)
+                .size(48.dp)
                 .clip(RoundedCornerShape(6.dp)),
             model = song.toSongAlbumArtModel(),
             imageLoader = if (efficientThumbnailLoading) LocalEfficientThumbnailImageLoader.current else LocalInefficientThumbnailImageLoader.current,
@@ -144,7 +150,7 @@ fun SongInfoRow(
             onError = { Timber.d("uri: ${it.result.request.data}" + it.result.throwable.stackTraceToString()) }
         )
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(16.dp))
 
         Column(Modifier.weight(1f)) {
 
@@ -155,21 +161,23 @@ fun SongInfoRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            Spacer(modifier = Modifier.height(2.dp))
             //Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = song.metadata.artistName.toString(),
-                fontWeight = FontWeight.Normal,
-                fontSize = 11.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+//            Text(
+//                text = song.metadata.artistName.toString(),
+//                fontWeight = FontWeight.Normal,
+//                fontSize = 11.sp,
+//                maxLines = 1,
+//                overflow = TextOverflow.Ellipsis,
+//            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = song.metadata.albumName.toString(),
+                    text = song.metadata.artistName.toString(),
                     fontSize = 11.sp,
                     maxLines = 1,
                     modifier = Modifier.weight(1f)

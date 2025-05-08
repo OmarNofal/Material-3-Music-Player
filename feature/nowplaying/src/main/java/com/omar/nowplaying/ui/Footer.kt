@@ -41,23 +41,22 @@ fun PlayerFooter(
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.Center
     ) {
 
         // queue button
-        TextButton(
+        IconButton(
             onClick = onOpenQueue
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
                 contentDescription = "Queue"
             )
-            Text(text = "Queue")
         }
 
 
         // spacer
-        Spacer(modifier = Modifier.weight(1f))
+        //Spacer(modifier = Modifier.weight(1f))
 
         // icons
         TooltipBox(

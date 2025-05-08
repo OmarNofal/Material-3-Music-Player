@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.omar.musica.model.SongSortOption
 
@@ -52,7 +53,7 @@ fun SortChip(
         onClick = { isDialogShown = !isDialogShown },
         label = {
             val ascendingText = if (isAscending) "Ascending" else "Descending"
-            Text(text = "${currentSongSortOption.getString()} - $ascendingText")
+            Text(text = "${currentSongSortOption.getString()} - $ascendingText", maxLines = 1, overflow = TextOverflow.Ellipsis)
         },
         icon = { Icon(Icons.Rounded.Sort, contentDescription = null) })
 

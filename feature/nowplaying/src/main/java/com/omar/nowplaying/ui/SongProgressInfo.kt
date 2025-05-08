@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -37,6 +38,7 @@ import kotlinx.coroutines.isActive
 fun SongProgressInfo(
     modifier: Modifier,
     songDuration: Long,
+    tint: Color = MaterialTheme.colorScheme.primary,
     songProgressProvider: () -> Float,
     onUserSeek: (progress: Float) -> Unit
 ) {
@@ -101,13 +103,7 @@ fun SongProgressInfo(
                 onUserSeek(userSetSliderValue); useSongProgress = false
             },
             interactionSource = sliderInteractionSource,
-            thumb = { it ->
-                SliderDefaults.Thumb(interactionSource = sliderInteractionSource, thumbSize = DpSize(20.dp, 20.dp))
-            },
-            track = {
-                it ->
-                SliderDefaults.Track(sliderState = it, modifier = Modifier.height(0.5.dp))
-            }
+            colors = SliderDefaults.colors(activeTrackColor = tint, thumbColor = tint),
         )
 
         Row(

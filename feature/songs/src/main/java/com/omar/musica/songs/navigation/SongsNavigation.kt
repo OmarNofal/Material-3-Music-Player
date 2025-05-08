@@ -39,6 +39,7 @@ fun NavGraphBuilder.songsGraph(
     navController: NavController,
     enableBackPress: MutableState<Boolean>,
     onNavigateToAlbum: (BasicAlbum) -> Unit,
+    onNavigateToSettings: () -> Unit,
     enterAnimationFactory:
         (String, AnimatedContentTransitionScope<NavBackStackEntry>) -> EnterTransition,
     exitAnimationFactory:
@@ -79,7 +80,8 @@ fun NavGraphBuilder.songsGraph(
 
                         }
                     )
-                }
+                },
+                onSettingsClicked = onNavigateToSettings
             )
         }
 

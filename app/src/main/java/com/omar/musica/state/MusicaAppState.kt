@@ -7,12 +7,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
 import com.omar.musica.playlists.navigation.PLAYLIST_DETAILS_ROUTE
 import com.omar.musica.albums.navigation.ALBUM_DETAIL_ROUTE
+import com.omar.musica.settings.navigation.SETTINGS_ROUTE
 import com.omar.musica.songs.navigation.SEARCH_ROUTE
 import com.omar.musica.tageditor.navigation.TAG_EDITOR_SCREEN
 import com.omar.nowplaying.NowPlayingState
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
@@ -63,7 +65,8 @@ class MusicaAppState(
                         route.contains(PLAYLIST_DETAILS_ROUTE) ||
                         route.contains(SEARCH_ROUTE) ||
                         route.contains(TAG_EDITOR_SCREEN) ||
-                        route.contains(ALBUM_DETAIL_ROUTE)
+                        route.contains(ALBUM_DETAIL_ROUTE) ||
+                        route.contains(SETTINGS_ROUTE)
                 )
     }
 

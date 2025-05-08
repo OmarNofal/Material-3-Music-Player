@@ -2,6 +2,9 @@ package com.omar.musica.songs.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -9,11 +12,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -25,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -38,10 +45,12 @@ import com.omar.musica.songs.viewmodel.SongsViewModel
 import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.MultiSelectState
+import com.omar.musica.ui.menu.MenuActionItem
 import com.omar.musica.ui.menu.buildCommonMultipleSongsActions
 import com.omar.musica.ui.menu.buildCommonSongActions
 import com.omar.musica.ui.songs.SongsSummary
 import com.omar.musica.ui.songs.selectableSongsList
+import com.omar.musica.ui.topbar.OverflowMenu
 import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
 
 
@@ -50,6 +59,7 @@ fun SongsScreen(
     modifier: Modifier = Modifier,
     viewModel: SongsViewModel = hiltViewModel(),
     onSearchClicked: () -> Unit,
+    onSettingsClicked: () -> Unit
 ) {
     val songsUiState by viewModel.state.collectAsState()
     SongsScreen(
@@ -57,6 +67,7 @@ fun SongsScreen(
         songsUiState,
         viewModel::onSongClicked,
         onSearchClicked,
+        onSettingsClicked,
         viewModel::onSortOptionChanged
     )
 }
@@ -69,6 +80,7 @@ internal fun SongsScreen(
     uiState: SongsScreenUiState,
     onSongClicked: (Song, Int) -> Unit,
     onSearchClicked: () -> Unit,
+    onSettingsClicked: () -> Unit,
     onSortOptionChanged: (SongSortOption, isAscending: Boolean) -> Unit
 ) {
 
@@ -116,6 +128,16 @@ internal fun SongsScreen(
                         IconButton(onSearchClicked) {
                             Icon(Icons.Rounded.Search, contentDescription = null)
                         }
+                        OverflowMenu(
+                            actionItems = listOf(
+                                MenuActionItem(
+                                    Icons.Rounded.Settings,
+                                    "Settings"
+                                ) {
+                                onSettingsClicked()
+                                }),
+                            contentPaddingValues = PaddingValues(vertical = 16.dp, horizontal = 16.dp)
+                        )
                     },
                     scrollBehavior = scrollBehavior
                 )
@@ -132,32 +154,36 @@ internal fun SongsScreen(
                 )
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
         ) {
-
+            item {
+                HorizontalDivider()
+            }
             item {
                 AnimatedVisibility(visible = !multiSelectEnabled) {
-                    SongsSummary(
-                        Modifier
+                    Row(
+                        modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 16.dp, top = 16.dp),
-                        songs.count(),
-                        songs.sumOf { it.metadata.durationMillis }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Divider(Modifier.fillMaxWidth())
+                            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        SongsSummary(
+                            modifier = Modifier,
+                            songs.count(),
+                            songs.sumOf { it.metadata.durationMillis }
+                        )
+                        Spacer(Modifier.width(16.dp))
+                        SortChip(
+                            modifier = Modifier,
+                            songSortOptions = SongSortOption.entries,
+                            onSortOptionSelected = onSortOptionChanged,
+                            currentSongSortOption = uiState.songSortOption,
+                            isAscending = uiState.isSortedAscendingly
+                        )
+                    }
                 }
             }
 
-            item {
-                AnimatedVisibility(visible = !multiSelectEnabled) {
-                    SortChip(
-                        modifier = Modifier.padding(top = 8.dp, start = 12.dp, bottom = 4.dp),
-                        songSortOptions = SongSortOption.entries,
-                        onSortOptionSelected = onSortOptionChanged,
-                        currentSongSortOption = uiState.songSortOption,
-                        isAscending = uiState.isSortedAscendingly
-                    )
-                }
-            }
+
 
             selectableSongsList(
                 songs,
