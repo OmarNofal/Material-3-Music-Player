@@ -20,6 +20,7 @@ const val SETTINGS_ROUTE = "settings_route"
 
 fun NavGraphBuilder.settingsGraph(
     contentModifier: MutableState<Modifier>,
+    onBackPressed: () -> Unit,
     enterAnimationFactory:
         (String, AnimatedContentTransitionScope<NavBackStackEntry>) -> EnterTransition,
     exitAnimationFactory:
@@ -49,7 +50,7 @@ fun NavGraphBuilder.settingsGraph(
                 popExitAnimationFactory(SETTINGS_ROUTE, this)
             }
         ) {
-            SettingsScreen(modifier = contentModifier.value)
+            SettingsScreen(modifier = contentModifier.value, onBackPressed = onBackPressed)
         }
     }
 

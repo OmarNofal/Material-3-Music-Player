@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.sharp.ArrowBack
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.BlurCircular
@@ -76,12 +77,14 @@ import getPath
 @Composable
 fun SettingsScreen(
     modifier: Modifier,
+    onBackPressed: () -> Unit,
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val state by settingsViewModel.state.collectAsState()
     SettingsScreen(
         modifier = modifier,
         state = state,
+        onBackPressed = onBackPressed,
         settingsCallbacks = settingsViewModel
     )
 }
@@ -91,13 +94,14 @@ fun SettingsScreen(
 fun SettingsScreen(
     modifier: Modifier,
     state: SettingsState,
+    onBackPressed: () -> Unit,
     settingsCallbacks: ISettingsViewModel
 ) {
 
     val topBarScrollBehaviour = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
         modifier = modifier,
-        topBar = { SettingsTopAppBar(topBarScrollBehaviour) }
+        topBar = { SettingsTopAppBar(topBarScrollBehaviour, onBackPressed = onBackPressed) }
     )
     { paddingValues ->
         Box(
@@ -581,9 +585,14 @@ fun SectionTitle(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsTopAppBar(topAppBarScrollBehavior: TopAppBarScrollBehavior) {
+fun SettingsTopAppBar(topAppBarScrollBehavior: TopAppBarScrollBehavior, onBackPressed: () -> Unit) {
     TopAppBar(
         title = { Text(text = "Settings", fontWeight = FontWeight.SemiBold) },
-        scrollBehavior = topAppBarScrollBehavior
+        scrollBehavior = topAppBarScrollBehavior,
+        navigationIcon = {
+            IconButton(onClick = onBackPressed) {
+                Icon(imageVector = Icons.AutoMirrored.Sharp.ArrowBack, contentDescription = "Go Back")
+            }
+        }
     )
 }
