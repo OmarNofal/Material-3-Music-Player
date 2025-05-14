@@ -32,10 +32,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.ui.dialogs.InputStringDialog
@@ -190,12 +192,13 @@ internal fun QueueScreen(
                                 .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
                         else if (index >= currentSongIndex)
                             Modifier
-                            .fillMaxWidth()
+                                .fillMaxWidth()
                         else
                             Modifier
-                            .fillMaxWidth()
-                            .then(disabledModifier)
+                                .fillMaxWidth()
+                                .then(disabledModifier)
 
+                    val hapticFeedback = LocalHapticFeedback.current
                     QueueSongRow(
                         modifier = songModifier
                             .clickable { onSongClicked(index) }
@@ -203,7 +206,10 @@ internal fun QueueScreen(
                         songUi = queueItem.song,
                         swipeToDeleteDelay = 100,
                         this@ReorderableItem,
-                        onDragStarted = { reorderableList.onDragStarted(index) },
+                        onDragStarted = {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            reorderableList.onDragStarted(index)
+                        },
                         onDragStopped = { reorderableList.onDragStopped() },
                     ) {
                         onRemoveSongFromQueue(index)
