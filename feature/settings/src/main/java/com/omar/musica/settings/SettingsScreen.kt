@@ -29,6 +29,7 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,6 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -170,10 +172,11 @@ fun SettingsList(
                 AppThemeUi.LIGHT -> "Light"
                 AppThemeUi.DARK -> "Dark"
             }
-            GeneralSettingsItem(modifier = Modifier
-                .fillMaxWidth()
-                .clickable { appThemeDialogVisible = true }
-                .padding(horizontal = 32.dp, vertical = 16.dp),
+            GeneralSettingsItem(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { appThemeDialogVisible = true }
+                    .padding(horizontal = 32.dp, vertical = 16.dp),
                 title = "App Theme",
                 subtitle = text
             )
@@ -212,10 +215,11 @@ fun SettingsList(
                     onDismissRequest = { accentColorDialogVisible = false }
                 )
             }
-            GeneralSettingsItem(modifier = Modifier
-                .fillMaxWidth()
-                .clickable { accentColorDialogVisible = true }
-                .padding(horizontal = 32.dp, vertical = 16.dp),
+            GeneralSettingsItem(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { accentColorDialogVisible = true }
+                    .padding(horizontal = 32.dp, vertical = 16.dp),
                 title = "Accent Color",
                 subtitle = "Color of the app theme"
             )
@@ -245,10 +249,11 @@ fun SettingsList(
                 },
                 onDismissRequest = { playerThemeDialogVisible = false },
             )
-            GeneralSettingsItem(modifier = Modifier
-                .fillMaxWidth()
-                .clickable { playerThemeDialogVisible = true }
-                .padding(horizontal = 32.dp, vertical = 16.dp),
+            GeneralSettingsItem(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { playerThemeDialogVisible = true }
+                    .padding(horizontal = 32.dp, vertical = 16.dp),
                 title = "Player Theme",
                 subtitle = when (userPreferences.uiSettings.playerThemeUi) {
                     PlayerThemeUi.SOLID -> "Solid"
@@ -279,17 +284,19 @@ fun SettingsList(
                 onFolderDeleted = settingsCallbacks::onFolderDeleted,
                 onDismissRequest = { blacklistDialogVisible = false }
             )
-            GeneralSettingsItem(modifier = Modifier
-                .fillMaxWidth()
-                .clickable { blacklistDialogVisible = true }
-                .padding(horizontal = 32.dp, vertical = 16.dp),
+            GeneralSettingsItem(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { blacklistDialogVisible = true }
+                    .padding(horizontal = 32.dp, vertical = 16.dp),
                 title = "Blacklisted Folders",
                 subtitle = "Music in these folders will not appear in the app"
             )
         }
 
         item {
-            SwitchSettingsItem(modifier = Modifier.fillMaxWidth(),
+            SwitchSettingsItem(
+                modifier = Modifier.fillMaxWidth(),
                 title = "Cache Album Art",
                 info = SettingInfo(
                     title = "Album Art Cache",
@@ -349,10 +356,11 @@ fun SettingsList(
                 },
                 { jumpDurationDialogVisible = false }
             )
-            GeneralSettingsItem(modifier = Modifier
-                .fillMaxWidth()
-                .clickable { jumpDurationDialogVisible = true }
-                .padding(horizontal = 32.dp, vertical = 16.dp),
+            GeneralSettingsItem(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { jumpDurationDialogVisible = true }
+                    .padding(horizontal = 32.dp, vertical = 16.dp),
                 title = "Jump Interval",
                 subtitle = "${userPreferences.playerSettings.jumpInterval / 1000} seconds"
             )
@@ -388,7 +396,13 @@ fun JumpDurationDialog(
                 onDurationChanged(duration * 1000)
             }) { Text(text = "Confirm") }
         },
-        icon = { Icon(Icons.Rounded.FastForward, contentDescription = null) },
+        icon = {
+            Icon(
+                modifier = Modifier.graphicsLayer { scaleX = -1f; },
+                imageVector = Icons.Rounded.Replay,
+                contentDescription = null
+            )
+        },
         title = { Text(text = "Jump Interval") },
         text = {
             TextField(
@@ -459,13 +473,14 @@ fun BlacklistedFoldersDialog(
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Divider(Modifier.fillMaxWidth())
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(
-                        RoundedCornerShape(4.dp)
-                    )
-                    .clickable { directoryPicker.launch(null) }
-                    .padding(8.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically, modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(
+                            RoundedCornerShape(4.dp)
+                        )
+                        .clickable { directoryPicker.launch(null) }
+                        .padding(8.dp)) {
                     Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(text = "Add Path")
@@ -591,7 +606,10 @@ fun SettingsTopAppBar(topAppBarScrollBehavior: TopAppBarScrollBehavior, onBackPr
         scrollBehavior = topAppBarScrollBehavior,
         navigationIcon = {
             IconButton(onClick = onBackPressed) {
-                Icon(imageVector = Icons.AutoMirrored.Sharp.ArrowBack, contentDescription = "Go Back")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Sharp.ArrowBack,
+                    contentDescription = "Go Back"
+                )
             }
         }
     )

@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -50,6 +51,7 @@ fun QueueSongRow(
     modifier: Modifier,
     songUi: Song,
     swipeToDeleteDelay: Int,
+    isDragging: Boolean,
     reorderScope: ReorderableItemScope,
     onDragStarted: () -> Unit,
     onDragStopped: () -> Unit,
@@ -104,7 +106,7 @@ fun QueueSongRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                //.padding(horizontal = 16.dp, vertical = 8.dp)
                 .offset {
                     IntOffset(
                         anchorState
@@ -116,7 +118,7 @@ fun QueueSongRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             SongInfoRow(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
                 song = songUi,
                 efficientThumbnailLoading = LocalUserPreferences.current.librarySettings.cacheAlbumCoverArt
             )
@@ -126,7 +128,7 @@ fun QueueSongRow(
                     Modifier.draggableHandle(
                         onDragStarted = { onDragStarted() },
                         onDragStopped = { onDragStopped() }
-                    )
+                    ).padding(horizontal = 16.dp, vertical = 8.dp)
                 }) {
                 Icon(imageVector = Icons.Rounded.DragHandle, contentDescription = "Drag to Reorder")
             }

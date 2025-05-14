@@ -18,7 +18,9 @@ package com.omar.musica.convention
 
 import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.plugins
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
@@ -27,7 +29,7 @@ import java.io.File
  * Configure Compose-specific options
  */
 internal fun Project.configureAndroidCompose(
-    commonExtension: CommonExtension<*, *, *, *, *>,
+    commonExtension: CommonExtension<*, *, *, *, *, *>,
 ) {
     commonExtension.apply {
         buildFeatures {
@@ -52,6 +54,8 @@ internal fun Project.configureAndroidCompose(
                 isIncludeAndroidResources = true
             }
         }
+
+        apply(plugin = "org.jetbrains.kotlin.plugin.compose")
     }
 
     tasks.withType<KotlinCompile>().configureEach {
@@ -64,6 +68,7 @@ internal fun Project.configureAndroidCompose(
 
         }
     }
+
 }
 
 private fun Project.buildComposeMetricsParameters(): List<String> {

@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -38,6 +39,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.ui.dialogs.InputStringDialog
@@ -205,6 +207,7 @@ internal fun QueueScreen(
                             .zIndex(if (isDragging) 2.0f else 0.0f),
                         songUi = queueItem.song,
                         swipeToDeleteDelay = 100,
+                        isDragging = isDragging,
                         this@ReorderableItem,
                         onDragStarted = {
                             hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)

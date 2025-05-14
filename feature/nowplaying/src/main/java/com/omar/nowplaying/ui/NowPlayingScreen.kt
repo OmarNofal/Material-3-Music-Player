@@ -31,6 +31,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FastForward
 import androidx.compose.material.icons.outlined.FastRewind
+import androidx.compose.material.icons.outlined.Replay
+import androidx.compose.material.icons.outlined.RotateLeft
+import androidx.compose.material.icons.outlined.RotateRight
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
 import androidx.compose.material.icons.rounded.FastForward
@@ -64,6 +67,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -370,7 +374,7 @@ fun SongControls(
             modifier = Modifier
                 .size(26.dp)
                 .clip(RoundedCornerShape(16.dp)),
-            icon = Icons.Outlined.FastRewind,
+            icon = Icons.Outlined.Replay,
             contentDescription = "Jump Back",
             onClick = onJumpBackward
         )
@@ -396,8 +400,9 @@ fun SongControls(
         ControlButton(
             modifier = Modifier
                 .size(26.dp)
-                .clip(RoundedCornerShape(4.dp)),
-            icon = Icons.Outlined.FastForward,
+                .clip(RoundedCornerShape(4.dp))
+                .graphicsLayer { scaleX = -1f; },
+            icon = Icons.Outlined.Replay,
             contentDescription = "Jump Forward",
             onClick = onJumpForward
         )

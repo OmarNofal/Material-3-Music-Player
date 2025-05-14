@@ -45,15 +45,22 @@ fun PlayerFooter(
     ) {
 
         // queue button
-        IconButton(
-            onClick = onOpenQueue
+        TooltipBox(
+            tooltip = {
+                PlainTooltip { Text("Queue") }
+            },
+            state = rememberTooltipState(),
+            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
-                contentDescription = "Queue"
-            )
+            IconButton(
+                onClick = onOpenQueue
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                    contentDescription = "Queue"
+                )
+            }
         }
-
 
         // spacer
         //Spacer(modifier = Modifier.weight(1f))
