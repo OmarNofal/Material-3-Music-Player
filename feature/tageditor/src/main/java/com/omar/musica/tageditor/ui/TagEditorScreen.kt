@@ -1,8 +1,10 @@
 package com.omar.musica.tageditor.ui
 
+import android.Manifest
 import android.app.Activity
 import android.os.Build
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -92,6 +94,9 @@ fun TagEditorScreen(
         }
     }
 
+    val coroutineScope = rememberCoroutineScope()
+
+
     TagEditorScreen(
         modifier = modifier,
         state,
@@ -135,6 +140,23 @@ fun TagEditorScreen(
                 onSaveUserTags(editedSongTags!!)
         })
 
+    val coroutineScope = rememberCoroutineScope()
+    // Launcher for requesting WRITE_EXTERNAL_STORAGE permission
+    val writePermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            if (granted) {
+                // Permission granted, call ViewModel function
+                coroutineScope.launch {
+                    onSaveUserTags(editedSongTags!!)
+                }
+            } else {
+                // Permission denied, show message
+                Toast.makeText(activity, "Write permission is required to save tags.", Toast.LENGTH_LONG).show()
+            }
+        }
+    )
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
@@ -160,6 +182,7 @@ fun TagEditorScreen(
                                 .build()
                         )
                     } else {
+                        writePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                         onSaveUserTags(editedSongTags!!)
                     }
                 }) {

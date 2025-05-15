@@ -31,7 +31,6 @@ fun LyricsActions(
     modifier: Modifier,
     isShown: Boolean,
     lyricsFetchSource: LyricsFetchSource,
-    onSaveToSongFile: () -> Unit,
     onFetchWebVersion: () -> Unit,
     onCopy: () -> Unit,
 ) {
@@ -39,20 +38,6 @@ fun LyricsActions(
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.End) {
 
             val rippleColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.26f)
-            IconButton(
-                modifier = Modifier.background(rippleColor, CircleShape),
-                onClick =
-                if (lyricsFetchSource == LyricsFetchSource.FROM_INTERNET)
-                    onSaveToSongFile else
-                    onFetchWebVersion
-            ) {
-                val icon =
-                    if (lyricsFetchSource == LyricsFetchSource.FROM_INTERNET)
-                        Icons.Rounded.Save
-                    else
-                        Icons.Rounded.Language
-                Icon(imageVector = icon, contentDescription = null)
-            }
 
             Spacer(modifier = Modifier.height(6.dp))
 

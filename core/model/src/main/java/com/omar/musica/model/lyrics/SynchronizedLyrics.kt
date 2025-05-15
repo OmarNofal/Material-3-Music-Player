@@ -23,7 +23,6 @@ data class SynchronizedLyrics(
             val lines = text.split("\n")
             for (line in lines) {
                 if (!line.trim().startsWith("[")) {
-                    throw IllegalStateException("Song Lyrics: $line")
                     continue
                 }
 

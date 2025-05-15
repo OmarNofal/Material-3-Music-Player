@@ -102,16 +102,4 @@ class LiveLyricsViewModel @Inject constructor(
         return playbackManager.seekToPositionMillis(millis)
     }
 
-    fun saveExternalLyricsToSongFile() {
-        viewModelScope.launch {
-            val currentPlayingSongUri = playbackManager.state.value.currentPlayingSong ?: return@launch
-            lyricsRepository.saveExternalLyricsToSongFile(
-                currentPlayingSongUri.uri,
-                currentPlayingSongUri.metadata.title,
-                currentPlayingSongUri.metadata.albumName.orEmpty(),
-                currentPlayingSongUri.metadata.artistName.orEmpty()
-            )
-        }
-    }
-
 }

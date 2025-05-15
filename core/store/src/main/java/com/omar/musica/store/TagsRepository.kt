@@ -13,12 +13,17 @@ import com.omar.musica.store.model.tags.SongTags
 import com.shabinder.jaudiotagger.audio.AudioFileIO
 import com.shabinder.jaudiotagger.tag.FieldKey
 import com.shabinder.jaudiotagger.tag.TagOptionSingleton
+import com.shabinder.jaudiotagger.tag.flac.FlacTag
+import com.shabinder.jaudiotagger.tag.id3.valuepair.ImageFormats
 import com.shabinder.jaudiotagger.tag.images.AndroidArtwork
+import com.shabinder.jaudiotagger.tag.reference.PictureTypes
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.random.Random
@@ -73,28 +78,23 @@ class TagsRepository @Inject constructor(
      * before calling this method
      */
     suspend fun editTags(uri: Uri, songTags: SongTags) = withContext(Dispatchers.IO) {
-
         TagOptionSingleton.getInstance().isTruncateTextWithoutErrors = true
 
         val basicMetadata = songTags.metadata.basicSongMetadata
         val artwork = songTags.artwork
         val extendedMetadata = songTags.metadata
 
-
+        // Save artwork temporarily if present
         val bitmapTempFile =
-            if (artwork != null)
-                context.saveTempBitmapForArtwork(artwork)
-            else null
+            if (artwork != null) context.saveTempBitmapForArtwork(artwork) else null
+        val songAndroidArtwork =
+            if (artwork != null) AndroidArtwork.createArtworkFromFile(bitmapTempFile) else null
 
-        val songAndroidArtwork = if (artwork != null)
-            AndroidArtwork.createArtworkFromFile(bitmapTempFile)
-        else
-            null
+        val originalFilePath = mediaRepository.getSongPath(uri)
+        val originalFile = File(originalFilePath)
 
-        val filePath = mediaRepository.getSongPath(uri)
-        val originalSongFile = File(filePath)
-
-        val audioFileIO = AudioFileIO.read(originalSongFile)
+        // Read audio file and update tags
+        val audioFileIO = AudioFileIO.read(originalFile)
         val newTag = audioFileIO.tagOrCreateAndSetDefault.run {
             setField(FieldKey.TITLE, basicMetadata.title)
             setField(FieldKey.ARTIST, basicMetadata.artistName)
@@ -104,6 +104,7 @@ class TagsRepository @Inject constructor(
 
             if (extendedMetadata.year.isNotEmpty() && extendedMetadata.year.isDigitsOnly())
                 setField(FieldKey.YEAR, extendedMetadata.year)
+
             setField(FieldKey.COMPOSER, extendedMetadata.composer)
 
             if (extendedMetadata.trackNumber.isNotEmpty() && extendedMetadata.trackNumber.isDigitsOnly())
@@ -113,51 +114,80 @@ class TagsRepository @Inject constructor(
                 setField(FieldKey.DISC_NO, extendedMetadata.discNumber)
 
             setField(FieldKey.LYRICS, extendedMetadata.lyrics)
-            deleteArtworkField()
-            if (songAndroidArtwork != null)
-                setField(songAndroidArtwork)
+
             this
+        }
+
+        // save artwork
+        if (newTag is FlacTag) {
+
+            val flacTag = newTag
+            flacTag.deleteArtworkField()
+
+            if (songTags.artwork != null) {
+                flacTag.setField(
+                    flacTag.createArtworkField(
+                        songTags.artwork.toByteArray(),
+                        PictureTypes.DEFAULT_ID,
+                        ImageFormats.MIME_TYPE_JPEG,
+                        "artwork",
+                        songTags.artwork.width,
+                        songTags.artwork.height,
+                        24,
+                        0
+                    )
+                )
+            }
+
+        } else {
+            // For MP3 and others, use standard artwork setting
+            newTag.deleteArtworkField()
+            if (songAndroidArtwork != null) {
+                newTag.setField(songAndroidArtwork)
+            }
         }
         audioFileIO.tag = newTag
 
-
-        // need to save song in app-specific directory and then copy it to original dir
-        // because the tagging library has to create temp files and this is forbidden in android R :(
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val cacheFile = File(context.cacheDir, originalSongFile.name)
-            cacheFile.outputStream().use { cache ->
-                originalSongFile.inputStream().use {
-                    it.copyTo(cache)
-                }
+        // Save to temp cache file first (important for Android 10+ and to avoid partial writes)
+        val cacheFile = File(context.cacheDir, originalFile.name)
+        originalFile.inputStream().use { input ->
+            cacheFile.outputStream().use { output ->
+                input.copyTo(output)
             }
-            audioFileIO.file = cacheFile
-            audioFileIO.commit()
-            // copy back to the original directory ( I hate android R)
-            // In Android Q, for some unknown reason, using the File Api directly results in permission
-            // denied, even though we have requestLegacyExternalStorage enabled
-            // but opening it with contentResolver works for some reason ¯\_(ツ)_/¯
-            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
-                val os = context.contentResolver.openOutputStream(uri)!!
-                os.use { stream ->
-                    cacheFile.inputStream().use {
-                        it.copyTo(stream)
-                    }
-                }
-            } else {
-                originalSongFile.outputStream().use { original ->
-                    cacheFile.inputStream().use {
-                        it.copyTo(original)
-                    }
-                }
-            }
-            cacheFile.delete()
-        } else {
-            audioFileIO.commit()
         }
 
+        audioFileIO.file = cacheFile
+        audioFileIO.commit()
+
+        // Now write back to original location depending on Android version:
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // For Android 10 and above, write via ContentResolver with the Uri
+            context.contentResolver.openOutputStream(uri)?.use { out ->
+                cacheFile.inputStream().use { input ->
+                    input.copyTo(out)
+                }
+            } ?: throw IOException("Unable to open output stream for URI: $uri")
+        } else {
+            // For Android 9 and below, write directly to the file system path
+            if (!originalFile.canWrite()) {
+                throw SecurityException("No write permission for file: ${originalFile.path}. Make sure WRITE_EXTERNAL_STORAGE is granted.")
+            }
+
+            // Delete the original file before copying (required to avoid FileAlreadyExistsException)
+            if (!originalFile.delete()) {
+                throw IOException("Failed to delete original file: ${originalFile.path}")
+            }
+
+            // Copy the modified file back to original location
+            cacheFile.copyTo(originalFile)
+        }
+
+        // Clean up temp files
+        cacheFile.delete()
         bitmapTempFile?.delete()
 
-        MediaScannerConnection.scanFile(context, arrayOf(filePath), null, null)
+        // Trigger media scanner so updated tags show up in media apps
+        MediaScannerConnection.scanFile(context, arrayOf(originalFilePath), null, null)
     }
 
 
@@ -169,5 +199,14 @@ class TagsRepository @Inject constructor(
             }
             tempFile
         }
+
+    fun Bitmap.toByteArray(
+        format: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG,
+        quality: Int = 90
+    ): ByteArray {
+        val stream = ByteArrayOutputStream()
+        this.compress(format, quality, stream)
+        return stream.toByteArray()
+    }
 
 }

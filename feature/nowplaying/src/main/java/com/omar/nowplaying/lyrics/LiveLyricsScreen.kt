@@ -70,8 +70,7 @@ fun LiveLyricsScreen(
         state,
         lyricsViewModel::songProgressMillis,
         lyricsViewModel::setSongProgressMillis,
-        lyricsViewModel::onRetry,
-        lyricsViewModel::saveExternalLyricsToSongFile
+        lyricsViewModel::onRetry
     )
 }
 
@@ -81,8 +80,7 @@ fun LiveLyricsScreen(
     state: LyricsScreenState,
     songProgressMillis: () -> Long,
     onSeekToPositionMillis: (Long) -> Unit,
-    onRetry: () -> Unit,
-    onSaveLyricsToSongFile: () -> Unit
+    onRetry: () -> Unit
 ) {
     when (state) {
         is LyricsScreenState.NoLyrics ->
@@ -103,8 +101,7 @@ fun LiveLyricsScreen(
                 synchronizedLyrics = state.syncedLyrics,
                 lyricsFetchSource = state.lyricsSource,
                 onSeekToPositionMillis = onSeekToPositionMillis,
-                songProgressMillis = songProgressMillis,
-                onSaveLyricsToSongFile = onSaveLyricsToSongFile,
+                songProgressMillis = songProgressMillis
             )
     }
 }
@@ -253,8 +250,7 @@ fun SyncedLyricsState(
     synchronizedLyrics: SynchronizedLyrics,
     lyricsFetchSource: LyricsFetchSource,
     onSeekToPositionMillis: (Long) -> Unit,
-    songProgressMillis: () -> Long,
-    onSaveLyricsToSongFile: () -> Unit,
+    songProgressMillis: () -> Long
 ) {
 
     var lyricIndex by remember(synchronizedLyrics) {
@@ -350,8 +346,6 @@ fun SyncedLyricsState(
                 .align(Alignment.CenterEnd),
             isShown = actionsShown,
             lyricsFetchSource = lyricsFetchSource,
-            onSaveToSongFile = {
-            },
             onFetchWebVersion = { /*TODO*/ },
             onCopy = {
                 clipboardManager.setText(AnnotatedString(synchronizedLyrics.constructStringForSharing()))
