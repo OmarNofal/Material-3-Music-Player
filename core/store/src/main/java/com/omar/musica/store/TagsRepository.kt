@@ -7,6 +7,8 @@ import android.media.MediaMetadataRetriever
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
+import android.util.Log
+import androidx.core.net.toFile
 import com.omar.musica.model.song.BasicSongMetadata
 import com.omar.musica.model.song.ExtendedSongMetadata
 import com.omar.musica.store.model.tags.SongTags
@@ -17,6 +19,7 @@ import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.TagOptionSingleton
 import org.jaudiotagger.tag.images.AndroidArtwork
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -52,17 +55,25 @@ class TagsRepository @Inject constructor(
                 ?: ""
         val discNumber =
             metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DISC_NUMBER) ?: ""
+        val durationMillis =
+            metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0
+
+        val audio = AudioFileIO.read(File(mediaRepository.getSongPath(songUri)))
+        val lyrics =
+            audio.tagOrCreateAndSetDefault.getFirst(FieldKey.LYRICS)
 
         val artwork: Bitmap? = metadataRetriever.embeddedPicture?.let {
             return@let BitmapFactory.decodeByteArray(it, 0, it.size)
         }
 
+        Timber.tag("SONG LYRICS").d(lyrics)
+
         SongTags(
             songUri,
             artwork,
             ExtendedSongMetadata(
-                BasicSongMetadata(title, artist, album, 0, 0),
-                albumArtist, composer, trackNumber, discNumber, genre, year, ""
+                BasicSongMetadata(title, artist, album, durationMillis, 0),
+                albumArtist, composer, trackNumber, discNumber, genre, year, lyrics
             )
         )
     }
@@ -104,6 +115,7 @@ class TagsRepository @Inject constructor(
             setField(FieldKey.COMPOSER, extendedMetadata.composer)
             setField(FieldKey.TRACK, extendedMetadata.trackNumber)
             setField(FieldKey.DISC_NO, extendedMetadata.discNumber)
+            setField(FieldKey.LYRICS, extendedMetadata.lyrics)
             deleteArtworkField()
             if (songAndroidArtwork != null)
                 setField(songAndroidArtwork)

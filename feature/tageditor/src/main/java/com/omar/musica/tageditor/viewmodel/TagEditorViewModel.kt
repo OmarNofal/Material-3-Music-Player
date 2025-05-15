@@ -6,6 +6,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.omar.musica.store.TagsRepository
+import com.omar.musica.store.lyrics.LyricsRepository
+import com.omar.musica.store.lyrics.LyricsResult
 import com.omar.musica.store.model.tags.SongTags
 import com.omar.musica.tageditor.state.TagEditorState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TagEditorViewModel @Inject constructor(
     private val tagsRepository: TagsRepository,
+    private val lyricsRepository: LyricsRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -45,7 +48,7 @@ class TagEditorViewModel @Inject constructor(
             val currentState = state.value as TagEditorState.Loaded
             _state.value = currentState.copy(isSaving = true, isSaved = false)
             try {
-                tagsRepository.editTags(songUri, songTags,)
+                tagsRepository.editTags(songUri, songTags)
                 _state.getAndUpdate {
                     if (it is TagEditorState.Loaded)
                         it.copy(isSaved = true, isSaving = false, isFailed = false)
@@ -60,6 +63,28 @@ class TagEditorViewModel @Inject constructor(
                         TagEditorState.Loading
                 }
             }
+        }
+    }
+
+    suspend fun getLyrics(): String? {
+
+        val state = _state.value
+        if (state !is TagEditorState.Loaded) return null
+
+        val tags = state.tags
+        Log.d("lyrics", tags.toString())
+        val lyrics = lyricsRepository.downloadLyricsFromInternet(
+            tags.metadata.basicSongMetadata.title,
+            tags.metadata.basicSongMetadata.albumName.orEmpty(),
+            tags.metadata.basicSongMetadata.artistName.orEmpty(),
+            tags.metadata.basicSongMetadata.durationMillis.toInt() / 1000
+        )
+
+        return when (lyrics) {
+            LyricsResult.NotFound -> null
+            LyricsResult.NetworkError -> null
+            is LyricsResult.FoundPlainLyrics -> lyrics.plainLyrics.lines.joinToString("\n")
+            is LyricsResult.FoundSyncedLyrics -> lyrics.syncedLyrics.originalString
         }
     }
 

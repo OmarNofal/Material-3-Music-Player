@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,15 +19,19 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -42,11 +47,13 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -56,6 +63,7 @@ import com.omar.musica.store.model.tags.SongTags
 import com.omar.musica.tageditor.state.TagEditorState
 import com.omar.musica.tageditor.viewmodel.TagEditorViewModel
 import com.omar.musica.ui.showShortToast
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -84,7 +92,13 @@ fun TagEditorScreen(
         }
     }
 
-    TagEditorScreen(modifier = modifier, state, tagEditorViewModel::saveTags, onClose)
+    TagEditorScreen(
+        modifier = modifier,
+        state,
+        tagEditorViewModel::getLyrics,
+        tagEditorViewModel::saveTags,
+        onClose
+    )
 }
 
 
@@ -93,6 +107,7 @@ fun TagEditorScreen(
 fun TagEditorScreen(
     modifier: Modifier,
     state: TagEditorState,
+    getLyrics: suspend () -> String?,
     onSaveUserTags: (SongTags) -> Unit,
     onClose: () -> Unit,
 ) {
@@ -167,10 +182,32 @@ fun TagEditorScreen(
 
         val windowClass = calculateWindowSizeClass(activity = LocalContext.current as Activity)
 
+
+        val scope = rememberCoroutineScope()
+        val populateLyrics: () -> Unit = remember {
+            {
+                scope.launch {
+                    val lyrics = getLyrics()
+                    if (lyrics != null) {
+                        editedSongTags =
+                            editedSongTags!!.copy(
+                                metadata = editedSongTags!!.metadata.copy(
+                                    lyrics = lyrics
+                                )
+                            )
+                    }
+                }
+            }
+        }
+
         Box(modifier = Modifier.fillMaxSize()) {
             val shouldShowProgressBar = (state as? TagEditorState.Loaded)?.isSaving ?: false
             if (shouldShowProgressBar)
-                LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
+                LinearProgressIndicator(
+                    Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.TopCenter)
+                )
             if (windowClass.widthSizeClass >= WindowWidthSizeClass.Medium)
                 LoadedLandscapeTagEditorScreen(
                     modifier = Modifier
@@ -178,6 +215,7 @@ fun TagEditorScreen(
                         .padding(it)
                         .then(if (shouldShowProgressBar) Modifier.alpha(0.5f) else Modifier),
                     tags = editedSongTags!!,
+                    populateLyrics = populateLyrics,
                     nestedScrollConnection = scrollBehavior.nestedScrollConnection,
                     onEditTags = { newTags -> editedSongTags = newTags }
                 )
@@ -188,6 +226,7 @@ fun TagEditorScreen(
                         .padding(it)
                         .then(if (shouldShowProgressBar) Modifier.alpha(0.5f) else Modifier),
                     editedSongTags!!,
+                    populateLyrics = populateLyrics,
                     nestedScrollConnection = scrollBehavior.nestedScrollConnection
                 ) { newTags -> editedSongTags = newTags }
         }
@@ -199,6 +238,7 @@ fun TagEditorScreen(
 fun LoadedLandscapeTagEditorScreen(
     modifier: Modifier,
     tags: SongTags,
+    populateLyrics: () -> Unit,
     nestedScrollConnection: NestedScrollConnection,
     onEditTags: (SongTags) -> Unit,
 ) {
@@ -234,7 +274,7 @@ fun LoadedLandscapeTagEditorScreen(
                 .fillMaxSize()
                 .nestedScroll(nestedScrollConnection)
         ) {
-            tagFields(commonFieldModifier, tags, onEditTags)
+            tagFields(commonFieldModifier, tags, onEditTags, populateLyrics)
         }
 
     }
@@ -245,6 +285,7 @@ fun LoadedLandscapeTagEditorScreen(
 fun LoadedPortraitTagEditorScreen(
     modifier: Modifier,
     tags: SongTags,
+    populateLyrics: () -> Unit,
     nestedScrollConnection: NestedScrollConnection,
     onEditTags: (SongTags) -> Unit,
 ) {
@@ -268,7 +309,8 @@ fun LoadedPortraitTagEditorScreen(
         tagFields(
             commonFieldModifier = commonFieldModifier,
             tags = tags,
-            onEditTags = onEditTags
+            onEditTags = onEditTags,
+            onLoadLyrics = populateLyrics,
         )
     }
 }
@@ -278,6 +320,7 @@ fun LazyListScope.tagFields(
     commonFieldModifier: Modifier,
     tags: SongTags,
     onEditTags: (SongTags) -> Unit,
+    onLoadLyrics: () -> Unit
 ) {
     val basicSongMetadata = tags.metadata.basicSongMetadata
     val extendedMetadata = tags.metadata
@@ -434,6 +477,28 @@ fun LazyListScope.tagFields(
                     )
                 },
             )
+        }
+    }
+    item {
+        Box(modifier = commonFieldModifier) {
+            SingleFieldText(
+                modifier = Modifier
+                    .heightIn(240.dp)
+                    .fillMaxWidth(),
+                value = tags.metadata.lyrics,
+                name = "Lyrics",
+                onChange = { onEditTags(tags.copy(metadata = extendedMetadata.copy(lyrics = it))) },
+            )
+            IconButton(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(end = 12.dp, top = 12.dp)
+                    .background(Color.White.copy(alpha = 0.2f), shape = CircleShape)
+                    .padding(1.dp)
+                    .alpha(0.8f), onClick = onLoadLyrics
+            ) {
+                Icon(imageVector = Icons.Filled.Download, contentDescription = "Download Lyrics")
+            }
         }
     }
 }

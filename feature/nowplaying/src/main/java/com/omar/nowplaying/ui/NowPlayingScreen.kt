@@ -368,8 +368,6 @@ fun SongControls(
             onClick = onPrevious
         )
 
-        //Spacer(modifier = Modifier.width(16.dp))
-
         ControlButton(
             modifier = Modifier
                 .size(26.dp)
@@ -379,7 +377,6 @@ fun SongControls(
             onClick = onJumpBackward
         )
 
-        //Spacer(modifier = Modifier.width(16.dp))
 
         val pausePlayButton = remember(isPlaying) {
             if (isPlaying) Icons.Sharp.PauseCircle else Icons.Sharp.PlayCircle
@@ -395,8 +392,6 @@ fun SongControls(
             onClick = onTogglePlayback
         )
 
-        //Spacer(modifier = Modifier.width(16.dp))
-
         ControlButton(
             modifier = Modifier
                 .size(26.dp)
@@ -407,8 +402,6 @@ fun SongControls(
             onClick = onJumpForward
         )
 
-        //Spacer(modifier = Modifier.width(16.dp))
-
         ControlButton(
             modifier = Modifier
                 .size(26.dp)
@@ -417,10 +410,6 @@ fun SongControls(
             contentDescription = "Skip To Next",
             onClick = onNext
         )
-
-        LookaheadScope {
-
-        }
 
     }
 

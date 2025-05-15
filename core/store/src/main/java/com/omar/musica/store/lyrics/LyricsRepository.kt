@@ -3,6 +3,7 @@ package com.omar.musica.store.lyrics
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import com.omar.musica.database.dao.LyricsDao
 import com.omar.musica.database.entities.lyrics.LyricsEntity
 import com.omar.musica.model.lyrics.LyricsFetchSource
@@ -16,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.tag.FieldKey
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -48,7 +50,7 @@ class LyricsRepository @Inject constructor(
 
         // check for embedded lyrics first
         kotlin.run {
-            val lyrics = tags.getFirstField(FieldKey.LYRICS)?.toString() ?: return@run
+            val lyrics = tags.getFirst(FieldKey.LYRICS) ?: return@run
             val syncedLyrics = SynchronizedLyrics.fromString(lyrics)
             if (syncedLyrics != null)
                 return@withContext LyricsResult.FoundSyncedLyrics(
@@ -62,18 +64,34 @@ class LyricsRepository @Inject constructor(
                 )
         }
 
-        // check in the DB
-        kotlin.run {
-            val lyricsEntity = lyricsDao.getSongLyrics(title, album, artist) ?: return@run
+        return@withContext downloadLyricsFromInternet(title, album, artist, durationSeconds)
+    }
 
-            if (lyricsEntity.syncedLyrics.isNotBlank()) {
+    /**
+     * First checks the database if the query is cached
+     * and then falls back to the API
+     */
+    suspend fun downloadLyricsFromInternet(
+        title: String,
+        album: String,
+        artist: String,
+        durationSeconds: Int
+    ): LyricsResult = withContext(Dispatchers.IO) {
+        // check in the DB
+        Log.d("lyrics", "Starting lyrics fetch")
+        kotlin.run {
+            Log.d("lyrics", "Checking DB")
+            val lyricsEntity = lyricsDao.getSongLyrics(title, album, artist)
+
+            Log.d("lyrics", "DB result: $lyricsEntity")
+            if (lyricsEntity != null && lyricsEntity.syncedLyrics.isNotBlank()) {
                 val synced = SynchronizedLyrics.fromString(lyricsEntity.syncedLyrics)
                 if (synced != null) {
                     return@withContext LyricsResult.FoundSyncedLyrics(
                         synced,
                         LyricsFetchSource.FROM_INTERNET
                     )
-                } else {
+                } else if (lyricsEntity.plainLyrics.isNotBlank()){
                     return@withContext LyricsResult.FoundPlainLyrics(
                         PlainLyrics.fromString(lyricsEntity.plainLyrics),
                         LyricsFetchSource.FROM_INTERNET
@@ -82,10 +100,12 @@ class LyricsRepository @Inject constructor(
             }
         }
 
+        Log.d("lyrics", "Downloading Lyrics")
         // finally check from the API
         return@withContext try {
             val lyricsNetwork =
                 lyricsDataSource.getSongLyrics(artist, title, album, durationSeconds)
+            Log.d("lyrics", "Downloaded: $lyricsNetwork")
             val syncedLyrics = SynchronizedLyrics.fromString(lyricsNetwork.syncedLyrics)
             lyricsDao.saveSongLyrics(
                 LyricsEntity(
@@ -109,12 +129,13 @@ class LyricsRepository @Inject constructor(
                 LyricsFetchSource.FROM_INTERNET
             )
         } catch (e: NotFoundException) {
+            Log.d("lyrics", "Downloaded: Not found")
             LyricsResult.NotFound
         } catch (e: Exception) {
+            Log.d("lyrics", "Downloaded: ${e.stackTraceToString()}")
             LyricsResult.NetworkError
         }
     }
-
 
     suspend fun saveExternalLyricsToSongFile(
         uri: Uri,

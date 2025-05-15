@@ -5,6 +5,7 @@ package com.omar.musica.model.lyrics
  * Synced Lyrics containing a list of [SyncedLyricsSegment]s
  */
 data class SynchronizedLyrics(
+    val originalString: String,
     val segments: List<SyncedLyricsSegment>
 ) {
 
@@ -21,8 +22,10 @@ data class SynchronizedLyrics(
 
             val lines = text.split("\n")
             for (line in lines) {
-                if (!line.startsWith("["))
+                if (!line.trim().startsWith("[")) {
+                    throw IllegalStateException("Song Lyrics: $line")
                     continue
+                }
 
                 val timeInfoLastIndex = line.indexOfFirst { it == ']' }
                 if (timeInfoLastIndex == -1) continue
@@ -43,7 +46,7 @@ data class SynchronizedLyrics(
             }
 
             if (segments.isEmpty()) return null
-            return SynchronizedLyrics(segments)
+            return SynchronizedLyrics(text, segments)
         }
     }
 
