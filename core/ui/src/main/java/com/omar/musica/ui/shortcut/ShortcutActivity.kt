@@ -46,12 +46,12 @@ class ShortcutActivity : ComponentActivity() {
 
     private fun handleAlbum(command: String, albumId: Int) {
 
-        Thread.sleep(200)
-
         val albumSongs = albumsRepository.albums
             .value.find { it.albumInfo.id == albumId } ?: return
 
         val songs = albumSongs.songs.sortedBy { it.trackNumber }.map { it.song }
+
+        runBlocking { playbackManager.waitUntilReady() }
         if (command == SHUFFLE_COMMAND)
             playbackManager.shuffle(songs)
         else if (command == PLAY_COMMAND)
@@ -64,14 +64,12 @@ class ShortcutActivity : ComponentActivity() {
 
         if (playlist == -1) return
 
-        // we have to delay to give time for the playback manager to connect to the service
-        Thread.sleep(200)
-
         val playlistInfo = runBlocking {
             playlistsRepository.getPlaylistWithSongsFlow(playlist)
                 .firstOrNull()
         }
 
+        runBlocking { playbackManager.waitUntilReady() }
         if (command == SHUFFLE_COMMAND)
             playbackManager.shufflePlaylist(playlist)
         else if (command == PLAY_COMMAND)
