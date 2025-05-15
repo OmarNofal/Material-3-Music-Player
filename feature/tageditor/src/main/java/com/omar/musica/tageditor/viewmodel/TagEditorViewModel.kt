@@ -56,6 +56,7 @@ class TagEditorViewModel @Inject constructor(
                         TagEditorState.Loading
                 }
             } catch (e: Exception) {
+                Log.e("Tags", "Failed to save tags: ${e.stackTraceToString()}")
                 _state.getAndUpdate {
                     if (it is TagEditorState.Loaded)
                         it.copy(isSaved = false, isSaving = false, isFailed = true)

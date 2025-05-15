@@ -3,22 +3,20 @@ package com.omar.musica.store
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.MediaMetadataRetriever
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
-import android.util.Log
-import androidx.core.net.toFile
+import androidx.core.text.isDigitsOnly
 import com.omar.musica.model.song.BasicSongMetadata
 import com.omar.musica.model.song.ExtendedSongMetadata
 import com.omar.musica.store.model.tags.SongTags
+import com.shabinder.jaudiotagger.audio.AudioFileIO
+import com.shabinder.jaudiotagger.tag.FieldKey
+import com.shabinder.jaudiotagger.tag.TagOptionSingleton
+import com.shabinder.jaudiotagger.tag.images.AndroidArtwork
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.jaudiotagger.audio.AudioFileIO
-import org.jaudiotagger.tag.FieldKey
-import org.jaudiotagger.tag.TagOptionSingleton
-import org.jaudiotagger.tag.images.AndroidArtwork
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -34,36 +32,26 @@ class TagsRepository @Inject constructor(
 
 
     suspend fun getSongTags(songUri: Uri): SongTags = withContext(Dispatchers.IO) {
+        val songPath = mediaRepository.getSongPath(songUri)
+        val audioFile = AudioFileIO.read(File(songPath))
+        val tags = audioFile.tagOrCreateAndSetDefault
+        val audioHeader = audioFile.audioHeader
 
-        val metadataRetriever = MediaMetadataRetriever().apply { setDataSource(context, songUri) }
+        val title = tags.getFirst(FieldKey.TITLE).orEmpty()
+        val artist = tags.getFirst(FieldKey.ARTIST).orEmpty()
+        val album = tags.getFirst(FieldKey.ALBUM).orEmpty()
+        val albumArtist = tags.getFirst(FieldKey.ALBUM_ARTIST).orEmpty()
+        val composer = tags.getFirst(FieldKey.COMPOSER).orEmpty()
+        val genre = tags.getFirst(FieldKey.GENRE).orEmpty()
+        val year = tags.getFirst(FieldKey.YEAR).orEmpty()
+        val trackNumber = tags.getFirst(FieldKey.TRACK).orEmpty()
+        val discNumber = tags.getFirst(FieldKey.DISC_NO).orEmpty()
+        val lyrics = tags.getFirst(FieldKey.LYRICS).orEmpty()
 
-        val title =
-            metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: ""
-        val artist =
-            metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) ?: ""
-        val album =
-            metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM) ?: ""
-        val albumArtist =
-            metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST) ?: ""
-        val composer =
-            metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_COMPOSER) ?: ""
-        val genre =
-            metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE) ?: ""
-        val year = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR) ?: ""
-        val trackNumber =
-            metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER)
-                ?: ""
-        val discNumber =
-            metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DISC_NUMBER) ?: ""
-        val durationMillis =
-            metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0
+        val durationMillis = audioHeader?.trackLength?.times(1000L) ?: 0L
 
-        val audio = AudioFileIO.read(File(mediaRepository.getSongPath(songUri)))
-        val lyrics =
-            audio.tagOrCreateAndSetDefault.getFirst(FieldKey.LYRICS)
-
-        val artwork: Bitmap? = metadataRetriever.embeddedPicture?.let {
-            return@let BitmapFactory.decodeByteArray(it, 0, it.size)
+        val artwork: Bitmap? = tags.firstArtwork?.binaryData?.let {
+            BitmapFactory.decodeByteArray(it, 0, it.size)
         }
 
         Timber.tag("SONG LYRICS").d(lyrics)
@@ -78,13 +66,15 @@ class TagsRepository @Inject constructor(
         )
     }
 
+
     /**
      * Edits the tag of some song to [songTags].
      * This doesn't check for permission. Instead, permission should be checked in the UI
      * before calling this method
      */
     suspend fun editTags(uri: Uri, songTags: SongTags) = withContext(Dispatchers.IO) {
-        TagOptionSingleton.getInstance().isAndroid = true;
+
+        TagOptionSingleton.getInstance().isTruncateTextWithoutErrors = true
 
         val basicMetadata = songTags.metadata.basicSongMetadata
         val artwork = songTags.artwork
@@ -111,10 +101,17 @@ class TagsRepository @Inject constructor(
             setField(FieldKey.ALBUM, basicMetadata.albumName)
             setField(FieldKey.ALBUM_ARTIST, extendedMetadata.albumArtist)
             setField(FieldKey.GENRE, extendedMetadata.genre)
-            setField(FieldKey.YEAR, extendedMetadata.year)
+
+            if (extendedMetadata.year.isNotEmpty() && extendedMetadata.year.isDigitsOnly())
+                setField(FieldKey.YEAR, extendedMetadata.year)
             setField(FieldKey.COMPOSER, extendedMetadata.composer)
-            setField(FieldKey.TRACK, extendedMetadata.trackNumber)
-            setField(FieldKey.DISC_NO, extendedMetadata.discNumber)
+
+            if (extendedMetadata.trackNumber.isNotEmpty() && extendedMetadata.trackNumber.isDigitsOnly())
+                setField(FieldKey.TRACK, extendedMetadata.trackNumber)
+
+            if (extendedMetadata.discNumber.isNotEmpty() && extendedMetadata.discNumber.isDigitsOnly())
+                setField(FieldKey.DISC_NO, extendedMetadata.discNumber)
+
             setField(FieldKey.LYRICS, extendedMetadata.lyrics)
             deleteArtworkField()
             if (songAndroidArtwork != null)

@@ -12,12 +12,11 @@ import com.omar.musica.model.lyrics.SynchronizedLyrics
 import com.omar.musica.network.data.LyricsSource
 import com.omar.musica.network.model.NotFoundException
 import com.omar.musica.store.MediaRepository
+import com.shabinder.jaudiotagger.audio.AudioFileIO
+import com.shabinder.jaudiotagger.tag.FieldKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.jaudiotagger.audio.AudioFileIO
-import org.jaudiotagger.tag.FieldKey
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,7 +24,7 @@ import javax.inject.Singleton
 
 @Singleton
 class LyricsRepository @Inject constructor(
-    @ApplicationContext private val  context: Context,
+    @ApplicationContext private val context: Context,
     private val lyricsDataSource: LyricsSource,
     private val lyricsDao: LyricsDao,
     private val mediaRepository: MediaRepository
@@ -91,7 +90,7 @@ class LyricsRepository @Inject constructor(
                         synced,
                         LyricsFetchSource.FROM_INTERNET
                     )
-                } else if (lyricsEntity.plainLyrics.isNotBlank()){
+                } else if (lyricsEntity.plainLyrics.isNotBlank()) {
                     return@withContext LyricsResult.FoundPlainLyrics(
                         PlainLyrics.fromString(lyricsEntity.plainLyrics),
                         LyricsFetchSource.FROM_INTERNET
@@ -148,7 +147,8 @@ class LyricsRepository @Inject constructor(
         val audioFileIO = AudioFileIO().readFile(originalSongFile)
         val tag = audioFileIO.tagOrCreateAndSetDefault
 
-        val lyricsEntity = lyricsDao.getSongLyrics(title, album, artist) ?: throw IllegalStateException()
+        val lyricsEntity =
+            lyricsDao.getSongLyrics(title, album, artist) ?: throw IllegalStateException()
 
         if (lyricsEntity.syncedLyrics.isNotBlank()) {
             tag.setField(FieldKey.LYRICS, lyricsEntity.syncedLyrics)
