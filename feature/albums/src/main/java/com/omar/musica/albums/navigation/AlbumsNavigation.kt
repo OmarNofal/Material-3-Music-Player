@@ -12,6 +12,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
 import com.omar.musica.albums.ui.albumdetail.AlbumDetailsScreen
 import com.omar.musica.albums.ui.albumsscreen.AlbumsScreen
@@ -82,6 +83,9 @@ fun NavGraphBuilder.albumsGraph(
                 navArgument(AlbumDetailsViewModel.ALBUM_ID_KEY) {
                     type = NavType.IntType
                 }
+            ),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "musica://albums/{${AlbumDetailsViewModel.ALBUM_ID_KEY}}" }
             )
         )
         {

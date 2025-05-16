@@ -9,6 +9,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -83,5 +85,9 @@ class AlbumsRepository @Inject constructor(
         val album = albums.value.firstOrNull { it.songs.map { it.song }.any { it.uri == song.uri } }
         val albumId = album?.albumInfo?.id
         return albumId
+    }
+
+    suspend fun waitUntilAlbumsReady() {
+        albums.filter { it.isNotEmpty() }.first()
     }
 }

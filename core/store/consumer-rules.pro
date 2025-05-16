@@ -1,4 +1,6 @@
 -dontwarn org.jaudiotagger.**
 -dontwarn org.jcodec.**
+-dontwarn com.shabinder.**
 -keep class org.jaudiotagger.** { *; }
 -keep class org.jcodec.** { *; }
+-keep class com.shabinder.** { *; }

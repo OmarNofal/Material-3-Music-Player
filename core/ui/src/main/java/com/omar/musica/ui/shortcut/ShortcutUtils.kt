@@ -10,19 +10,9 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.os.bundleOf
 import com.omar.musica.ui.R
-import com.omar.musica.ui.shortcut.ShortcutUtils.createPinnedShortcutPlaylist
-import com.omar.musica.ui.shortcut.ShortcutUtils.getShortcutManager
 import kotlin.random.Random
 
 object ShortcutUtils {
-
-    fun Context.isPinnedShortcutsSupported(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
-
-        val shortcutManager = getSystemService(ShortcutManager::class.java)
-        return shortcutManager.isRequestPinShortcutSupported
-    }
-
 
     fun Context.createPinnedShortcutPlaylist(
         name: String,
@@ -36,7 +26,7 @@ object ShortcutUtils {
         val sm = getShortcutManager() ?: return
 
         val command = when (action) {
-            ShortcutAction.OPEN_IN_APP -> ""
+            ShortcutAction.OPEN_IN_APP -> ShortcutActivity.VIEW_COMMAND
             ShortcutAction.PLAY -> ShortcutActivity.PLAY_COMMAND
             ShortcutAction.SHUFFLE -> ShortcutActivity.SHUFFLE_COMMAND
         }
@@ -79,7 +69,7 @@ object ShortcutUtils {
         val sm = getShortcutManager() ?: return
 
         val command = when (action) {
-            ShortcutAction.OPEN_IN_APP -> ""
+            ShortcutAction.OPEN_IN_APP -> ShortcutActivity.VIEW_COMMAND
             ShortcutAction.PLAY -> ShortcutActivity.PLAY_COMMAND
             ShortcutAction.SHUFFLE -> ShortcutActivity.SHUFFLE_COMMAND
         }

@@ -1,7 +1,9 @@
 package com.omar.musica.ui.shortcut
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.core.net.toUri
 import com.omar.musica.playback.PlaybackManager
 import com.omar.musica.store.AlbumsRepository
 import com.omar.musica.store.PlaylistsRepository
@@ -46,6 +48,17 @@ class ShortcutActivity : ComponentActivity() {
 
     private fun handleAlbum(command: String, albumId: Int) {
 
+        if (command == VIEW_COMMAND) {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = "musica://albums/$albumId".toUri()
+            }
+            startActivity(intent)
+            return
+        }
+
+        runBlocking {
+            albumsRepository.waitUntilAlbumsReady()
+        }
         val albumSongs = albumsRepository.albums
             .value.find { it.albumInfo.id == albumId } ?: return
 
@@ -63,6 +76,14 @@ class ShortcutActivity : ComponentActivity() {
     private fun handlePlaylist(command: String, playlist: Int) {
 
         if (playlist == -1) return
+
+        if (command == VIEW_COMMAND) {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = "musica://playlists/$playlist".toUri()
+            }
+            startActivity(intent)
+            return
+        }
 
         val playlistInfo = runBlocking {
             playlistsRepository.getPlaylistWithSongsFlow(playlist)
@@ -86,6 +107,7 @@ class ShortcutActivity : ComponentActivity() {
 
         const val PLAY_COMMAND = "PLAY"
         const val SHUFFLE_COMMAND = "SHUFFLE"
+        const val VIEW_COMMAND = "VIEW"
 
         const val ALBUM_TYPE = "ALBUM"
         const val PLAYLIST_TYPE = "PLAYLIST"

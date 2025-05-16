@@ -29,6 +29,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -50,6 +52,9 @@ class PlaybackManager @Inject constructor(
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private lateinit var mediaController: MediaController
+
+    /** If the [MediaController] is connected to the media service */
+    private val isReady = MutableStateFlow(false)
 
     init {
         initMediaController(context)
@@ -322,6 +327,7 @@ class PlaybackManager @Inject constructor(
         mediaControllerFuture.addListener(
             {
                 mediaController = mediaControllerFuture.get()
+                isReady.value = true
                 updateState()
                 updateQueue()
                 attachListeners()
@@ -414,6 +420,10 @@ class PlaybackManager @Inject constructor(
 
     private fun List<Song>.toMediaItems(startingIndex: Int) = mapIndexed { index, song ->
         song.toMediaItem(startingIndex + index)
+    }
+
+    suspend fun waitUntilReady() {
+        isReady.filter { it == true }.first()
     }
 
 }
