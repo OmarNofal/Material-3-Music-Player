@@ -16,7 +16,6 @@ data class LibrarySettings(
      * The order of the songs on the main screen
      */
     val songsSortOrder: Pair<SongSortOption, IsAscending>,
-
     /**
      * The order of the songs on the main screen
      */

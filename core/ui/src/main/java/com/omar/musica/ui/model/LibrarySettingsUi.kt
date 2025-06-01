@@ -24,6 +24,7 @@ data class LibrarySettingsUi(
      */
     val albumsSortOrder: Pair<AlbumsSortOption, IsAscending>,
 
+
     val artistsSortOrder: Pair<ArtistsSortOption, IsAscending>,
 
     /**
