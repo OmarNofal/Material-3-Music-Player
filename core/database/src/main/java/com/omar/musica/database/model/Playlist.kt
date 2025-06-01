@@ -6,11 +6,10 @@ import com.omar.musica.database.entities.PLAYLIST_ID_COLUMN
 import com.omar.musica.database.entities.playlist.PlaylistEntity
 import com.omar.musica.database.entities.playlist.PlaylistsSongsEntity
 
-
 data class PlaylistWithSongsUri(
-    @Embedded
-    val playlistEntity: PlaylistEntity,
+  @Embedded
+  val playlistEntity: PlaylistEntity,
 
-    @Relation(entity = PlaylistsSongsEntity::class, parentColumn = PLAYLIST_ID_COLUMN, entityColumn = PLAYLIST_ID_COLUMN)
-    val songUris: List<PlaylistsSongsEntity>
+  @Relation(entity = PlaylistsSongsEntity::class, parentColumn = PLAYLIST_ID_COLUMN, entityColumn = PLAYLIST_ID_COLUMN)
+  val songUris: List<PlaylistsSongsEntity>
 )

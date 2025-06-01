@@ -92,356 +92,327 @@ import com.omar.nowplaying.viewmodel.NowPlayingViewModel
 
 @Composable
 fun NowPlayingScreen(
-    modifier: Modifier,
-    nowPlayingBarPadding: PaddingValues,
-    barHeight: Dp,
-    isExpanded: Boolean,
-    onCollapseNowPlaying: () -> Unit,
-    onExpandNowPlaying: () -> Unit,
-    progressProvider: () -> Float,
-    viewModel: NowPlayingViewModel = hiltViewModel()
+  modifier: Modifier,
+  nowPlayingBarPadding: PaddingValues,
+  barHeight: Dp,
+  isExpanded: Boolean,
+  onCollapseNowPlaying: () -> Unit,
+  onExpandNowPlaying: () -> Unit,
+  progressProvider: () -> Float,
+  viewModel: NowPlayingViewModel = hiltViewModel()
 ) {
 
-    val focusManager = LocalFocusManager.current
-    LaunchedEffect(key1 = isExpanded) {
-        if (isExpanded) {
-            focusManager.clearFocus(true)
-        }
-    }
-
+  val focusManager = LocalFocusManager.current
+  LaunchedEffect(key1 = isExpanded) {
     if (isExpanded) {
-        BackHandler(true) {
-            onCollapseNowPlaying()
-        }
+      focusManager.clearFocus(true)
     }
+  }
 
-    val uiState by viewModel.state.collectAsState()
+  if (isExpanded) {
+    BackHandler(true) {
+      onCollapseNowPlaying()
+    }
+  }
 
-    if (uiState is NowPlayingState.Playing)
-        NowPlayingScreen(
-            modifier = modifier.clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
-            nowPlayingBarPadding = nowPlayingBarPadding,
-            uiState = uiState as NowPlayingState.Playing,
-            barHeight = barHeight,
-            isExpanded = isExpanded,
-            onExpandNowPlaying = onExpandNowPlaying,
-            progressProvider = progressProvider,
-            nowPlayingActions = viewModel
-        )
+  val uiState by viewModel.state.collectAsState()
+
+  if (uiState is NowPlayingState.Playing)
+    NowPlayingScreen(
+      modifier = modifier.clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+      nowPlayingBarPadding = nowPlayingBarPadding,
+      uiState = uiState as NowPlayingState.Playing,
+      barHeight = barHeight,
+      isExpanded = isExpanded,
+      onExpandNowPlaying = onExpandNowPlaying,
+      progressProvider = progressProvider,
+      nowPlayingActions = viewModel
+    )
 }
 
 @Composable
 internal fun NowPlayingScreen(
-    modifier: Modifier,
-    nowPlayingBarPadding: PaddingValues,
-    uiState: NowPlayingState.Playing,
-    barHeight: Dp,
-    isExpanded: Boolean,
-    onExpandNowPlaying: () -> Unit,
-    progressProvider: () -> Float,
-    nowPlayingActions: INowPlayingViewModel
+  modifier: Modifier,
+  nowPlayingBarPadding: PaddingValues,
+  uiState: NowPlayingState.Playing,
+  barHeight: Dp,
+  isExpanded: Boolean,
+  onExpandNowPlaying: () -> Unit,
+  progressProvider: () -> Float,
+  nowPlayingActions: INowPlayingViewModel
 ) {
 
-    val playerTheme = LocalUserPreferences.current.uiSettings.playerThemeUi
-    val isDarkTheme = when (LocalUserPreferences.current.uiSettings.theme) {
-        AppThemeUi.DARK -> true
-        AppThemeUi.LIGHT -> false
-        else -> isSystemInDarkTheme()
+  val playerTheme = LocalUserPreferences.current.uiSettings.playerThemeUi
+  val isDarkTheme = when (LocalUserPreferences.current.uiSettings.theme) {
+    AppThemeUi.DARK -> true
+    AppThemeUi.LIGHT -> false
+    else -> isSystemInDarkTheme()
+  }
+
+  // Since we use a darker background image for the NowPlaying screen
+  // we need to make the status bar icons lighter
+  if (isExpanded && (isDarkTheme || playerTheme == PlayerThemeUi.BLUR))
+    DarkStatusBarEffect()
+
+  Surface(
+    modifier = modifier, //if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 3.dp,
+    tonalElevation = 3.dp
+  ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+      var isShowingQueue by remember {
+        mutableStateOf(false)
+      }
+      NowPlayingMaterialTheme(playerThemeUi = playerTheme) {
+        FullScreenNowPlaying(
+          Modifier
+            .fillMaxSize()
+            .graphicsLayer {
+              alpha = ((progressProvider() - 0.15f) * 2.0f).coerceIn(0.0f, 1.0f)
+            },
+          isShowingQueue,
+          { isShowingQueue = false },
+          { isShowingQueue = true },
+          progressProvider,
+          uiState,
+          nowPlayingActions = nowPlayingActions
+        )
+      }
+      LaunchedEffect(key1 = isExpanded) {
+        if (!isExpanded) isShowingQueue = false
+      }
+      MiniPlayer(
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(barHeight)
+          .padding(nowPlayingBarPadding)
+          .pointerInput(Unit) {
+            detectTapGestures { onExpandNowPlaying() }
+          }
+          .graphicsLayer {
+            alpha = (1 - (progressProvider() * 6.66f).coerceAtMost(1.0f))
+          },
+        nowPlayingState = uiState,
+        showExtraControls = LocalUserPreferences.current.uiSettings.showMiniPlayerExtraControls,
+        songProgressProvider = nowPlayingActions::currentSongProgress,
+        enabled = !isExpanded, // if the view is expanded then disable the header
+        nowPlayingActions::togglePlayback,
+        nowPlayingActions::nextSong,
+        nowPlayingActions::previousSong
+      )
     }
-
-    // Since we use a darker background image for the NowPlaying screen
-    // we need to make the status bar icons lighter
-    if (isExpanded && (isDarkTheme || playerTheme == PlayerThemeUi.BLUR))
-        DarkStatusBarEffect()
-
-
-    Surface(
-        modifier = modifier, //if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 3.dp,
-        tonalElevation = 3.dp
-        ) {
-
-        Box(modifier = Modifier.fillMaxSize()) {
-
-            var isShowingQueue by remember {
-                mutableStateOf(false)
-            }
-            NowPlayingMaterialTheme(playerThemeUi = playerTheme) {
-
-                FullScreenNowPlaying(
-                    Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            alpha = ((progressProvider() - 0.15f) * 2.0f).coerceIn(0.0f, 1.0f)
-                        },
-                    isShowingQueue,
-                    { isShowingQueue = false },
-                    { isShowingQueue = true },
-                    progressProvider,
-                    uiState,
-                    nowPlayingActions = nowPlayingActions
-                )
-            }
-            LaunchedEffect(key1 = isExpanded) {
-                if (!isExpanded) isShowingQueue = false
-            }
-            MiniPlayer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(barHeight)
-                    .padding(nowPlayingBarPadding)
-                    .pointerInput(Unit) {
-                        detectTapGestures { onExpandNowPlaying() }
-                    }
-                    .graphicsLayer {
-                        alpha = (1 - (progressProvider() * 6.66f).coerceAtMost(1.0f))
-                    },
-                nowPlayingState = uiState,
-                showExtraControls = LocalUserPreferences.current.uiSettings.showMiniPlayerExtraControls,
-                songProgressProvider = nowPlayingActions::currentSongProgress,
-                enabled = !isExpanded, // if the view is expanded then disable the header
-                nowPlayingActions::togglePlayback,
-                nowPlayingActions::nextSong,
-                nowPlayingActions::previousSong
-            )
-        }
-    }
+  }
 }
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun FullScreenNowPlaying(
-    modifier: Modifier,
-    isShowingQueue: Boolean,
-    onCloseQueue: () -> Unit,
-    onOpenQueue: () -> Unit,
-    progressProvider: () -> Float,
-    uiState: NowPlayingState.Playing,
-    nowPlayingActions: INowPlayingViewModel,
+  modifier: Modifier,
+  isShowingQueue: Boolean,
+  onCloseQueue: () -> Unit,
+  onOpenQueue: () -> Unit,
+  progressProvider: () -> Float,
+  uiState: NowPlayingState.Playing,
+  nowPlayingActions: INowPlayingViewModel,
 ) {
-
-    val song = remember(uiState.song) {
-        uiState.song
-    }
-
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.Center
+  val song = remember(uiState.song) {
+    uiState.song
+  }
+  Box(
+    modifier = modifier,
+    contentAlignment = Alignment.Center
+  ) {
+    val playerTheme = LocalUserPreferences.current.uiSettings.playerThemeUi
+    AnimatedVisibility(
+      visible = playerTheme == PlayerThemeUi.BLUR,
+      enter = fadeIn(), exit = fadeOut()
     ) {
+      Box(modifier = Modifier.matchParentSize()) {
+        CrossFadingAlbumArt(
+          modifier = Modifier.fillMaxSize(),
+          songAlbumArtModel = song.toSongAlbumArtModel(),
+          errorPainterType = ErrorPainterType.SOLID_COLOR,
+          blurTransformation = remember {
+            BlurTransformation(
+              radius = 25,
+              scale = 0.2f
+            )
+          },
+          colorFilter = remember {
+            ColorFilter.tint(
+              Color(0xFFCCCCCC),
+              BlendMode.Multiply
+            )
+          }
+        )
+        val screenHeight = LocalContext.current.resources.displayMetrics.heightPixels
+        Box(
+          modifier = Modifier
+            .matchParentSize()
+            .background(
+              Brush.verticalGradient(
+                colors = listOf(Color.Transparent, Color.Black.copy(0.7f), Color.Black.copy(alpha = 1.0f)),
+                startY = screenHeight * 0.2f,
+                endY = Float.POSITIVE_INFINITY
+              )
+            )
+        )
+      }
+    }
 
-        val playerTheme = LocalUserPreferences.current.uiSettings.playerThemeUi
-        AnimatedVisibility(
-            visible = playerTheme == PlayerThemeUi.BLUR,
-            enter = fadeIn(), exit = fadeOut()
-        ) {
+    val activity = LocalContext.current as Activity
+    val windowSizeClass = calculateWindowSizeClass(activity = activity)
+    val heightClass = windowSizeClass.heightSizeClass
+    val widthClass = windowSizeClass.widthSizeClass
 
-            Box(modifier = Modifier.matchParentSize()) {
-
-                CrossFadingAlbumArt(
-                    modifier = Modifier.fillMaxSize(),
-                    songAlbumArtModel = song.toSongAlbumArtModel(),
-                    errorPainterType = ErrorPainterType.SOLID_COLOR,
-                    blurTransformation = remember {
-                        BlurTransformation(
-                            radius = 25,
-                            scale = 0.2f
-                        )
-                    },
-                    colorFilter = remember {
-                        ColorFilter.tint(
-                            Color(0xFFCCCCCC),
-                            BlendMode.Multiply
-                        )
-                    }
-                )
-                val screenHeight = LocalContext.current.resources.displayMetrics.heightPixels
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(0.7f), Color.Black.copy(alpha = 1.0f)),
-                                startY = screenHeight * 0.2f,
-                                endY = Float.POSITIVE_INFINITY
-                            )
-                        )
-                )
-            }
-        }
-
-
-        val activity = LocalContext.current as Activity
-        val windowSizeClass = calculateWindowSizeClass(activity = activity)
-        val heightClass = windowSizeClass.heightSizeClass
-        val widthClass = windowSizeClass.widthSizeClass
-
-
-        val screenSize = when {
-            heightClass == WindowHeightSizeClass.Compact && widthClass == WindowWidthSizeClass.Compact -> NowPlayingScreenSize.COMPACT
-            heightClass == WindowHeightSizeClass.Compact && widthClass != WindowWidthSizeClass.Compact -> NowPlayingScreenSize.LANDSCAPE
-            else -> NowPlayingScreenSize.PORTRAIT
-        }
-
-
-        val paddingModifier = remember(screenSize) {
-            if (screenSize == NowPlayingScreenSize.LANDSCAPE)
-                Modifier.padding(16.dp)
-            else
-                Modifier.padding(start = 16.dp, end = 16.dp, top = 32.dp)
-
-        }
-
-        val playerScreenModifier = remember(paddingModifier) {
-            Modifier
-                .fillMaxSize()
-                .graphicsLayer {
-                    alpha = ((progressProvider() - 0.15f) * 2.0f).coerceIn(0.0f, 1.0f)
-                }
-                .then(paddingModifier)
-                .statusBarsPadding()
-        }
-
-        AnimatedContent(
-            modifier = Modifier.fillMaxSize(),
-            targetState = isShowingQueue, label = "",
-            transitionSpec = {
-                if (this.targetState)
-                    fadeIn() togetherWith fadeOut()
-                else
-                    scaleIn(initialScale = 1.2f) + fadeIn() togetherWith fadeOut()
-            }
-        ) {
-            if (it) {
-                QueueScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer { alpha = progressProvider() * 2 },
-                    onClose = onCloseQueue
-                )
-            } else {
-
-                PlayingScreen2(
-                    modifier = playerScreenModifier.navigationBarsPadding(),
-                    song = song,
-                    playbackState = uiState.playbackState,
-                    repeatMode = uiState.repeatMode,
-                    isShuffleOn = uiState.isShuffleOn,
-                    screenSize = screenSize,
-                    nowPlayingActions = nowPlayingActions,
-                    onOpenQueue = onOpenQueue
-                )
-            }
-        }
-
+    val screenSize = when {
+      heightClass == WindowHeightSizeClass.Compact && widthClass == WindowWidthSizeClass.Compact -> NowPlayingScreenSize.COMPACT
+      heightClass == WindowHeightSizeClass.Compact && widthClass != WindowWidthSizeClass.Compact -> NowPlayingScreenSize.LANDSCAPE
+      else -> NowPlayingScreenSize.PORTRAIT
+    }
+    val paddingModifier = remember(screenSize) {
+      if (screenSize == NowPlayingScreenSize.LANDSCAPE)
+        Modifier.padding(16.dp)
+      else
+        Modifier.padding(start = 16.dp, end = 16.dp, top = 32.dp)
 
     }
+    val playerScreenModifier = remember(paddingModifier) {
+      Modifier
+        .fillMaxSize()
+        .graphicsLayer {
+          alpha = ((progressProvider() - 0.15f) * 2.0f).coerceIn(0.0f, 1.0f)
+        }
+        .then(paddingModifier)
+        .statusBarsPadding()
+    }
+    AnimatedContent(
+      modifier = Modifier.fillMaxSize(),
+      targetState = isShowingQueue, label = "",
+      transitionSpec = {
+        if (this.targetState)
+          fadeIn() togetherWith fadeOut()
+        else
+          scaleIn(initialScale = 1.2f) + fadeIn() togetherWith fadeOut()
+      }
+    ) {
+      if (it) {
+        QueueScreen(
+          modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer { alpha = progressProvider() * 2 },
+          onClose = onCloseQueue
+        )
+      } else {
+        PlayingScreen2(
+          modifier = playerScreenModifier.navigationBarsPadding(),
+          song = song,
+          isFavorite = uiState.isFavorite,
+          playbackState = uiState.playbackState,
+          repeatMode = uiState.repeatMode,
+          isShuffleOn = uiState.isShuffleOn,
+          screenSize = screenSize,
+          nowPlayingActions = nowPlayingActions,
+          onOpenQueue = onOpenQueue
+        )
+      }
+    }
+  }
 }
 
 
 @Composable
 fun SongControls(
-    modifier: Modifier,
-    isPlaying: Boolean,
-    playButtonColor: Color,
-    onPrevious: () -> Unit,
-    onTogglePlayback: () -> Unit,
-    onNext: () -> Unit,
-    onJumpForward: () -> Unit,
-    onJumpBackward: () -> Unit
+  modifier: Modifier,
+  isPlaying: Boolean,
+  playButtonColor: Color,
+  onPrevious: () -> Unit,
+  onTogglePlayback: () -> Unit,
+  onNext: () -> Unit,
+  onJumpForward: () -> Unit,
+  onJumpBackward: () -> Unit
 ) {
 
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+  Row(
+    modifier = modifier,
+    horizontalArrangement = Arrangement.SpaceEvenly,
+    verticalAlignment = Alignment.CenterVertically
+  ) {
 
-        ControlButton(
-            modifier = Modifier
-                .size(26.dp)
-                .clip(RoundedCornerShape(4.dp)),
-            icon = Icons.Outlined.SkipPrevious,
-            contentDescription = "Skip Previous",
-            onClick = onPrevious
-        )
+    ControlButton(
+      modifier = Modifier
+        .size(26.dp)
+        .clip(RoundedCornerShape(4.dp)),
+      icon = Icons.Outlined.SkipPrevious,
+      contentDescription = "Skip Previous",
+      onClick = onPrevious
+    )
+    //Spacer(modifier = Modifier.width(16.dp))
+    ControlButton(
+      modifier = Modifier
+        .size(26.dp)
+        .clip(RoundedCornerShape(16.dp)),
+      icon = Icons.Outlined.FastRewind,
+      contentDescription = "Jump Back",
+      onClick = onJumpBackward
+    )
+    //Spacer(modifier = Modifier.width(16.dp))
+    val pausePlayButton = remember(isPlaying) {
+      if (isPlaying) Icons.Sharp.PauseCircle else Icons.Sharp.PlayCircle
+    }
+    ControlButton(
+      modifier = Modifier
+        .size(72.dp)
+        .clip(CircleShape),
+      icon = pausePlayButton,
+      tint = playButtonColor,
+      contentDescription = "Skip Previous",
+      onClick = onTogglePlayback
+    )
+    //Spacer(modifier = Modifier.width(16.dp))
+    ControlButton(
+      modifier = Modifier
+        .size(26.dp)
+        .clip(RoundedCornerShape(4.dp)),
+      icon = Icons.Outlined.FastForward,
+      contentDescription = "Jump Forward",
+      onClick = onJumpForward
+    )
 
-        //Spacer(modifier = Modifier.width(16.dp))
+    //Spacer(modifier = Modifier.width(16.dp))
 
-        ControlButton(
-            modifier = Modifier
-                .size(26.dp)
-                .clip(RoundedCornerShape(16.dp)),
-            icon = Icons.Outlined.FastRewind,
-            contentDescription = "Jump Back",
-            onClick = onJumpBackward
-        )
-
-        //Spacer(modifier = Modifier.width(16.dp))
-
-        val pausePlayButton = remember(isPlaying) {
-            if (isPlaying) Icons.Sharp.PauseCircle else Icons.Sharp.PlayCircle
-        }
-
-        ControlButton(
-            modifier = Modifier
-                .size(72.dp)
-                .clip(CircleShape),
-            icon = pausePlayButton,
-            tint = playButtonColor,
-            contentDescription = "Skip Previous",
-            onClick = onTogglePlayback
-        )
-
-        //Spacer(modifier = Modifier.width(16.dp))
-
-        ControlButton(
-            modifier = Modifier
-                .size(26.dp)
-                .clip(RoundedCornerShape(4.dp)),
-            icon = Icons.Outlined.FastForward,
-            contentDescription = "Jump Forward",
-            onClick = onJumpForward
-        )
-
-        //Spacer(modifier = Modifier.width(16.dp))
-
-        ControlButton(
-            modifier = Modifier
-                .size(26.dp)
-                .clip(RoundedCornerShape(4.dp)),
-            icon = Icons.Outlined.SkipNext,
-            contentDescription = "Skip To Next",
-            onClick = onNext
-        )
-
-        LookaheadScope {
-
-        }
+    ControlButton(
+      modifier = Modifier
+        .size(26.dp)
+        .clip(RoundedCornerShape(4.dp)),
+      icon = Icons.Outlined.SkipNext,
+      contentDescription = "Skip To Next",
+      onClick = onNext
+    )
+    LookaheadScope {
 
     }
-
-
+  }
 }
 
 @Composable
 fun ControlButton(
-    modifier: Modifier,
-    icon: ImageVector,
-    tint: Color? = null,
-    contentDescription: String? = null,
-    onClick: () -> Unit
+  modifier: Modifier,
+  icon: ImageVector,
+  tint: Color? = null,
+  contentDescription: String? = null,
+  onClick: () -> Unit
 ) {
-    val iconModifier = remember {
-        modifier.clickable { onClick() }
-    }
-    Icon(
-        modifier = iconModifier,
-        imageVector = icon,
-        tint = tint ?: LocalContentColor.current,
-        contentDescription = contentDescription
-    )
-
+  val iconModifier = remember {
+    modifier.clickable { onClick() }
+  }
+  Icon(
+    modifier = iconModifier,
+    imageVector = icon,
+    tint = tint ?: LocalContentColor.current,
+    contentDescription = contentDescription
+  )
 }
 
 enum class NowPlayingScreenSize {
-    LANDSCAPE, PORTRAIT, COMPACT
+  LANDSCAPE, PORTRAIT, COMPACT
 }

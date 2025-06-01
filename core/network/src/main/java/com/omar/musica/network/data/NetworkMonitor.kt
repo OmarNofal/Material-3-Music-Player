@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
-
 @Singleton
 class NetworkMonitor @Inject constructor(
     @ApplicationContext private val context: Context
@@ -43,6 +42,5 @@ class NetworkMonitor @Inject constructor(
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         connectivityManager.requestNetwork(networkRequest, networkCallback)
     }
-
 
 }

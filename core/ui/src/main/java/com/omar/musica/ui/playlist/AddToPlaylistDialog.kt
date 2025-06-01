@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material3.AlertDialog
@@ -40,105 +41,93 @@ import com.omar.musica.ui.showSongsAddedToPlaylistsToast
 
 @Composable
 fun AddToPlaylistDialog(
-    viewModel: AddToPlaylistViewModel = hiltViewModel(),
-    songs: List<Song>,
-    onDismissRequest: () -> Unit
+  viewModel: AddToPlaylistViewModel = hiltViewModel(),
+  songs: List<Song>,
+  onDismissRequest: () -> Unit
 ) {
-
-    val state by viewModel.state.collectAsState()
-
-
-    val dialogEntries = remember(state) {
-        when (val safeState = state) {
-            is AddToPlaylistState.Loading -> AddToPlaylistDialogState()
-            is AddToPlaylistState.Success -> {
-                AddToPlaylistDialogState(
-                    mutableStateListOf(*safeState.playlists.map {
-                        AddToPlaylistDialogEntry(
-                            it,
-                            false
-                        )
-                    }.toTypedArray())
-                )
-            }
-        }
+  val state by viewModel.state.collectAsState()
+  val dialogEntries = remember(state) {
+    when (val safeState = state) {
+      is AddToPlaylistState.Loading -> AddToPlaylistDialogState()
+      is AddToPlaylistState.Success -> {
+        AddToPlaylistDialogState(
+          mutableStateListOf(*safeState.playlists.map {
+            AddToPlaylistDialogEntry(
+              it,
+              false
+            )
+          }.toTypedArray())
+        )
+      }
     }
-
-    val context = LocalContext.current
-
-    val createPlaylistDialog = rememberCreatePlaylistDialog()
-
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        confirmButton = {
-            TextButton(onClick = {
-                if (state !is AddToPlaylistState.Success) return@TextButton
-                val selectedPlaylists =
-                    dialogEntries.entries.filter { it.isSelected }.map { it.playlist }
-                viewModel.addSongsToPlaylists(songs, selectedPlaylists)
-                context.showSongsAddedToPlaylistsToast(songs.size, selectedPlaylists.size)
-                onDismissRequest()
-            }, enabled = dialogEntries.entries.any { it.isSelected }
+  }
+  val context = LocalContext.current
+  val createPlaylistDialog = rememberCreatePlaylistDialog()
+  AlertDialog(
+    onDismissRequest = onDismissRequest,
+    confirmButton = {
+      TextButton(onClick = {
+        if (state !is AddToPlaylistState.Success) return@TextButton
+        val selectedPlaylists =
+          dialogEntries.entries.filter { it.isSelected }.map { it.playlist }
+        viewModel.addSongsToPlaylists(songs, selectedPlaylists)
+        context.showSongsAddedToPlaylistsToast(songs.size, selectedPlaylists.size)
+        onDismissRequest()
+      }, enabled = dialogEntries.entries.any { it.isSelected }
+      ) {
+        Text("Confirm")
+      }
+    },
+    dismissButton = {
+      TextButton(onClick = onDismissRequest) {
+        Text("Cancel")
+      }
+    },
+    text = {
+      if (state is AddToPlaylistState.Loading) {
+        Box {
+          CircularProgressIndicator()
+        }
+      } else {
+        LazyColumn {
+          itemsIndexed(dialogEntries.entries) { index, entry ->
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(4.dp))
+                .clickable { dialogEntries.toggle(index) },
+              verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Confirm")
+              Checkbox(
+                checked = entry.isSelected,
+                onCheckedChange = { dialogEntries.toggle(index) })
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(text = entry.playlist.name)
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text("Cancel")
+          }
+          item {
+            HorizontalDivider()
+          }
+          item {
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(4.dp))
+                .clickable(onClick = createPlaylistDialog::launch)
+                .padding(8.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(text = "Create a new playlist")
             }
-        },
-        text = {
-
-            if (state is AddToPlaylistState.Loading) {
-                Box {
-                    CircularProgressIndicator()
-                }
-            } else {
-                LazyColumn {
-
-                    itemsIndexed(dialogEntries.entries) { index, entry ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(4.dp))
-                                .clickable { dialogEntries.toggle(index) },
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Checkbox(
-                                checked = entry.isSelected,
-                                onCheckedChange = { dialogEntries.toggle(index) })
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = entry.playlist.name)
-                        }
-                    }
-
-                    item {
-                        HorizontalDivider()
-                    }
-
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(4.dp))
-                                .clickable(onClick = createPlaylistDialog::launch)
-                                .padding(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = "Create a new playlist")
-                        }
-                    }
-
-                }
-
-            }
-        },
-        title = { Text(text = "Add to Playlists") },
-        icon = { Icon(imageVector = Icons.Rounded.PlaylistAdd, contentDescription = null) }
-    )
+          }
+        }
+      }
+    },
+    title = { Text(text = "Add to Playlists") },
+    icon = { Icon(imageVector = Icons.AutoMirrored.Rounded.PlaylistAdd, contentDescription = null) }
+  )
 
 }
 
@@ -146,40 +135,40 @@ fun AddToPlaylistDialog(
 @Composable
 fun rememberAddToPlaylistDialog(): AddToPlaylistDialog {
 
-    var dialogSongs by remember {
-        mutableStateOf<List<Song>?>(null)
-    }
+  var dialogSongs by remember {
+    mutableStateOf<List<Song>?>(null)
+  }
 
-    if (dialogSongs != null) {
-        AddToPlaylistDialog(songs = dialogSongs.orEmpty()) {
-            dialogSongs = null
-        }
+  if (dialogSongs != null) {
+    AddToPlaylistDialog(songs = dialogSongs.orEmpty()) {
+      dialogSongs = null
     }
+  }
 
-    return remember {
-        object : AddToPlaylistDialog {
-            override fun launch(songs: List<Song>) {
-                dialogSongs = songs
-            }
-        }
+  return remember {
+    object : AddToPlaylistDialog {
+      override fun launch(songs: List<Song>) {
+        dialogSongs = songs
+      }
     }
+  }
 
 }
 
 private data class AddToPlaylistDialogState(
-    val entries: MutableList<AddToPlaylistDialogEntry> = mutableStateListOf()
+  val entries: MutableList<AddToPlaylistDialogEntry> = mutableStateListOf()
 ) {
-    fun toggle(index: Int) {
-        val isSelected = entries[index].isSelected
-        entries[index] = entries[index].copy(isSelected = !isSelected)
-    }
+  fun toggle(index: Int) {
+    val isSelected = entries[index].isSelected
+    entries[index] = entries[index].copy(isSelected = !isSelected)
+  }
 }
 
 data class AddToPlaylistDialogEntry(
-    val playlist: PlaylistInfo,
-    val isSelected: Boolean
+  val playlist: PlaylistInfo,
+  val isSelected: Boolean
 )
 
 interface AddToPlaylistDialog {
-    fun launch(songs: List<Song>)
+  fun launch(songs: List<Song>)
 }

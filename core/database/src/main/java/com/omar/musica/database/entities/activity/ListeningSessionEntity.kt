@@ -1,5 +1,6 @@
 package com.omar.musica.database.entities.activity
 
+import android.view.inspector.InspectionCompanion
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -10,7 +11,6 @@ import com.omar.musica.database.entities.START_TIME_COLUMN
 
 @Entity(LISTENING_SESSION_TABLE)
 data class ListeningSessionEntity(
-
     @ColumnInfo(name = "id")
     @PrimaryKey(autoGenerate = true)
     val id: Long,

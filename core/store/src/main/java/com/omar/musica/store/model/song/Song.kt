@@ -10,8 +10,9 @@ import com.omar.musica.model.song.BasicSongMetadata
  * and a file path to find it on disk, album id, as well as the metadata of the song
  */
 data class Song(
-    val uri: Uri,
-    val filePath: String,
-    val albumId: Long?,
-    val metadata: BasicSongMetadata,
+  val id: Long,
+  val uri: Uri,
+  val filePath: String,
+  val albumId: Long?,
+  val metadata: BasicSongMetadata,
 )

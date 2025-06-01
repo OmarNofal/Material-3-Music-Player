@@ -1,6 +1,5 @@
 package com.omar.musica.model.playback
 
-
 enum class RepeatMode {
     REPEAT_ALL, REPEAT_SONG, NO_REPEAT;
 

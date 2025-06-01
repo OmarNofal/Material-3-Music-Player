@@ -35,97 +35,95 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupPositionProvider
 
 fun Modifier.shimmerLoadingAnimation(
-    widthOfShadowBrush: Int = 600,
-    angleOfAxisY: Float = 270f,
-    durationMillis: Int = 800,
+  widthOfShadowBrush: Int = 600,
+  angleOfAxisY: Float = 270f,
+  durationMillis: Int = 800,
 ): Modifier {
-    return composed {
+  return composed {
+    val shimmerColors = listOf(
+      Color.White.copy(alpha = 0.3f),
+      Color.White.copy(alpha = 0.5f),
+      Color.White.copy(alpha = 1.0f),
+      Color.White.copy(alpha = 0.5f),
+      Color.White.copy(alpha = 0.3f),
+    )
+    val transition = rememberInfiniteTransition(label = "")
 
-        val shimmerColors = listOf(
-            Color.White.copy(alpha = 0.3f),
-            Color.White.copy(alpha = 0.5f),
-            Color.White.copy(alpha = 1.0f),
-            Color.White.copy(alpha = 0.5f),
-            Color.White.copy(alpha = 0.3f),
-        )
+    val translateAnimation = transition.animateFloat(
+      initialValue = 0f,
+      targetValue = (durationMillis + widthOfShadowBrush).toFloat(),
+      animationSpec = infiniteRepeatable(
+        animation = tween(
+          durationMillis = durationMillis,
+          easing = LinearEasing,
+        ),
+        repeatMode = RepeatMode.Restart,
+      ),
+      label = "Shimmer loading animation",
+    )
 
-        val transition = rememberInfiniteTransition(label = "")
-
-        val translateAnimation = transition.animateFloat(
-            initialValue = 0f,
-            targetValue = (durationMillis + widthOfShadowBrush).toFloat(),
-            animationSpec = infiniteRepeatable(
-                animation = tween(
-                    durationMillis = durationMillis,
-                    easing = LinearEasing,
-                ),
-                repeatMode = RepeatMode.Restart,
-            ),
-            label = "Shimmer loading animation",
-        )
-
-        this.drawWithContent {
-            drawContent()
-            drawRect(
-                Brush.linearGradient(
-                    colors = shimmerColors,
-                    start = Offset(x = translateAnimation.value - widthOfShadowBrush, y = 0.0f),
-                    end = Offset(x = translateAnimation.value, y = angleOfAxisY),
-                ), blendMode = BlendMode.DstIn
-            )
-        }
+    this.drawWithContent {
+      drawContent()
+      drawRect(
+        Brush.linearGradient(
+          colors = shimmerColors,
+          start = Offset(x = translateAnimation.value - widthOfShadowBrush, y = 0.0f),
+          end = Offset(x = translateAnimation.value, y = angleOfAxisY),
+        ), blendMode = BlendMode.DstIn
+      )
     }
+  }
 }
 
 class ContextMenuPopupProvider : PopupPositionProvider {
-    override fun calculatePosition(
-        anchorBounds: IntRect,
-        windowSize: IntSize,
-        layoutDirection: LayoutDirection,
-        popupContentSize: IntSize
-    ): IntOffset {
-        val popupHeight = popupContentSize.height
+  override fun calculatePosition(
+    anchorBounds: IntRect,
+    windowSize: IntSize,
+    layoutDirection: LayoutDirection,
+    popupContentSize: IntSize
+  ): IntOffset {
+    val popupHeight = popupContentSize.height
 
-        val availableHeight = anchorBounds.topLeft.y
+    val availableHeight = anchorBounds.topLeft.y
 
-        return if (availableHeight >= popupHeight + 40) return IntOffset(
-            anchorBounds.topLeft.x,
-            anchorBounds.topLeft.y - popupHeight
-        )
-        else IntOffset(anchorBounds.topLeft.x, anchorBounds.bottomLeft.y + popupHeight)
-    }
+    return if (availableHeight >= popupHeight + 40) return IntOffset(
+      anchorBounds.topLeft.x,
+      anchorBounds.topLeft.y - popupHeight
+    )
+    else IntOffset(anchorBounds.topLeft.x, anchorBounds.bottomLeft.y + popupHeight)
+  }
 }
 
 
 @Composable
 fun LineContextMenu(
-    modifier: Modifier,
-    onCopy: () -> Unit,
-    onShare: () -> Unit
+  modifier: Modifier,
+  onCopy: () -> Unit,
+  onShare: () -> Unit
 ) {
 
-    AnimatedVisibility(
-        visible = true, enter = fadeIn(), exit = fadeOut()
-    ) {
-        Row(
-            modifier
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer),
-            verticalAlignment = Alignment.CenterVertically,
+  AnimatedVisibility(
+    visible = true, enter = fadeIn(), exit = fadeOut()
+  ) {
+    Row(
+      modifier
+        .clip(RoundedCornerShape(8.dp))
+        .background(MaterialTheme.colorScheme.secondaryContainer),
+      verticalAlignment = Alignment.CenterVertically,
 
-            ) {
-            Text(
-                text = "Copy",
-                modifier = Modifier
-                    .clickable { onCopy() }
-                    .padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 8.dp)
-            )
-            VerticalDivider(color = MaterialTheme.colorScheme.onSecondaryContainer)
-            Text(text = "Share",
-                modifier = Modifier
-                    .clickable { onShare() }
-                    .padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 8.dp)
-            )
-        }
+      ) {
+      Text(
+        text = "Copy",
+        modifier = Modifier
+          .clickable { onCopy() }
+          .padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 8.dp)
+      )
+      VerticalDivider(color = MaterialTheme.colorScheme.onSecondaryContainer)
+      Text(text = "Share",
+        modifier = Modifier
+          .clickable { onShare() }
+          .padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 8.dp)
+      )
     }
+  }
 }

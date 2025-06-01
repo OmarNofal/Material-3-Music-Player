@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.R
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -36,110 +35,100 @@ import com.omar.musica.ui.theme.isAppInDarkTheme
 
 
 val fadeBrush = Brush.verticalGradient(
-    0.0f to Color.Red,
-    0.8f to Color.Red,
-    1.0f to Color.Transparent
+  0.0f to Color.Red,
+  0.8f to Color.Red,
+  1.0f to Color.Transparent
 )
 
 
 @Composable
 internal fun AlbumArtHeader(
-    modifier: Modifier = Modifier,
-    songAlbumArtModel: SongAlbumArtModel,
-    albumInfo: BasicAlbumInfo,
-    fadeEdge: Boolean = true,
+  modifier: Modifier = Modifier,
+  songAlbumArtModel: SongAlbumArtModel,
+  albumInfo: BasicAlbumInfo,
+  fadeEdge: Boolean = true,
 ) {
-    val darkMode = isAppInDarkTheme()
-    val color = remember(darkMode) {
-        if (darkMode)
-            Color(0x99999999)
-        else
-            Color(0xFFFFFFFF)
-    }
+  val darkMode = isAppInDarkTheme()
+  val color = remember(darkMode) {
+    if (darkMode)
+      Color(0x99999999)
+    else
+      Color(0xFFFFFFFF)
+  }
 
-    Box(
-        modifier = modifier
+  Box(
+    modifier = modifier
+  ){
+    AsyncImage(
+      model = songAlbumArtModel,
+      contentDescription = "Album Art",
+      modifier = Modifier
+        .fillMaxWidth()
+        .aspectRatio(1.0f)
+        .then(if (fadeEdge) Modifier.fadingEdge(fadeBrush) else Modifier),
+      imageLoader = LocalInefficientThumbnailImageLoader.current,
+      colorFilter = ColorFilter.tint(
+        color,
+        BlendMode.Multiply
+      ),
+      contentScale = ContentScale.Crop,
+      error = painterResource(id = com.omar.musica.ui.R.drawable.placeholder)
+    )
+
+    Column(
+      modifier = Modifier
+        .fillMaxWidth(0.9f)
+        .align(Alignment.BottomStart)
+        .padding(start = 16.dp, bottom = 12.dp),
     ) {
-
-        AsyncImage(
-            model = songAlbumArtModel,
-            contentDescription = "Album Art",
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1.0f)
-                .then(if (fadeEdge) Modifier.fadingEdge(fadeBrush) else Modifier),
-            imageLoader = LocalInefficientThumbnailImageLoader.current,
-            colorFilter = ColorFilter.tint(
-                color,
-                BlendMode.Multiply
-            ),
-            contentScale = ContentScale.Crop,
-            error = painterResource(id = com.omar.musica.ui.R.drawable.placeholder)
-        )
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .align(Alignment.BottomStart)
-                .padding(start = 16.dp, bottom = 12.dp),
-        ) {
-            val backgroundColor = when (isAppInDarkTheme()) {
-                true -> Color(0x00FFFFFF)
-                false -> MaterialTheme.colorScheme.surfaceDim.copy(alpha = 0.85f)
-            }
-            AlbumTitle(
-                modifier = Modifier
-                    .background(backgroundColor)
-                    .padding(1.dp),
-                name = albumInfo.name
-            )
-            if (!isAppInDarkTheme())
-                Spacer(modifier = Modifier.height(2.dp))
-            ArtistName(
-                modifier = Modifier
-                    .background(backgroundColor)
-                    .padding(1.dp),
-                name = albumInfo.artist
-            )
-        }
+      AlbumTitle(
+        modifier = Modifier.padding(1.dp),
+        name = albumInfo.name
+      )
+      if (!isAppInDarkTheme()) Spacer(modifier = Modifier.height(2.dp))
+      ArtistName(
+        modifier = Modifier.padding(1.dp),
+        name = albumInfo.artist
+      )
     }
+  }
 }
 
 
 @Composable
 fun AlbumTitle(
-    modifier: Modifier,
-    name: String
+  modifier: Modifier,
+  name: String
 ) {
-    Text(
-        modifier = modifier,
-        text = name,
-        fontWeight = FontWeight.ExtraBold,
-        fontSize = 26.sp,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis
-    )
+  Text(
+    modifier = modifier,
+    text = name,
+    fontWeight = FontWeight.ExtraBold,
+    fontSize = 26.sp,
+    maxLines = 1,
+    overflow = TextOverflow.Ellipsis
+  )
 }
 
 @Composable
 fun ArtistName(
-    modifier: Modifier,
-    name: String
+  modifier: Modifier,
+  name: String
 ) {
-    Text(
-        modifier = modifier,
-        text = name,
-        fontWeight = FontWeight.Medium,
-        fontSize = 16.sp,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis
-    )
+  Text(
+    modifier = modifier,
+    text = name,
+    fontWeight = FontWeight.Medium,
+    fontSize = 16.sp,
+    maxLines = 1,
+    overflow = TextOverflow.Ellipsis
+  )
 }
 
 fun Modifier.fadingEdge(brush: Brush) =
-    this
-        .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-        .drawWithContent {
-            drawContent()
-            drawRect(brush = brush, blendMode = BlendMode.DstIn)
-        }
+  this
+    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+    .drawWithContent {
+      drawContent()
+      drawRect(brush = brush, blendMode = BlendMode.DstIn)
+    }

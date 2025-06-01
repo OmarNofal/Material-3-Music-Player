@@ -14,31 +14,28 @@ import com.omar.musica.ui.model.AppThemeUi
 
 @Composable
 fun AlbumDetailStatusBarColorEffect(
-    collapsePercentage: Float,
+  collapsePercentage: Float,
 ) {
+  val window = (LocalContext.current as Activity).window
+  val view = LocalView.current
 
+  val windowsInsetsController = WindowCompat.getInsetsController(window, view)
+  val oldColor = remember { window.statusBarColor }
+  val oldTheme = remember { windowsInsetsController.isAppearanceLightStatusBars }
 
-
-    val window = (LocalContext.current as Activity).window
-    val view = LocalView.current
-
-    val windowsInsetsController = WindowCompat.getInsetsController(window, view)
-    val oldColor = remember { window.statusBarColor }
-    val oldTheme = remember { windowsInsetsController.isAppearanceLightStatusBars }
-
-    val isDarkTheme =
-        when (LocalUserPreferences.current.uiSettings.theme) {
-            AppThemeUi.LIGHT -> false
-            AppThemeUi.DARK -> true
-            else -> isSystemInDarkTheme()
-        }
-    DisposableEffect(Unit) {
-        window.statusBarColor = 0x33000000
-        windowsInsetsController.isAppearanceLightStatusBars = false
-
-        onDispose {
-            window.statusBarColor = oldColor
-            windowsInsetsController.isAppearanceLightStatusBars = oldTheme
-        }
+  val isDarkTheme =
+    when (LocalUserPreferences.current.uiSettings.theme) {
+      AppThemeUi.LIGHT -> false
+      AppThemeUi.DARK -> true
+      else -> isSystemInDarkTheme()
     }
+  DisposableEffect(Unit) {
+    window.statusBarColor = 0x33000000
+    windowsInsetsController.isAppearanceLightStatusBars = false
+
+    onDispose {
+      window.statusBarColor = oldColor
+      windowsInsetsController.isAppearanceLightStatusBars = oldTheme
+    }
+  }
 }

@@ -1,4 +1,3 @@
-
 plugins {
     id("com.omar.kotlin.library")
 }
@@ -9,7 +8,6 @@ dependencies {
     // mark our data models as stable
     //implementation(libs.androidx.compose.runtime)
 }
-
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11

@@ -49,156 +49,148 @@ private val COMPACT_NOW_PLAYING_BAR_HEIGHT = 68.dp
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CompactAppScaffold(
-    modifier: Modifier,
-    appState: MusicaAppState,
-    nowPlayingScreenAnchors: AnchoredDraggableState<BarState>,
-    topLevelDestinations: List<TopLevelDestination>,
-    currentDestination: NavDestination?,
-    onDestinationSelected: (TopLevelDestination) -> Unit,
-    content: @Composable (Modifier, MutableState<Modifier>) -> Unit
+  modifier: Modifier,
+  appState: MusicaAppState,
+  nowPlayingScreenAnchors: AnchoredDraggableState<BarState>,
+  topLevelDestinations: List<TopLevelDestination>,
+  currentDestination: NavDestination?,
+  onDestinationSelected: (TopLevelDestination) -> Unit,
+  content: @Composable (Modifier, MutableState<Modifier>) -> Unit
 ) {
 
-    val density = LocalDensity.current
-    val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = false)
-    val nowPlayingBarHeightPx = with(density) { COMPACT_NOW_PLAYING_BAR_HEIGHT.toPx() }
-    val shouldShowBottomBar by appState.shouldShowBottomBar.collectAsState(initial = false)
+  val density = LocalDensity.current
+  val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = false)
+  val nowPlayingBarHeightPx = with(density) { COMPACT_NOW_PLAYING_BAR_HEIGHT.toPx() }
+  val shouldShowBottomBar by appState.shouldShowBottomBar.collectAsState(initial = false)
 
-    var layoutHeightPx = remember { 0 }
-    val bottomNavBarHeightPx =
-        with(density) { 80.dp.toPx() }
+  var layoutHeightPx = remember { 0 }
+  val bottomNavBarHeightPx =
+    with(density) { 80.dp.toPx() }
 
-    var nowPlayingBarMinOffset by remember {
-        mutableIntStateOf(0)
+  var nowPlayingBarMinOffset by remember {
+    mutableIntStateOf(0)
+  }
+
+  val scrollProvider = { 1 - (appState.nowPlayingScreenOffset() / nowPlayingBarMinOffset) }
+
+  val contentModifier = remember { mutableStateOf<Modifier>(Modifier) }
+
+  LaunchedEffect(key1 = shouldShowNowPlayingBar) {
+    if (!shouldShowNowPlayingBar)
+      nowPlayingScreenAnchors.animateTo(BarState.COLLAPSED)
+  }
+
+  LaunchedEffect(key1 = shouldShowBottomBar, key2 = shouldShowNowPlayingBar) {
+    contentModifier.value = Modifier.padding(
+      bottom = calculateBottomPaddingForContent(
+        shouldShowNowPlayingBar,
+        if (shouldShowBottomBar) 80.dp else 0.dp,
+        COMPACT_NOW_PLAYING_BAR_HEIGHT
+      )
+    )
+  }
+
+  val uiState = rememberCompactScreenUiState(
+    screenHeightPx = layoutHeightPx,
+    nowPlayingAnchors = nowPlayingScreenAnchors,
+    scrollProvider = scrollProvider,
+    bottomBarHeightPx = bottomNavBarHeightPx.toInt(),
+    density = density,
+    isPinnedMode = false,
+    isNowPlayingVisible = shouldShowNowPlayingBar,
+    showBottomBar = shouldShowBottomBar
+  )
+  // App itself
+  Box(modifier = modifier) {
+    // DrawContentFirst
+    Box(modifier = Modifier.fillMaxSize()) {
+      content(
+        Modifier
+          .align(Alignment.TopCenter)
+          .fillMaxSize()
+          .navigationBarsPadding(),
+        contentModifier
+      )
     }
-
-    val scrollProvider = { 1 - (appState.nowPlayingScreenOffset() / nowPlayingBarMinOffset) }
-
-    val contentModifier = remember { mutableStateOf<Modifier>(Modifier) }
-
-    LaunchedEffect(key1 = shouldShowNowPlayingBar) {
-        if (!shouldShowNowPlayingBar)
+    AnimatedVisibility(
+      visible = shouldShowNowPlayingBar,
+      enter = slideInVertically(
+        tween(600),
+        initialOffsetY = { nowPlayingBarHeightPx.roundToInt() * 2 }),
+      exit = slideOutVertically(
+        tween(600),
+        targetOffsetY = { -nowPlayingBarHeightPx.roundToInt() })
+    ) {
+      NowPlayingScreen(
+        barHeight = COMPACT_NOW_PLAYING_BAR_HEIGHT,
+        nowPlayingBarPadding = PaddingValues(0.dp),
+        modifier = Modifier
+          .fillMaxSize()
+          .offset {
+            uiState.getNowPlayingOffset()
+          }
+          .onSizeChanged { layoutSize ->
+            layoutHeightPx = layoutSize.height
+            nowPlayingBarMinOffset = nowPlayingScreenAnchors
+              .update(
+                layoutHeightPx,
+                nowPlayingBarHeightPx.toInt(),
+                bottomNavBarHeightPx.toInt()
+              )
+          }
+          .anchoredDraggable(nowPlayingScreenAnchors, Orientation.Vertical),
+        onCollapseNowPlaying = {
+          appState.coroutineScope.launch {
             nowPlayingScreenAnchors.animateTo(BarState.COLLAPSED)
+          }
+        },
+        onExpandNowPlaying = {
+          appState.coroutineScope.launch {
+            nowPlayingScreenAnchors.animateTo(BarState.EXPANDED)
+          }
+        },
+        isExpanded = nowPlayingScreenAnchors.currentValue == BarState.EXPANDED,
+        progressProvider = scrollProvider,
+        viewModel = appState.nowPlayingViewModel
+      )
     }
 
-    LaunchedEffect(key1 = shouldShowBottomBar, key2 = shouldShowNowPlayingBar) {
-        contentModifier.value = Modifier.padding(
-            bottom = calculateBottomPaddingForContent(
-                shouldShowNowPlayingBar,
-                if (shouldShowBottomBar) 80.dp else 0.dp,
-                COMPACT_NOW_PLAYING_BAR_HEIGHT
-            )
-        )
-    }
-
-
-    val uiState = rememberCompactScreenUiState(
-        screenHeightPx = layoutHeightPx,
-        nowPlayingAnchors = nowPlayingScreenAnchors,
-        scrollProvider = scrollProvider,
-        bottomBarHeightPx = bottomNavBarHeightPx.toInt(),
-        density = density,
-        isPinnedMode = false,
-        isNowPlayingVisible = shouldShowNowPlayingBar,
-        showBottomBar = shouldShowBottomBar
+    MusicaBottomNavBar(
+      modifier = Modifier
+        .fillMaxWidth()
+        .align(Alignment.BottomCenter)
+        .graphicsLayer { alpha = uiState.bottomBarAlpha }
+        .offset {
+          uiState.getBottomBarOffset()
+        },
+      topLevelDestinations = topLevelDestinations,
+      currentDestination = currentDestination,
+      onDestinationSelected = onDestinationSelected
     )
 
-    // App itself
-    Box(modifier = modifier) {
-
-        // DrawContentFirst
-        Box(modifier = Modifier.fillMaxSize()) {
-            content(
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxSize()
-                    .navigationBarsPadding(),
-                contentModifier
-            )
-        }
-
-
-        AnimatedVisibility(
-            visible = shouldShowNowPlayingBar,
-            enter = slideInVertically(
-                tween(600),
-                initialOffsetY = { nowPlayingBarHeightPx.roundToInt() * 2 }),
-            exit = slideOutVertically(
-                tween(600),
-                targetOffsetY = { -nowPlayingBarHeightPx.roundToInt() })
-        ) {
-
-            NowPlayingScreen(
-                barHeight = COMPACT_NOW_PLAYING_BAR_HEIGHT,
-                nowPlayingBarPadding = PaddingValues(0.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .offset {
-                        uiState.getNowPlayingOffset()
-                    }
-                    .onSizeChanged { layoutSize ->
-                        layoutHeightPx = layoutSize.height
-                        nowPlayingBarMinOffset = nowPlayingScreenAnchors
-                            .update(
-                                layoutHeightPx,
-                                nowPlayingBarHeightPx.toInt(),
-                                bottomNavBarHeightPx.toInt()
-                            )
-                    }
-                    .anchoredDraggable(nowPlayingScreenAnchors, Orientation.Vertical),
-                onCollapseNowPlaying = {
-                    appState.coroutineScope.launch {
-                        nowPlayingScreenAnchors.animateTo(BarState.COLLAPSED)
-                    }
-                },
-                onExpandNowPlaying = {
-                    appState.coroutineScope.launch {
-                        nowPlayingScreenAnchors.animateTo(BarState.EXPANDED)
-                    }
-                },
-                isExpanded = nowPlayingScreenAnchors.currentValue == BarState.EXPANDED,
-                progressProvider = scrollProvider,
-                viewModel = appState.nowPlayingViewModel
-            )
-        }
-
-        MusicaBottomNavBar(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .graphicsLayer { alpha = uiState.bottomBarAlpha }
-                .offset {
-                    uiState.getBottomBarOffset()
-                },
-            topLevelDestinations = topLevelDestinations,
-            currentDestination = currentDestination,
-            onDestinationSelected = onDestinationSelected
-        )
-
-        /*val nowPlayingViewModel = hiltViewModel<NowPlayingViewModel>()
-        FloatingMiniPlayer(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = 128.dp, end = 16.dp)
-                .fillMaxWidth(0.6f)
-                .height(58.dp)
-                .clip(RoundedCornerShape(12.dp)),
-            nowPlayingState = nowPlayingViewModel.state.collectAsState().value,
-            showExtraControls = true,
-            songProgressProvider = { 0.5f },
-            enabled = true,
-            onTogglePlayback = { *//*TODO*//* },
+    /*val nowPlayingViewModel = hiltViewModel<NowPlayingViewModel>()
+    FloatingMiniPlayer(
+        modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .padding(bottom = 128.dp, end = 16.dp)
+            .fillMaxWidth(0.6f)
+            .height(58.dp)
+            .clip(RoundedCornerShape(12.dp)),
+        nowPlayingState = nowPlayingViewModel.state.collectAsState().value,
+        showExtraControls = true,
+        songProgressProvider = { 0.5f },
+        enabled = true,
+        onTogglePlayback = { *//*TODO*//* },
             onNext = { *//*TODO*//* }) {
         }*/
 
-        ViewNowPlayingScreenListenerEffect(
-            navController = appState.navHostController,
-            onViewNowPlayingScreen = {
-                appState.coroutineScope.launch {
-                    nowPlayingScreenAnchors.animateTo(BarState.EXPANDED)
-                }
-            }
-        )
-
-    }
-
+    ViewNowPlayingScreenListenerEffect(
+      navController = appState.navHostController,
+      onViewNowPlayingScreen = {
+        appState.coroutineScope.launch {
+          nowPlayingScreenAnchors.animateTo(BarState.EXPANDED)
+        }
+      }
+    )
+  }
 }

@@ -21,26 +21,24 @@ import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.kotlin
 
 class AndroidFeatureConventionPlugin : Plugin<Project> {
-    override fun apply(target: Project) {
-        with(target) {
-            pluginManager.apply {
-                apply("com.omar.android.library")
-                apply("com.omar.android.hilt")
-            }
+  override fun apply(target: Project) {
+    with(target) {
+      pluginManager.apply {
+        apply("com.omar.android.library")
+        apply("com.omar.android.hilt")
+      }
+      dependencies {
+        add("implementation", project(":core:model"))
+        add("implementation", "androidx.compose.material3:material3-window-size-class")
+        add("testImplementation", kotlin("test"))
+        add("androidTestImplementation", kotlin("test"))
 
+        add("implementation", libs.findLibrary("androidx.hilt.navigation.compose").get())
+        add("implementation", libs.findLibrary("androidx.lifecycle.runtimeCompose").get())
+        add("implementation", libs.findLibrary("androidx.lifecycle.viewModelCompose").get())
 
-            dependencies {
-                add("implementation", project(":core:model"))
-                add("implementation", "androidx.compose.material3:material3-window-size-class")
-                add("testImplementation", kotlin("test"))
-                add("androidTestImplementation", kotlin("test"))
-
-                add("implementation", libs.findLibrary("androidx.hilt.navigation.compose").get())
-                add("implementation", libs.findLibrary("androidx.lifecycle.runtimeCompose").get())
-                add("implementation", libs.findLibrary("androidx.lifecycle.viewModelCompose").get())
-
-                add("implementation", libs.findLibrary("kotlinx.coroutines.android").get())
-            }
-        }
+        add("implementation", libs.findLibrary("kotlinx.coroutines.android").get())
+      }
     }
+  }
 }

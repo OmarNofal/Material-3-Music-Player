@@ -20,8 +20,6 @@ import com.omar.musica.ui.anim.POP_SCREEN_ENTER_ANIMATION
 import com.omar.musica.ui.anim.POP_SCREEN_EXIT_ANIMATION
 import com.omar.musica.ui.anim.SLIDE_DOWN_EXIT_ANIMATION
 import com.omar.musica.ui.anim.SLIDE_UP_ENTER_ANIMATION
-
-
 /*
     Determines the animation that screen should enter with
     when it is being opened. It takes the screen route and the

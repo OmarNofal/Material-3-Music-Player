@@ -17,66 +17,66 @@ import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.model.song.Song
 
 fun interface SongDeleteAction {
-    fun deleteSongs(songs: List<Song>)
+  fun deleteSongs(songs: List<Song>)
 }
 
 
 class AndroidRAboveDeleter(
-    private val activityResultLauncher: ActivityResultLauncher<IntentSenderRequest>,
-    private val context: Context
+  private val activityResultLauncher: ActivityResultLauncher<IntentSenderRequest>,
+  private val context: Context
 ) : SongDeleteAction {
 
-    @RequiresApi(30)
-    override fun deleteSongs(songs: List<Song>) {
-        if (songs.isEmpty()) return
-        val senderRequest = getIntentSenderRequest(context, songs[0].uri)
-        activityResultLauncher.launch(senderRequest)
+  @RequiresApi(30)
+  override fun deleteSongs(songs: List<Song>) {
+    if (songs.isEmpty()) return
+    val senderRequest = getIntentSenderRequest(context, songs[0].uri)
+    activityResultLauncher.launch(senderRequest)
+  }
+
+  @RequiresApi(30)
+  private fun getIntentSenderRequest(context: Context, uri: Uri): IntentSenderRequest {
+    return with(context) {
+
+      val deleteRequest =
+        android.provider.MediaStore.createDeleteRequest(contentResolver, listOf(uri))
+
+      IntentSenderRequest.Builder(deleteRequest)
+        .setFillInIntent(null)
+        .setFlags(android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION, 0)
+        .build()
     }
-
-    @RequiresApi(30)
-    private fun getIntentSenderRequest(context: Context, uri: Uri): IntentSenderRequest {
-        return with(context) {
-
-            val deleteRequest =
-                android.provider.MediaStore.createDeleteRequest(contentResolver, listOf(uri))
-
-            IntentSenderRequest.Builder(deleteRequest)
-                .setFillInIntent(null)
-                .setFlags(android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION, 0)
-                .build()
-        }
-    }
+  }
 
 }
 
 class AndroidQBelowDeleter(
-    private val mediaRepository: MediaRepository
+  private val mediaRepository: MediaRepository
 ) : SongDeleteAction {
 
-    override fun deleteSongs(songs: List<Song>) {
-        songs.forEach { mediaRepository.deleteSong(it) }
-    }
+  override fun deleteSongs(songs: List<Song>) {
+    songs.forEach { mediaRepository.deleteSong(it) }
+  }
 
 }
 
 @Composable
 fun deleteRequestLauncher(): AndroidRAboveDeleter {
-    val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = {
-            if (it.resultCode == Activity.RESULT_OK) {
-                Toast.makeText(context, "Song deleted", Toast.LENGTH_SHORT).show()
-            }
-        })
-    return remember {
-        AndroidRAboveDeleter(launcher, context)
-    }
+  val context = LocalContext.current
+  val launcher = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.StartIntentSenderForResult(),
+    onResult = {
+      if (it.resultCode == Activity.RESULT_OK) {
+        Toast.makeText(context, "Song deleted", Toast.LENGTH_SHORT).show()
+      }
+    })
+  return remember {
+    AndroidRAboveDeleter(launcher, context)
+  }
 }
 
 @Composable
 fun rememberSongDeleter(mediaRepository: MediaRepository): SongDeleteAction =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-        deleteRequestLauncher()
-    else
-        remember { AndroidQBelowDeleter(mediaRepository = mediaRepository) }
+  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+    deleteRequestLauncher()
+  else
+    remember { AndroidQBelowDeleter(mediaRepository = mediaRepository) }

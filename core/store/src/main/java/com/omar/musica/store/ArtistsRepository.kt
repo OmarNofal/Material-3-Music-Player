@@ -13,28 +13,32 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
-class AlbumsRepository @Inject constructor(
+
+class ArtistsRepository @Inject constructor(
   val mediaRepository: MediaRepository
 ) {
+
   private val scope = CoroutineScope(Dispatchers.Default)
+
   /**
-   * All the albums of the device alongside their songs
+   * All the artists of the device alongside their songs
    */
-  val albums: StateFlow<List<AlbumWithSongs>> = mediaRepository.songsFlow
+  val artists: StateFlow<List<AlbumWithSongs>> = mediaRepository.songsFlow
     .map {
+
       val songs = it.songs
-      val albumsNames = songs
-        .groupBy { song -> song.metadata.albumName }
-        .filter { entry -> entry.key != null }
+
+      // 关键改动：按歌手名分组而不是专辑名
+      val artistsNames = songs.groupBy { song -> song.metadata.artistName }.filter { entry -> entry.key != null }
 
       var counter = 1
-      albumsNames.map { entry ->
+      artistsNames.map { entry ->
         val firstSong = entry.value[0]
         AlbumWithSongs(
           BasicAlbumInfo(
             counter++,
-            entry.key!!,
-            firstSong.metadata.artistName.orEmpty(),
+            entry.key!!, // 歌手名
+            "", // artist字段留空，因为这里name就是歌手名
             entry.value.size
           ),
           entry.value.map { AlbumSong(it, it.metadata.trackNumber) }
@@ -48,11 +52,11 @@ class AlbumsRepository @Inject constructor(
     )
 
   /**
-   * Contains simplified information about all albums
-   * Used inside the Albums Screen
+   * Contains simplified information about all artists
+   * Used inside the Artists Screen
    */
-  val basicAlbums: StateFlow<List<BasicAlbum>> = albums
-    .map { albums -> albums.map { BasicAlbum(it.albumInfo, it.songs.firstOrNull()?.song) } }
+  val basicArtists: StateFlow<List<BasicAlbum>> = artists
+    .map { artists -> artists.map { BasicAlbum(it.albumInfo, it.songs.firstOrNull()?.song) } }
     .stateIn(
       scope,
       SharingStarted.Eagerly,
@@ -60,23 +64,17 @@ class AlbumsRepository @Inject constructor(
     )
 
   fun getArtistAlbums(artistName: String) =
-    basicAlbums.map { it.filter { album -> album.albumInfo.artist == artistName } }
+    basicArtists.map { it.filter { artist -> artist.albumInfo.name == artistName } }
 
-  fun getAlbumWithSongs(albumId: Int) =
-    albums.map { allAlbums ->
-      allAlbums
-        .firstOrNull { it.albumInfo.id == albumId }
+  fun getArtistWithSongs(artistId: Int) =
+    artists.map { allArtists ->
+      allArtists
+        .firstOrNull { it.albumInfo.id == artistId }
         .let {
           if (it == null) return@let it
-          // sort the songs by track number
-          val sortedSongs = it.songs.sortedBy { song -> song.trackNumber }
+          // sort the songs by track number or title
+          val sortedSongs = it.songs.sortedBy { song -> song.song.metadata.title }
           it.copy(songs = sortedSongs)
         }
     }
-
-  fun getSongAlbumId(song: Song): Int? {
-    val album = albums.value.firstOrNull { it.songs.map { it.song }.any { it.uri == song.uri } }
-    val albumId = album?.albumInfo?.id
-    return albumId
-  }
 }

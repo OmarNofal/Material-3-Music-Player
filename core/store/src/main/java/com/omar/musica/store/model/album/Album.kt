@@ -6,7 +6,6 @@ import com.omar.musica.store.model.song.Song
 
 data class BasicAlbum(
     val albumInfo: BasicAlbumInfo,
-
     /**
      * Used to get the album cover art
      */

@@ -2,6 +2,7 @@ package com.omar.musica.ui.model
 
 import androidx.compose.runtime.Stable
 import com.omar.musica.model.AlbumsSortOption
+import com.omar.musica.model.ArtistsSortOption
 import com.omar.musica.model.SongSortOption
 import com.omar.musica.model.prefs.IsAscending
 import com.omar.musica.model.prefs.LibrarySettings
@@ -23,11 +24,15 @@ data class LibrarySettingsUi(
      */
     val albumsSortOrder: Pair<AlbumsSortOption, IsAscending>,
 
+    val artistsSortOrder: Pair<ArtistsSortOption, IsAscending>,
+
     /**
      * How many columns to show in Albums
      * screen
      */
     val albumsGridSize: Int = 2,
+
+    val artistsGridSize: Int = 2,
 
     /**
      * Whether to load the actual album art of the song or
@@ -44,5 +49,5 @@ data class LibrarySettingsUi(
 
 fun LibrarySettings.toLibrarySettingsUi() =
     LibrarySettingsUi(
-        songsSortOrder, albumsSortOrder, albumsGridSize, cacheAlbumCoverArt, excludedFolders
+        songsSortOrder, albumsSortOrder,artistsSortOrder, albumsGridSize, artistsGridSize, cacheAlbumCoverArt, excludedFolders
     )

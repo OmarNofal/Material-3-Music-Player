@@ -41,116 +41,115 @@ import com.omar.musica.ui.common.MultiSelectState
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> SelectionTopAppBarScaffold(
-    modifier: Modifier,
-    multiSelectState: MultiSelectState<T>,
-    isMultiSelectEnabled: Boolean,
-    actionItems: List<MenuActionItem>,
-    numberOfVisibleIcons: Int,
-    scrollBehavior: TopAppBarScrollBehavior? = null,
-    content: @Composable () -> Unit // the TopAppBar which is visible when user is not in selection mode
+  modifier: Modifier,
+  multiSelectState: MultiSelectState<T>,
+  isMultiSelectEnabled: Boolean,
+  actionItems: List<MenuActionItem>,
+  numberOfVisibleIcons: Int,
+  scrollBehavior: TopAppBarScrollBehavior? = null,
+  content: @Composable () -> Unit // the TopAppBar which is visible when user is not in selection mode
 ) {
-    AnimatedContent(
-        targetState = isMultiSelectEnabled, label = "",
-        transitionSpec = {
-            if (targetState) {
-                scaleIn(initialScale = 0.8f) + fadeIn() togetherWith scaleOut(targetScale = 1.2f) + fadeOut()
-            } else {
-                scaleIn(initialScale = 1.2f) + fadeIn() togetherWith scaleOut(targetScale = 0.8f) + fadeOut()
-            }
-        }
-    ) {
-        if (it)
-            SelectionToolbar(
-                modifier = modifier,
-                numberOfSelected = multiSelectState.selected.size,
-                actionItems = actionItems,
-                numberOfVisibleIcons = numberOfVisibleIcons,
-                onNavigationIconClicked = { multiSelectState.clear() },
-                scrollBehavior = scrollBehavior
-            )
-        else
-            content()
+  AnimatedContent(
+    targetState = isMultiSelectEnabled, label = "",
+    transitionSpec = {
+      if (targetState) {
+        scaleIn(initialScale = 0.8f) + fadeIn() togetherWith scaleOut(targetScale = 1.2f) + fadeOut()
+      } else {
+        scaleIn(initialScale = 1.2f) + fadeIn() togetherWith scaleOut(targetScale = 0.8f) + fadeOut()
+      }
     }
+  ) {
+    if (it)
+      SelectionToolbar(
+        modifier = modifier,
+        numberOfSelected = multiSelectState.selected.size,
+        actionItems = actionItems,
+        numberOfVisibleIcons = numberOfVisibleIcons,
+        onNavigationIconClicked = { multiSelectState.clear() },
+        scrollBehavior = scrollBehavior
+      )
+    else content()
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectionToolbar(
-    modifier: Modifier = Modifier,
-    numberOfSelected: Int,
-    actionItems: List<MenuActionItem>,
-    numberOfVisibleIcons: Int = 2,
-    scrollBehavior: TopAppBarScrollBehavior? = null,
-    onNavigationIconClicked: () -> Unit,
+  modifier: Modifier = Modifier,
+  numberOfSelected: Int,
+  actionItems: List<MenuActionItem>,
+  numberOfVisibleIcons: Int = 2,
+  scrollBehavior: TopAppBarScrollBehavior? = null,
+  onNavigationIconClicked: () -> Unit,
 ) {
-    TopAppBar(
-        modifier = modifier,
-        title = { Text(text = "$numberOfSelected selected", fontWeight = FontWeight.SemiBold) },
-        navigationIcon = {
-            IconButton(onClick = onNavigationIconClicked) {
-                Icon(imageVector = Icons.Rounded.Close, contentDescription = null)
-            }
-        },
-        actions = {
-            val visibleItems = actionItems.take(numberOfVisibleIcons)
-            val invisibleItems = actionItems.drop(numberOfVisibleIcons)
+  TopAppBar(
+    modifier = modifier,
+    title = { Text(text = "$numberOfSelected selected", fontWeight = FontWeight.SemiBold) },
+    navigationIcon = {
+      IconButton(onClick = onNavigationIconClicked) {
+        Icon(imageVector = Icons.Rounded.Close, contentDescription = null)
+      }
+    },
+    actions = {
+      val visibleItems = actionItems.take(numberOfVisibleIcons)
+      val invisibleItems = actionItems.drop(numberOfVisibleIcons)
 
-            val overflowShown = invisibleItems.isNotEmpty()
+      val overflowShown = invisibleItems.isNotEmpty()
 
-            visibleItems.forEach {
-                TooltipBox(
-                    tooltip = { PlainTooltip {
-                        Text(text = it.title)
-                    } },
-                    state = rememberTooltipState(),
-                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
-                ) {
-                    IconButton(modifier = Modifier, onClick = it.callback) {
-                        Icon(imageVector = it.icon, contentDescription = null)
-                    }
-                }
-            }
+      visibleItems.forEach {
+        TooltipBox(
+          tooltip = { PlainTooltip {
+            Text(text = it.title)
+          } },
+          state = rememberTooltipState(),
+          positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
+        ) {
+          IconButton(modifier = Modifier, onClick = it.callback) {
+            Icon(imageVector = it.icon, contentDescription = null)
+          }
+        }
+      }
 
-            if (overflowShown) {
-                OverflowMenu(actionItems = invisibleItems)
-            }
-        },
-        scrollBehavior = scrollBehavior
-    )
+      if (overflowShown) {
+        OverflowMenu(actionItems = invisibleItems)
+      }
+    },
+    scrollBehavior = scrollBehavior
+  )
 }
 
 @Composable
 fun OverflowMenu(
-    actionItems: List<MenuActionItem>,
-    showIcons: Boolean = true,
-    icon: ImageVector = Icons.Rounded.MoreVert,
-    contentPaddingValues: PaddingValues = PaddingValues(horizontal = 16.dp , vertical = 4.dp)
+  actionItems: List<MenuActionItem>,
+  showIcons: Boolean = true,
+  icon: ImageVector = Icons.Rounded.MoreVert,
+  contentPaddingValues: PaddingValues = PaddingValues(horizontal = 16.dp , vertical = 4.dp)
 ) {
-    var visible by remember { mutableStateOf(false) }
-    Box {
+  var visible by remember { mutableStateOf(false) }
+  Box {
 
-        IconButton(onClick = { visible = !visible }) {
-            Icon(imageVector = icon, contentDescription = null)
-        }
-
-        DropdownMenu(
-            expanded = visible,
-            onDismissRequest = { visible = false }
-        ) {
-            actionItems.forEach {
-                DropdownMenuItem(
-                    leadingIcon =
-                    if (showIcons) {
-                        { Icon(imageVector = it.icon, contentDescription = null) }
-                    } else {
-                        null
-                    },
-                    text = { Text(text = it.title) },
-                    contentPadding = contentPaddingValues,
-                    onClick = { visible = false; it.callback() }
-                )
-            }
-        }
-
+    IconButton(onClick = { visible = !visible }) {
+      Icon(imageVector = icon, contentDescription = null)
     }
+
+    DropdownMenu(
+      expanded = visible,
+      onDismissRequest = { visible = false }
+    ) {
+      actionItems.forEach {
+        DropdownMenuItem(
+          leadingIcon =
+            if (showIcons) {
+              { Icon(imageVector = it.icon, contentDescription = null) }
+            } else {
+              null
+            },
+          text = { Text(text = it.title) },
+          contentPadding = contentPaddingValues,
+          onClick = { visible = false; it.callback() }
+        )
+      }
+    }
+
+  }
 }

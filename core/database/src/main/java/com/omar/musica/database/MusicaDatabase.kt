@@ -14,24 +14,22 @@ import com.omar.musica.database.entities.playlist.PlaylistsSongsEntity
 import com.omar.musica.database.entities.prefs.BlacklistedFolderEntity
 import com.omar.musica.database.entities.queue.QueueEntity
 
-
 @Database(
-    entities = [
-        PlaylistEntity::class,
-        PlaylistsSongsEntity::class,
-        BlacklistedFolderEntity::class,
-        QueueEntity::class,
-        ListeningSessionEntity::class,
-        LyricsEntity::class
-    ],
-    version = 4, exportSchema = false
+  entities = [
+    PlaylistEntity::class,
+    PlaylistsSongsEntity::class,
+    BlacklistedFolderEntity::class,
+    QueueEntity::class,
+    ListeningSessionEntity::class,
+    LyricsEntity::class
+  ],
+  version = 4,
+  exportSchema = false
 )
 abstract class MusicaDatabase : RoomDatabase() {
-
-    abstract fun playlistsDao(): PlaylistDao
-    abstract fun blacklistDao(): BlacklistedFoldersDao
-    abstract fun queueDao(): QueueDao
-    abstract fun activityDao(): ActivityDao
-    abstract fun lyricsDao(): LyricsDao
-
+  abstract fun playlistsDao(): PlaylistDao
+  abstract fun blacklistDao(): BlacklistedFoldersDao
+  abstract fun queueDao(): QueueDao
+  abstract fun activityDao(): ActivityDao
+  abstract fun lyricsDao(): LyricsDao
 }

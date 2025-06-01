@@ -1,6 +1,7 @@
 package com.omar.musica.model.prefs
 
 import com.omar.musica.model.AlbumsSortOption
+import com.omar.musica.model.ArtistsSortOption
 import com.omar.musica.model.SongSortOption
 
 
@@ -21,11 +22,14 @@ data class LibrarySettings(
      */
     val albumsSortOrder: Pair<AlbumsSortOption, IsAscending>,
 
+    val artistsSortOrder: Pair<ArtistsSortOption, IsAscending>,
     /**
      * How many columns to show in the album
      * screen
      */
     val albumsGridSize: Int = 2,
+
+    val artistsGridSize: Int = 2,
 
     /**
      * Whether to load the actual album art of the song or

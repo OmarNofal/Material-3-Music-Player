@@ -1,4 +1,3 @@
-
 plugins {
     id("com.omar.android.library")
     id("com.omar.android.hilt")

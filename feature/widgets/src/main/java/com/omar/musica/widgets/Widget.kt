@@ -26,8 +26,8 @@ import kotlinx.coroutines.flow.map
 
 class WidgetReceiver : GlanceAppWidgetReceiver() {
 
-    override val glanceAppWidget: GlanceAppWidget
-        get() = Widget()
+  override val glanceAppWidget: GlanceAppWidget
+    get() = Widget()
 
 }
 
@@ -35,48 +35,48 @@ class WidgetReceiver : GlanceAppWidgetReceiver() {
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface WidgetEntryPoint {
-    fun getPlaybackManager(): PlaybackManager
+  fun getPlaybackManager(): PlaybackManager
 }
 
 private fun getPlaybackManager(appContext: Context): PlaybackManager {
-    val hilt = EntryPointAccessors.fromApplication<WidgetEntryPoint>(appContext)
-    return hilt.getPlaybackManager()
+  val hilt = EntryPointAccessors.fromApplication<WidgetEntryPoint>(appContext)
+  return hilt.getPlaybackManager()
 }
 
 class Widget : GlanceAppWidget() {
 
-    override suspend fun provideGlance(context: Context, id: GlanceId) {
-        // Load data needed to render the AppWidget.
-        // Use `withContext` to switch to another thread for long running
-        // operations.
-        val pM = getPlaybackManager(context.applicationContext)
-        val title = pM.state.map {  it.currentPlayingSong?.metadata?.title ?: "No song playing" }
+  override suspend fun provideGlance(context: Context, id: GlanceId) {
+    // Load data needed to render the AppWidget.
+    // Use `withContext` to switch to another thread for long running
+    // operations.
+    val pM = getPlaybackManager(context.applicationContext)
+    val title = pM.state.map {  it.core.currentPlayingSong?.metadata?.title ?: "No song playing" }
 
-        provideContent {
-            // create your AppWidget here
-            Text(text = title.collectAsState(initial = "Skrrr").value)
-        }
+    provideContent {
+      // create your AppWidget here
+      Text(text = title.collectAsState(initial = "Skrrr").value)
     }
+  }
 
-    @Composable
-    private fun MyContent() {
-        Column(
-            modifier = GlanceModifier.fillMaxSize(),
-            verticalAlignment = Alignment.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = "Where to?", modifier = GlanceModifier.padding(12.dp))
-            Row(horizontalAlignment = Alignment.CenterHorizontally) {
-                Button(
-                    text = "Home",
-                    onClick = {}
-                )
-                Button(
-                    text = "Work",
-                    onClick = {}
-                )
-            }
-        }
+  @Composable
+  private fun MyContent() {
+    Column(
+      modifier = GlanceModifier.fillMaxSize(),
+      verticalAlignment = Alignment.Top,
+      horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+      Text(text = "Where to?", modifier = GlanceModifier.padding(12.dp))
+      Row(horizontalAlignment = Alignment.CenterHorizontally) {
+        Button(
+          text = "Home",
+          onClick = {}
+        )
+        Button(
+          text = "Work",
+          onClick = {}
+        )
+      }
     }
+  }
 
 }

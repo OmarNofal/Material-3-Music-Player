@@ -27,52 +27,52 @@ import com.omar.musica.ui.albumart.toSongAlbumArtModel
 
 @Composable
 fun OtherAlbumsRow(
-    modifier: Modifier,
-    otherAlbums: List<BasicAlbum>,
-    onAlbumClicked: (albumId: Int) -> Unit
+  modifier: Modifier,
+  otherAlbums: List<BasicAlbum>,
+  onAlbumClicked: (albumId: Int) -> Unit
 ) {
-    Row(
-        modifier = modifier
-            .horizontalScroll(rememberScrollState())
-    ) {
-        otherAlbums.forEach { album ->
-            OtherAlbum(
-                modifier = Modifier
-                    .padding(4.dp)
-                    .fillMaxHeight()
-                    .width(IntrinsicSize.Min)
-                    .clip(RoundedCornerShape(6.dp))
-                    .clickable {
-                        onAlbumClicked(
-                            album.albumInfo.id
-                        )
-                    }
-                    .padding(6.dp),
-                album
+  Row(
+    modifier = modifier
+      .horizontalScroll(rememberScrollState())
+  ) {
+    otherAlbums.forEach { album ->
+      OtherAlbum(
+        modifier = Modifier
+          .padding(4.dp)
+          .fillMaxHeight()
+          .width(IntrinsicSize.Min)
+          .clip(RoundedCornerShape(6.dp))
+          .clickable {
+            onAlbumClicked(
+              album.albumInfo.id
             )
-        }
+          }
+          .padding(6.dp),
+        album
+      )
     }
+  }
 }
 
 @Composable
 fun OtherAlbum(
-    modifier: Modifier,
-    album: BasicAlbum
+  modifier: Modifier,
+  album: BasicAlbum
 ) {
-    Column(modifier) {
-        SongAlbumArtImage(
-            modifier = Modifier
-                .height(128.dp)
-                .aspectRatio(1.0f)
-                .clip(RoundedCornerShape(6.dp)),
-            songAlbumArtModel = album.firstSong.toSongAlbumArtModel()
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = album.albumInfo.name,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
+  Column(modifier) {
+    SongAlbumArtImage(
+      modifier = Modifier
+        .height(128.dp)
+        .aspectRatio(1.0f)
+        .clip(RoundedCornerShape(6.dp)),
+      songAlbumArtModel = album.firstSong.toSongAlbumArtModel()
+    )
+    Spacer(modifier = Modifier.height(6.dp))
+    Text(
+      text = album.albumInfo.name,
+      style = MaterialTheme.typography.bodyMedium,
+      maxLines = 2,
+      overflow = TextOverflow.Ellipsis
+    )
+  }
 }

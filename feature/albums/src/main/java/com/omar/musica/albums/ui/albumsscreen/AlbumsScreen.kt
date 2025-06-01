@@ -28,141 +28,135 @@ import com.omar.musica.ui.common.LocalUserPreferences
 import com.omar.musica.ui.common.MultiSelectState
 import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
 
-
 @Composable
 fun AlbumsScreen(
-    modifier: Modifier,
-    onAlbumClicked: (albumId: Int) -> Unit,
-    viewModel: AlbumsViewModel = hiltViewModel()
+  modifier: Modifier,
+  onAlbumClicked: (albumId: Int) -> Unit,
+  viewModel: AlbumsViewModel = hiltViewModel()
 ) {
-
-    val state by viewModel.state.collectAsState()
-
-    AlbumsScreen(
-        modifier = modifier,
-        state = state,
-        actions = viewModel,
-        onAlbumClicked = onAlbumClicked,
-    )
+  val state by viewModel.state.collectAsState()
+  AlbumsScreen(
+    modifier = modifier,
+    state = state,
+    actions = viewModel,
+    onAlbumClicked = onAlbumClicked,
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumsScreen(
-    modifier: Modifier,
-    state: AlbumsScreenState,
-    actions: AlbumsScreenActions,
-    onAlbumClicked: (albumId: Int) -> Unit
+  modifier: Modifier,
+  state: AlbumsScreenState,
+  actions: AlbumsScreenActions,
+  onAlbumClicked: (albumId: Int) -> Unit
 ) {
 
-    val albums = state.albums
+  val albums = state.albums
 
-    val topAppBarScrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+  val topAppBarScrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-    val librarySettings = LocalUserPreferences.current.librarySettings
+  val librarySettings = LocalUserPreferences.current.librarySettings
 
-    val multiSelectState = remember {
-        MultiSelectState<BasicAlbum>()
-    }
-    val multiSelectEnabled by remember {
-        derivedStateOf { multiSelectState.selected.size > 0 }
-    }
+  val multiSelectState = remember {
+    MultiSelectState<BasicAlbum>()
+  }
+  val multiSelectEnabled by remember {
+    derivedStateOf { multiSelectState.selected.size > 0 }
+  }
 
-    BackHandler(multiSelectEnabled) {
-        multiSelectState.clear()
-    }
+  BackHandler(multiSelectEnabled) {
+    multiSelectState.clear()
+  }
 
-    Scaffold(
-        topBar = {
-            SelectionTopAppBarScaffold(
-                modifier = Modifier.fillMaxWidth(),
-                multiSelectState = multiSelectState,
-                isMultiSelectEnabled = multiSelectEnabled,
-                actionItems = buildAlbumsMenuActions(
-                    onPlay = {
-                        actions.playAlbums(multiSelectState.selected)
-                    },
-                    addToQueue = {
-                        actions.addAlbumsToQueue(multiSelectState.selected)
-                    },
-                    onPlayNext = {
-                        actions.playAlbumsNext(multiSelectState.selected)
-                    },
-                    onShuffle = {
-                        actions.shuffleAlbums(multiSelectState.selected)
-                    },
-                    onShuffleNext = {
-                        actions.shuffleAlbumsNext(multiSelectState.selected)
-                    },
-                    onAddToPlaylists = {
+  Scaffold(
+    topBar = {
+      SelectionTopAppBarScaffold(
+        modifier = Modifier.fillMaxWidth(),
+        multiSelectState = multiSelectState,
+        isMultiSelectEnabled = multiSelectEnabled,
+        actionItems = buildAlbumsMenuActions(
+          onPlay = {
+            actions.playAlbums(multiSelectState.selected)
+          },
+          addToQueue = {
+            actions.addAlbumsToQueue(multiSelectState.selected)
+          },
+          onPlayNext = {
+            actions.playAlbumsNext(multiSelectState.selected)
+          },
+          onShuffle = {
+            actions.shuffleAlbums(multiSelectState.selected)
+          },
+          onShuffleNext = {
+            actions.shuffleAlbumsNext(multiSelectState.selected)
+          },
+          onAddToPlaylists = {
 
-                    }
-                ),
-                numberOfVisibleIcons = 2,
-                scrollBehavior = topAppBarScrollBehavior,
-            ) {
-                AlbumsTopBar(
-                    scrollBehavior = topAppBarScrollBehavior,
-                    gridSize = librarySettings.albumsGridSize,
-                    sortOrder = librarySettings.albumsSortOrder,
-                    { actions.changeSortOptions(it.first, it.second) },
-                    actions::changeGridSize
-                )
+          }
+        ),
+        numberOfVisibleIcons = 2,
+        scrollBehavior = topAppBarScrollBehavior,
+      ) {
+        AlbumsTopBar(
+          scrollBehavior = topAppBarScrollBehavior,
+          gridSize = librarySettings.albumsGridSize,
+          sortOrder = librarySettings.albumsSortOrder,
+          { actions.changeSortOptions(it.first, it.second) },
+          actions::changeGridSize
+        )
+      }
+    },
+    modifier = modifier,
+  ) { paddingValues ->
+
+    AnimatedContent(
+      targetState = librarySettings.albumsGridSize, label = "",
+      transitionSpec = {
+        OPEN_SCREEN_ENTER_ANIMATION togetherWith POP_SCREEN_EXIT_ANIMATION
+      }
+    ) {
+      when (it) {
+        1 -> {
+          AlbumsList(
+            modifier = Modifier
+              .fillMaxSize()
+              .padding(paddingValues)
+              .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
+            albums = albums,
+            multiSelectState = multiSelectState,
+            onAlbumClicked = {
+              if (multiSelectEnabled) multiSelectState.toggle(it)
+              else {
+                onAlbumClicked(it.albumInfo.id)
+              }
+            },
+            onAlbumLongClicked = {
+              multiSelectState.toggle(it)
             }
-        },
-        modifier = modifier,
-    ) { paddingValues ->
-
-        AnimatedContent(
-            targetState = librarySettings.albumsGridSize, label = "",
-            transitionSpec = {
-                OPEN_SCREEN_ENTER_ANIMATION togetherWith POP_SCREEN_EXIT_ANIMATION
-            }
-        ) {
-            when (it) {
-                1 -> {
-                    AlbumsList(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                            .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
-                        albums = albums,
-                        multiSelectState = multiSelectState,
-                        onAlbumClicked = {
-                            if (multiSelectEnabled) multiSelectState.toggle(it)
-                            else {
-                                onAlbumClicked(it.albumInfo.id)
-                            }
-                        },
-                        onAlbumLongClicked = {
-                            multiSelectState.toggle(it)
-                        }
-                    )
-                }
-
-                else -> {
-                    AlbumsGrid(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                            .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
-                        albums = albums,
-                        numOfColumns = it,
-                        multiSelectState = multiSelectState,
-                        onAlbumClicked = {
-                            if (multiSelectEnabled) multiSelectState.toggle(it)
-                            else {
-                                onAlbumClicked(it.albumInfo.id)
-                            }
-                        },
-                        onAlbumLongClicked = {
-                            multiSelectState.toggle(it)
-                        }
-                    )
-                }
-            }
+          )
         }
+        else -> {
+          AlbumsGrid(
+            modifier = Modifier
+              .fillMaxSize()
+              .padding(paddingValues)
+              .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
+            albums = albums,
+            numOfColumns = it,
+            multiSelectState = multiSelectState,
+            onAlbumClicked = {
+              if (multiSelectEnabled) multiSelectState.toggle(it)
+              else {
+                onAlbumClicked(it.albumInfo.id)
+              }
+            },
+            onAlbumLongClicked = {
+              multiSelectState.toggle(it)
+            }
+          )
+        }
+      }
     }
-
-
+  }
 }

@@ -8,28 +8,23 @@ import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
 
-
 @Singleton
 class LyricsSource @Inject constructor(
-    private val lyricsService: LyricsService
+  private val lyricsService: LyricsService
 ) {
-
-
-    suspend fun getSongLyrics(
-        artistName: String,
-        trackName: String,
-        albumName: String,
-        durationSeconds: Int,
-    ): SongLyricsNetwork {
-        return try {
-            lyricsService.getSongLyrics(artistName, trackName, albumName, durationSeconds)
-        } catch (e: HttpException) {
-            if (e.code() == 404) throw NotFoundException("Lyrics not found")
-            else throw NetworkErrorException(e.message())
-        } catch (e: Exception) {
-            throw NetworkErrorException(e.message ?: "Network error")
-        }
+  suspend fun getSongLyrics(
+    artistName: String,
+    trackName: String,
+    albumName: String,
+    durationSeconds: Int,
+  ): SongLyricsNetwork {
+    return try {
+      lyricsService.getSongLyrics(artistName, trackName, albumName, durationSeconds)
+    } catch (e: HttpException) {
+      if (e.code() == 404) throw NotFoundException("Lyrics not found")
+      else throw NetworkErrorException(e.message())
+    } catch (e: Exception) {
+      throw NetworkErrorException(e.message ?: "Network error")
     }
-
-
+  }
 }

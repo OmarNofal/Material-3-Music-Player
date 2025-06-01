@@ -23,23 +23,23 @@ import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 
 class AndroidApplicationConventionPlugin : Plugin<Project> {
-    override fun apply(target: Project) {
-        with(target) {
-            with(pluginManager) {
-                apply("com.android.application")
-                apply("org.jetbrains.kotlin.android")
-                apply("com.omar.android.hilt")
-            }
+  override fun apply(target: Project) {
+    with(target) {
+      with(pluginManager) {
+        apply("com.android.application")
+        apply("org.jetbrains.kotlin.android")
+        apply("com.omar.android.hilt")
+      }
 
-            dependencies {
-                "implementation"(libs.findLibrary("timber").get())
-            }
+      dependencies {
+        "implementation"(libs.findLibrary("timber").get())
+      }
 
-            extensions.configure<ApplicationExtension> {
-                configureKotlinAndroid(this)
-                defaultConfig.targetSdk = 34
-            }
-        }
+      extensions.configure<ApplicationExtension> {
+        configureKotlinAndroid(this)
+        defaultConfig.targetSdk = 34
+      }
     }
+  }
 
 }

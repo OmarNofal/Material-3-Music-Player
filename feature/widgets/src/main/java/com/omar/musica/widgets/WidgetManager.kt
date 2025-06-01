@@ -38,12 +38,12 @@ class WidgetManager @Inject constructor(
     val state = playbackManager.state.map {
         updateWidgets()
 
-        if (it.currentPlayingSong == null)
+        if (it.core.currentPlayingSong == null)
             return@map WidgetState.NoQueue
 
-        val metadata = it.currentPlayingSong!!.metadata
-        val bitmap = getSongBitmap(it.currentPlayingSong.toSongAlbumArtModel())
-        val isPlaying = it.playbackState.playerState == PlayerState.PLAYING
+        val metadata = it.core.currentPlayingSong!!.metadata
+        val bitmap = getSongBitmap(it.core.currentPlayingSong.toSongAlbumArtModel())
+        val isPlaying = it.core.playbackState.playerState == PlayerState.PLAYING
 
         WidgetState.Playback(
             title = metadata.title,

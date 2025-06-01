@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,101 +52,96 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var userPreferencesRepository: UserPreferencesRepository
+  @Inject
+  lateinit var userPreferencesRepository: UserPreferencesRepository
 
-    @Inject
-    lateinit var playbackManager: PlaybackManager
+  @Inject
+  lateinit var playbackManager: PlaybackManager
 
-    @Inject
-    lateinit var mediaRepository: MediaRepository
+  @Inject
+  lateinit var mediaRepository: MediaRepository
 
-    @Inject
-    lateinit var albumsRepository: AlbumsRepository
+  @Inject
+  lateinit var albumsRepository: AlbumsRepository
 
-    @OptIn(ExperimentalPermissionsApi::class)
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+  @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+  @OptIn(ExperimentalPermissionsApi::class)
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+    WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        val initialUserPreferences =
-            runBlocking { userPreferencesRepository.userSettingsFlow.first().toUiModel() }
+    val initialUserPreferences = runBlocking { userPreferencesRepository.userSettingsFlow.first().toUiModel() }
 
-        val userPreferencesFlow = userPreferencesRepository.userSettingsFlow.map { it.toUiModel() }
+    val userPreferencesFlow = userPreferencesRepository.userSettingsFlow.map { it.toUiModel() }
 
-        setContent {
+    setContent {
+      val userPreferences by userPreferencesFlow
+        .collectAsState(
+          initial = initialUserPreferences
+        )
+      val navController = rememberNavController()
+      MusicaTheme(
+        userPreferences = userPreferences,
+      ) {
+        val commonSongsActions =
+          rememberCommonSongsActions(
+            playbackManager,
+            mediaRepository,
+            remember { RealOpenTagEditorAction(navController) },
+            remember { RealGoToAlbumAction(albumsRepository, navController) },
+          )
+        val permissionName = getReadingMediaPermissionName()
+        val storagePermissionState =
+          rememberPermissionState(permission = permissionName)
 
-            val userPreferences by userPreferencesFlow
-                .collectAsState(
-                    initial = initialUserPreferences
-                )
-
-            val navController = rememberNavController()
-
-            MusicaTheme(
-                userPreferences = userPreferences,
-            ) {
-                val commonSongsActions =
-                    rememberCommonSongsActions(
-                        playbackManager,
-                        mediaRepository,
-                        remember { RealOpenTagEditorAction(navController) },
-                        remember { RealGoToAlbumAction(albumsRepository, navController) },
-                    )
-
-
-                val permissionName = getReadingMediaPermissionName()
-                val storagePermissionState =
-                    rememberPermissionState(permission = permissionName)
-
-                LaunchedEffect(key1 = storagePermissionState.status.isGranted) {
-                    if (storagePermissionState.status.isGranted)
-                        mediaRepository.onPermissionAccepted()
-                }
-
-                CompositionLocalProvider(
-                    LocalUserPreferences provides userPreferences,
-                    LocalCommonSongsAction provides commonSongsActions
-                ) {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.background)
-                    ) {
-                        AnimatedContent(
-                            targetState = storagePermissionState.status is PermissionStatus.Granted,
-                            label = ""
-                        ) {
-                            if (it)
-                                MusicaApp2(modifier = Modifier.fillMaxSize(), navController)
-                            else
-                                AskPermissionScreen(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(16.dp),
-                                    storagePermissionState.status.shouldShowRationale,
-                                    onRequestPermission = { storagePermissionState.launchPermissionRequest() },
-                                    onOpenSettings = { openAppSettingsScreen() }
-                                )
-                        }
-
-                    }
-                }
-            }
+        LaunchedEffect(key1 = storagePermissionState.status.isGranted) {
+          if (storagePermissionState.status.isGranted)
+            mediaRepository.onPermissionAccepted()
         }
-    }
 
-    private fun getReadingMediaPermissionName() =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            Manifest.permission.READ_MEDIA_AUDIO
-        else Manifest.permission.READ_EXTERNAL_STORAGE
-
-    private fun openAppSettingsScreen() {
-        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-        val uri = Uri.fromParts("package", packageName, null)
-        intent.data = uri
-        startActivity(intent)
+        CompositionLocalProvider(
+          LocalUserPreferences provides userPreferences,
+          LocalCommonSongsAction provides commonSongsActions
+        ) {
+          Surface(
+            modifier = Modifier
+              .fillMaxSize()
+              .background(MaterialTheme.colorScheme.background)
+          ) {
+            AnimatedContent(
+              targetState = storagePermissionState.status is PermissionStatus.Granted,
+              label = ""
+            ) {
+              if (it)
+                MusicaApp2(modifier = Modifier.fillMaxSize(), navController)
+              else
+                AskPermissionScreen(
+                  modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                  storagePermissionState.status.shouldShowRationale,
+                  onRequestPermission = { storagePermissionState.launchPermissionRequest() },
+                  onOpenSettings = { openAppSettingsScreen() }
+                )
+            }
+          }
+        }
+      }
     }
+  }
+
+  @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+  private fun getReadingMediaPermissionName() =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+      Manifest.permission.READ_MEDIA_AUDIO
+    else Manifest.permission.READ_EXTERNAL_STORAGE
+
+  private fun openAppSettingsScreen() {
+    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+    val uri = Uri.fromParts("package", packageName, null)
+    intent.data = uri
+    startActivity(intent)
+  }
 
 }

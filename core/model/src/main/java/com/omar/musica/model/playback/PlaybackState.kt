@@ -6,21 +6,19 @@ package com.omar.musica.model.playback
  * such as whether the player is playing media or paused, shuffle mode and repeat mode
  */
 data class PlaybackState(
-    val playerState: PlayerState,
-    val isShuffleOn: Boolean = false,
-    val repeatMode: RepeatMode
+  val playerState: PlayerState,
+  val isShuffleOn: Boolean = false,
+  val repeatMode: RepeatMode
 ) {
-
-    companion object {
-        val emptyState = PlaybackState(
-            PlayerState.PAUSED,
-            false,
-            RepeatMode.REPEAT_ALL
-        )
-    }
+  companion object {
+    val emptyState = PlaybackState(
+      PlayerState.PAUSED,
+      false,
+      RepeatMode.REPEAT_ALL
+    )
+  }
 }
 
-
 enum class PlayerState {
-    PLAYING, PAUSED, BUFFERING
+  PLAYING, PAUSED, BUFFERING
 }

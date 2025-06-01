@@ -16,58 +16,57 @@ import com.omar.musica.ui.shortcut.ShortcutUtils.createPinnedShortcutPlaylist
 
 @Composable
 fun rememberCreatePlaylistShortcutDialog(): ShortcutDialog {
+  var currentData by remember {
+    mutableStateOf<ShortcutDialogData?>(null)
+  }
 
-    var currentData by remember {
-        mutableStateOf<ShortcutDialogData?>(null)
+  if (currentData != null) {
+
+    val data = currentData
+
+    val name = when (data) {
+      is ShortcutDialogData.AlbumShortcutDialogData -> data.albumName
+      is ShortcutDialogData.PlaylistShortcutDialogData -> data.playlistName
+      null -> "Null"
     }
 
-    if (currentData != null) {
+    val context = LocalContext.current
 
-        val data = currentData
-
-        val name = when (data) {
-            is ShortcutDialogData.AlbumShortcutDialogData -> data.albumName
-            is ShortcutDialogData.PlaylistShortcutDialogData -> data.playlistName
-            null -> "Null"
-        }
-
-        val context = LocalContext.current
-
-        val onSubmit: (String, ShortcutAction) -> Unit = { shortcutName, action ->
-            when (data) {
-                is ShortcutDialogData.AlbumShortcutDialogData -> context.createPinnedShortcutAlbum(
-                    shortcutName,
-                    data.albumId,
-                    data.albumBitmap,
-                    action
-                )
-                is ShortcutDialogData.PlaylistShortcutDialogData -> context.createPinnedShortcutPlaylist(
-                    shortcutName,
-                    data.playlistId,
-                    data.playlistBitmap,
-                    action
-                )
-
-                else -> TODO()
-            }
-        }
-
-        ShortcutDialogUi(
-            listName = name,
-            onSubmit = onSubmit,
-            onDismissRequest = { currentData = null }
+    val onSubmit: (String, ShortcutAction) -> Unit = { shortcutName, action ->
+      when (data) {
+        is ShortcutDialogData.AlbumShortcutDialogData -> context.createPinnedShortcutAlbum(
+          shortcutName,
+          data.albumId,
+          data.albumBitmap,
+          action
         )
+        is ShortcutDialogData.PlaylistShortcutDialogData -> context.createPinnedShortcutPlaylist(
+          shortcutName,
+          data.playlistId,
+          data.playlistBitmap,
+          action
+        )
+
+        else -> TODO()
+      }
     }
 
-    return remember {
-        object : ShortcutDialog {
-            override fun launchForPlaylist(data: ShortcutDialogData.PlaylistShortcutDialogData) {
-                currentData = data
-            }
+    ShortcutDialogUi(
+      listName = name,
+      onSubmit = onSubmit,
+      onDismissRequest = { currentData = null }
+    )
+  }
 
-            override fun launchForAlbum(data: ShortcutDialogData.AlbumShortcutDialogData) {
-                currentData = data
-            }
-        }
+  return remember {
+    object : ShortcutDialog {
+      override fun launchForPlaylist(data: ShortcutDialogData.PlaylistShortcutDialogData) {
+        currentData = data
+      }
+
+      override fun launchForAlbum(data: ShortcutDialogData.AlbumShortcutDialogData) {
+        currentData = data
+      }
     }
+  }
 }

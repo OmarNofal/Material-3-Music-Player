@@ -5,12 +5,12 @@ package com.omar.musica.model.song
  * contains title, artist, album, duration, and file size
  */
 data class BasicSongMetadata(
-    val title: String,
-    val artistName: String?,
-    val albumName: String?,
-    val durationMillis: Long,
-    val sizeBytes: Long,
-    val trackNumber: Int? = null
+  val title: String,
+  val artistName: String?,
+  val albumName: String?,
+  val durationMillis: Long,
+  val sizeBytes: Long,
+  val trackNumber: Int? = null
 )
 
 /**
@@ -18,12 +18,12 @@ data class BasicSongMetadata(
  * album artist name, track number, lyrics, disc number, genre, composer and year
  */
 data class ExtendedSongMetadata(
-    val basicSongMetadata: BasicSongMetadata,
-    val albumArtist: String,
-    val composer: String,
-    val trackNumber: String,
-    val discNumber: String,
-    val genre: String,
-    val year: String,
-    val lyrics: String
+  val basicSongMetadata: BasicSongMetadata,
+  val albumArtist: String,
+  val composer: String,
+  val trackNumber: String,
+  val discNumber: String,
+  val genre: String,
+  val year: String,
+  val lyrics: String
 )

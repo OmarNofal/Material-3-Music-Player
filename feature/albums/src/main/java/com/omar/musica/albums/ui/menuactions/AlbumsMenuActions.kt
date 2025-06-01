@@ -8,7 +8,6 @@ import com.omar.musica.ui.menu.playNext
 import com.omar.musica.ui.menu.shuffle
 import com.omar.musica.ui.menu.shuffleNext
 
-
 fun buildAlbumsMenuActions(
     onPlay: () -> Unit,
     addToQueue: () -> Unit,

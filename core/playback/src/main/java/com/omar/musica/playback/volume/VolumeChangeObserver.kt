@@ -13,6 +13,7 @@ class VolumeChangeObserver(
 
     private var contentObserver: VolumeChangeContentObserver? = null
 
+    // TODO: Muse的设计更好
     fun register(volumeChangeListener: AudioVolumeChangeListener) {
         contentObserver = VolumeChangeContentObserver(
             context, handler,

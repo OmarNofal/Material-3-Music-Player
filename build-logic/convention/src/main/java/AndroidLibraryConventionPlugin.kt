@@ -1,4 +1,3 @@
-
 import com.android.build.gradle.LibraryExtension
 import com.omar.musica.convention.configureKotlinAndroid
 import com.omar.musica.convention.libs
@@ -9,22 +8,21 @@ import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.kotlin
 
 class AndroidLibraryConventionPlugin : Plugin<Project> {
-    override fun apply(target: Project) {
-        with(target) {
-            with(pluginManager) {
-                apply("com.android.library")
-                apply("org.jetbrains.kotlin.android")
-            }
-
-            extensions.configure<LibraryExtension> {
-                configureKotlinAndroid(this)
-                defaultConfig.targetSdk = 34
-            }
-            dependencies {
-                add("implementation", libs.findLibrary("timber").get())
-                add("androidTestImplementation", kotlin("test"))
-                add("testImplementation", kotlin("test"))
-            }
-        }
+  override fun apply(target: Project) {
+    with(target) {
+      with(pluginManager) {
+        apply("com.android.library")
+        apply("org.jetbrains.kotlin.android")
+      }
+      extensions.configure<LibraryExtension> {
+        configureKotlinAndroid(this)
+        defaultConfig.targetSdk = 34
+      }
+      dependencies {
+        add("implementation", libs.findLibrary("timber").get())
+        add("androidTestImplementation", kotlin("test"))
+        add("testImplementation", kotlin("test"))
+      }
     }
+  }
 }

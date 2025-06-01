@@ -60,398 +60,397 @@ import com.omar.musica.ui.showShortToast
 
 @Composable
 fun TagEditorScreen(
-    modifier: Modifier,
-    tagEditorViewModel: TagEditorViewModel = hiltViewModel(),
-    onClose: () -> Unit,
+  modifier: Modifier,
+  tagEditorViewModel: TagEditorViewModel = hiltViewModel(),
+  onClose: () -> Unit,
 ) {
 
-    val state by tagEditorViewModel.state.collectAsState()
+  val state by tagEditorViewModel.state.collectAsState()
 
+  val context = LocalContext.current
 
-    val context = LocalContext.current
-
-    LaunchedEffect(key1 = state) {
-        if (state is TagEditorState.Loaded) {
-            val safeState = state as? TagEditorState.Loaded
-            if (safeState?.isFailed == true) {
-                context.showShortToast("Failed to update tags")
-                onClose()
-            }
-            if (safeState?.isSaved == true) {
-                context.showShortToast("Tags updated successfully")
-                onClose()
-            }
-        }
+  LaunchedEffect(key1 = state) {
+    if (state is TagEditorState.Loaded) {
+      val safeState = state as? TagEditorState.Loaded
+      if (safeState?.isFailed == true) {
+        context.showShortToast("Failed to update tags")
+        onClose()
+      }
+      if (safeState?.isSaved == true) {
+        context.showShortToast("Tags updated successfully")
+        onClose()
+      }
     }
+  }
 
-    TagEditorScreen(modifier = modifier, state, tagEditorViewModel::saveTags, onClose)
+  TagEditorScreen(modifier = modifier, state, tagEditorViewModel::saveTags, onClose)
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun TagEditorScreen(
-    modifier: Modifier,
-    state: TagEditorState,
-    onSaveUserTags: (SongTags) -> Unit,
-    onClose: () -> Unit,
+  modifier: Modifier,
+  state: TagEditorState,
+  onSaveUserTags: (SongTags) -> Unit,
+  onClose: () -> Unit,
 ) {
 
 
-    var editedSongTags: SongTags? by remember(state) {
-        if (state is TagEditorState.Loaded) mutableStateOf(state.tags)
-        else mutableStateOf(null)
+  var editedSongTags: SongTags? by remember(state) {
+    if (state is TagEditorState.Loaded) mutableStateOf(state.tags)
+    else mutableStateOf(null)
+  }
+
+  val shouldShowFab by remember(editedSongTags) {
+    derivedStateOf {
+      val currentTags = editedSongTags
+      val startTags = (state as? TagEditorState.Loaded)?.tags
+      if (currentTags == null || startTags == null) false
+      else currentTags != startTags
+    }
+  }
+
+  val activity = LocalContext.current as Activity
+  val contract = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.StartIntentSenderForResult(),
+    onResult = {
+      if (it.resultCode == Activity.RESULT_OK)
+        onSaveUserTags(editedSongTags!!)
+    })
+
+  val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+  Scaffold(
+    modifier = modifier,
+    topBar = {
+      TagEditorTopBar(onClose, scrollBehavior)
+    },
+    floatingActionButton = {
+      AnimatedVisibility(
+        visible = shouldShowFab,
+        enter = scaleIn(initialScale = 0.7f) + fadeIn(),
+        exit = scaleOut(targetScale = 0.7f) + fadeOut()
+      ) {
+        FloatingActionButton(onClick = {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val writeRequest = MediaStore
+              .createWriteRequest(
+                activity.contentResolver,
+                listOf(editedSongTags!!.uri)
+              )
+            contract.launch(
+              IntentSenderRequest.Builder(writeRequest)
+                .build()
+            )
+          } else {
+            onSaveUserTags(editedSongTags!!)
+          }
+        }) {
+          Icon(imageVector = Icons.Rounded.Save, contentDescription = "Save")
+        }
+      }
+    }
+  ) {
+
+    if (state is TagEditorState.Loading) {
+      Box(modifier = Modifier.padding(it)) {
+        LinearProgressIndicator(
+          modifier = Modifier
+            .fillMaxWidth()
+            .align(Alignment.TopCenter)
+        )
+      }
+      return@Scaffold
     }
 
-    val shouldShowFab by remember(editedSongTags) {
-        derivedStateOf {
-            val currentTags = editedSongTags
-            val startTags = (state as? TagEditorState.Loaded)?.tags
-            if (currentTags == null || startTags == null) false
-            else currentTags != startTags
-        }
+    val windowClass = calculateWindowSizeClass(activity = LocalContext.current as Activity)
+
+    Box(modifier = Modifier.fillMaxSize()) {
+      val shouldShowProgressBar = (state as? TagEditorState.Loaded)?.isSaving ?: false
+      if (shouldShowProgressBar)
+        LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
+      if (windowClass.widthSizeClass >= WindowWidthSizeClass.Medium)
+        LoadedLandscapeTagEditorScreen(
+          modifier = Modifier
+            .fillMaxSize()
+            .padding(it)
+            .then(if (shouldShowProgressBar) Modifier.alpha(0.5f) else Modifier),
+          tags = editedSongTags!!,
+          nestedScrollConnection = scrollBehavior.nestedScrollConnection,
+          onEditTags = { newTags -> editedSongTags = newTags }
+        )
+      else
+        LoadedPortraitTagEditorScreen(
+          modifier = Modifier
+            .fillMaxSize()
+            .padding(it)
+            .then(if (shouldShowProgressBar) Modifier.alpha(0.5f) else Modifier),
+          editedSongTags!!,
+          nestedScrollConnection = scrollBehavior.nestedScrollConnection
+        ) { newTags -> editedSongTags = newTags }
     }
 
-    val activity = LocalContext.current as Activity
-    val contract = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = {
-            if (it.resultCode == Activity.RESULT_OK)
-                onSaveUserTags(editedSongTags!!)
-        })
-
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TagEditorTopBar(onClose, scrollBehavior)
-        },
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = shouldShowFab,
-                enter = scaleIn(initialScale = 0.7f) + fadeIn(),
-                exit = scaleOut(targetScale = 0.7f) + fadeOut()
-            ) {
-                FloatingActionButton(onClick = {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        val writeRequest = MediaStore
-                            .createWriteRequest(
-                                activity.contentResolver,
-                                listOf(editedSongTags!!.uri)
-                            )
-                        contract.launch(
-                            IntentSenderRequest.Builder(writeRequest)
-                                .build()
-                        )
-                    } else {
-                        onSaveUserTags(editedSongTags!!)
-                    }
-                }) {
-                    Icon(imageVector = Icons.Rounded.Save, contentDescription = "Save")
-                }
-            }
-        }
-    ) {
-
-        if (state is TagEditorState.Loading) {
-            Box(modifier = Modifier.padding(it)) {
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.TopCenter)
-                )
-            }
-            return@Scaffold
-        }
-
-        val windowClass = calculateWindowSizeClass(activity = LocalContext.current as Activity)
-
-        Box(modifier = Modifier.fillMaxSize()) {
-            val shouldShowProgressBar = (state as? TagEditorState.Loaded)?.isSaving ?: false
-            if (shouldShowProgressBar)
-                LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
-            if (windowClass.widthSizeClass >= WindowWidthSizeClass.Medium)
-                LoadedLandscapeTagEditorScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(it)
-                        .then(if (shouldShowProgressBar) Modifier.alpha(0.5f) else Modifier),
-                    tags = editedSongTags!!,
-                    nestedScrollConnection = scrollBehavior.nestedScrollConnection,
-                    onEditTags = { newTags -> editedSongTags = newTags }
-                )
-            else
-                LoadedPortraitTagEditorScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(it)
-                        .then(if (shouldShowProgressBar) Modifier.alpha(0.5f) else Modifier),
-                    editedSongTags!!,
-                    nestedScrollConnection = scrollBehavior.nestedScrollConnection
-                ) { newTags -> editedSongTags = newTags }
-        }
-
-    }
+  }
 }
 
 @Composable
 fun LoadedLandscapeTagEditorScreen(
-    modifier: Modifier,
-    tags: SongTags,
-    nestedScrollConnection: NestedScrollConnection,
-    onEditTags: (SongTags) -> Unit,
+  modifier: Modifier,
+  tags: SongTags,
+  nestedScrollConnection: NestedScrollConnection,
+  onEditTags: (SongTags) -> Unit,
 ) {
 
-    val basicMetadata = tags.metadata.basicSongMetadata
+  val basicMetadata = tags.metadata.basicSongMetadata
 
-    val commonFieldModifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp)
-        .padding(bottom = 6.dp)
+  val commonFieldModifier = Modifier
+    .fillMaxWidth()
+    .padding(horizontal = 16.dp)
+    .padding(bottom = 6.dp)
 
-    Row(
-        modifier,
-        verticalAlignment = Alignment.CenterVertically
+  Row(
+    modifier,
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+
+    // image
+    CoverArt(
+      modifier = Modifier
+        .weight(0.4f)
+        .fillMaxHeight()
+        .padding(top = 4.dp)
+        .scale(0.9f),
+      bitmap = tags.artwork,
+      albumName = basicMetadata.albumName.orEmpty(),
+      songTitle = basicMetadata.title,
+      onUserPickedNewBitmap = { onEditTags(tags.copy(artwork = it)) }
+    )
+
+    LazyColumn(
+      modifier = Modifier
+        .weight(0.6f)
+        .fillMaxSize()
+        .nestedScroll(nestedScrollConnection)
     ) {
-
-        // image
-        CoverArt(
-            modifier = Modifier
-                .weight(0.4f)
-                .fillMaxHeight()
-                .padding(top = 4.dp)
-                .scale(0.9f),
-            bitmap = tags.artwork,
-            albumName = basicMetadata.albumName.orEmpty(),
-            songTitle = basicMetadata.title,
-            onUserPickedNewBitmap = { onEditTags(tags.copy(artwork = it)) }
-        )
-
-        LazyColumn(
-            modifier = Modifier
-                .weight(0.6f)
-                .fillMaxSize()
-                .nestedScroll(nestedScrollConnection)
-        ) {
-            tagFields(commonFieldModifier, tags, onEditTags)
-        }
-
+      tagFields(commonFieldModifier, tags, onEditTags)
     }
+
+  }
 
 }
 
 @Composable
 fun LoadedPortraitTagEditorScreen(
-    modifier: Modifier,
-    tags: SongTags,
-    nestedScrollConnection: NestedScrollConnection,
-    onEditTags: (SongTags) -> Unit,
+  modifier: Modifier,
+  tags: SongTags,
+  nestedScrollConnection: NestedScrollConnection,
+  onEditTags: (SongTags) -> Unit,
 ) {
 
-    val commonFieldModifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp)
-        .padding(bottom = 6.dp)
+  val commonFieldModifier = Modifier
+    .fillMaxWidth()
+    .padding(horizontal = 16.dp)
+    .padding(bottom = 6.dp)
 
-    LazyColumn(modifier.nestedScroll(nestedScrollConnection)) {
-        item {
-            CoverArt(
-                modifier = Modifier.fillMaxWidth(),
-                bitmap = tags.artwork,
-                albumName = tags.metadata.basicSongMetadata.albumName.orEmpty(),
-                songTitle = tags.metadata.basicSongMetadata.title,
-                onUserPickedNewBitmap = { onEditTags(tags.copy(artwork = it)) }
-            )
-        }
-        item { Spacer(modifier = Modifier.height(8.dp)) }
-        tagFields(
-            commonFieldModifier = commonFieldModifier,
-            tags = tags,
-            onEditTags = onEditTags
-        )
+  LazyColumn(modifier.nestedScroll(nestedScrollConnection)) {
+    item {
+      CoverArt(
+        modifier = Modifier.fillMaxWidth(),
+        bitmap = tags.artwork,
+        albumName = tags.metadata.basicSongMetadata.albumName.orEmpty(),
+        songTitle = tags.metadata.basicSongMetadata.title,
+        onUserPickedNewBitmap = { onEditTags(tags.copy(artwork = it)) }
+      )
     }
+    item { Spacer(modifier = Modifier.height(8.dp)) }
+    tagFields(
+      commonFieldModifier = commonFieldModifier,
+      tags = tags,
+      onEditTags = onEditTags
+    )
+  }
 }
 
 
 fun LazyListScope.tagFields(
-    commonFieldModifier: Modifier,
-    tags: SongTags,
-    onEditTags: (SongTags) -> Unit,
+  commonFieldModifier: Modifier,
+  tags: SongTags,
+  onEditTags: (SongTags) -> Unit,
 ) {
-    val basicSongMetadata = tags.metadata.basicSongMetadata
-    val extendedMetadata = tags.metadata
+  val basicSongMetadata = tags.metadata.basicSongMetadata
+  val extendedMetadata = tags.metadata
 
-    item {
-        SingleFieldText(
-            modifier = commonFieldModifier,
-            value = basicSongMetadata.title,
-            name = "Title",
-            onChange = {
-                onEditTags(
-                    tags.copy(
-                        metadata = tags.metadata.copy(
-                            basicSongMetadata = tags.metadata.basicSongMetadata.copy(
-                                title = it
-                            )
-                        )
-                    )
-                )
-            },
-        )
-    }
-    item {
-        SingleFieldText(
-            modifier = commonFieldModifier,
-            value = basicSongMetadata.artistName.orEmpty(),
-            name = "Artist",
-            onChange = {
-                onEditTags(
-                    tags.copy(
-                        metadata = tags.metadata.copy(
-                            basicSongMetadata = tags.metadata.basicSongMetadata.copy(
-                                artistName = it
-                            )
-                        )
-                    )
-                )
-            },
-        )
-    }
-    item {
-        SingleFieldText(
-            modifier = commonFieldModifier,
-            value = basicSongMetadata.albumName.orEmpty(),
-            name = "Album",
-            onChange = {
-                onEditTags(
-                    tags.copy(
-                        metadata = tags.metadata.copy(
-                            basicSongMetadata = basicSongMetadata.copy(
-                                albumName = it
-                            )
-                        )
-                    )
-                )
-            },
-        )
-    }
-    item {
-        SingleFieldText(
-            modifier = commonFieldModifier,
-            value = extendedMetadata.albumArtist,
-            name = "Album Artist",
-            onChange = {
-                onEditTags(
-                    tags.copy(
-                        metadata = extendedMetadata.copy(
-                            albumArtist = it
-                        )
-                    )
-                )
-            },
-        )
-    }
-    item {
-        SingleFieldText(
-            modifier = commonFieldModifier,
-            value = extendedMetadata.composer,
-            name = "Composer",
-            onChange = {
-                onEditTags(
-                    tags.copy(
-                        metadata = extendedMetadata.copy(
-                            composer = it
-                        )
-                    )
-                )
-            },
-        )
-    }
-    item {
-        Row(modifier = commonFieldModifier) {
-            SingleFieldText(
-                modifier = Modifier.weight(1f),
-                value = extendedMetadata.trackNumber,
-                name = "Track Number",
-                onChange = {
-                    onEditTags(
-                        tags.copy(
-                            metadata = extendedMetadata.copy(
-                                trackNumber = it
-                            )
-                        )
-                    )
-                },
-                maxLines = 1
+  item {
+    SingleFieldText(
+      modifier = commonFieldModifier,
+      value = basicSongMetadata.title,
+      name = "Title",
+      onChange = {
+        onEditTags(
+          tags.copy(
+            metadata = tags.metadata.copy(
+              basicSongMetadata = tags.metadata.basicSongMetadata.copy(
+                title = it
+              )
             )
-            Spacer(modifier = Modifier.width(4.dp))
-            SingleFieldText(
-                modifier = Modifier.weight(1f),
-                value = extendedMetadata.discNumber,
-                onChange = {
-                    onEditTags(
-                        tags.copy(
-                            metadata = extendedMetadata.copy(
-                                discNumber = it
-                            )
-                        )
-                    )
-                },
-                name = "Disc Number"
+          )
+        )
+      },
+    )
+  }
+  item {
+    SingleFieldText(
+      modifier = commonFieldModifier,
+      value = basicSongMetadata.artistName.orEmpty(),
+      name = "Artist",
+      onChange = {
+        onEditTags(
+          tags.copy(
+            metadata = tags.metadata.copy(
+              basicSongMetadata = tags.metadata.basicSongMetadata.copy(
+                artistName = it
+              )
             )
-        }
+          )
+        )
+      },
+    )
+  }
+  item {
+    SingleFieldText(
+      modifier = commonFieldModifier,
+      value = basicSongMetadata.albumName.orEmpty(),
+      name = "Album",
+      onChange = {
+        onEditTags(
+          tags.copy(
+            metadata = tags.metadata.copy(
+              basicSongMetadata = basicSongMetadata.copy(
+                albumName = it
+              )
+            )
+          )
+        )
+      },
+    )
+  }
+  item {
+    SingleFieldText(
+      modifier = commonFieldModifier,
+      value = extendedMetadata.albumArtist,
+      name = "Album Artist",
+      onChange = {
+        onEditTags(
+          tags.copy(
+            metadata = extendedMetadata.copy(
+              albumArtist = it
+            )
+          )
+        )
+      },
+    )
+  }
+  item {
+    SingleFieldText(
+      modifier = commonFieldModifier,
+      value = extendedMetadata.composer,
+      name = "Composer",
+      onChange = {
+        onEditTags(
+          tags.copy(
+            metadata = extendedMetadata.copy(
+              composer = it
+            )
+          )
+        )
+      },
+    )
+  }
+  item {
+    Row(modifier = commonFieldModifier) {
+      SingleFieldText(
+        modifier = Modifier.weight(1f),
+        value = extendedMetadata.trackNumber,
+        name = "Track Number",
+        onChange = {
+          onEditTags(
+            tags.copy(
+              metadata = extendedMetadata.copy(
+                trackNumber = it
+              )
+            )
+          )
+        },
+        maxLines = 1
+      )
+      Spacer(modifier = Modifier.width(4.dp))
+      SingleFieldText(
+        modifier = Modifier.weight(1f),
+        value = extendedMetadata.discNumber,
+        onChange = {
+          onEditTags(
+            tags.copy(
+              metadata = extendedMetadata.copy(
+                discNumber = it
+              )
+            )
+          )
+        },
+        name = "Disc Number"
+      )
     }
-    item {
-        Row(modifier = commonFieldModifier) {
-            SingleFieldText(
-                modifier = Modifier.weight(1f),
-                value = extendedMetadata.genre,
-                name = "Genre",
-                onChange = {
-                    onEditTags(
-                        tags.copy(
-                            metadata = tags.metadata.copy(
-                                genre = it
-                            )
-                        )
-                    )
-                },
-                maxLines = 1
+  }
+  item {
+    Row(modifier = commonFieldModifier) {
+      SingleFieldText(
+        modifier = Modifier.weight(1f),
+        value = extendedMetadata.genre,
+        name = "Genre",
+        onChange = {
+          onEditTags(
+            tags.copy(
+              metadata = tags.metadata.copy(
+                genre = it
+              )
             )
-            Spacer(modifier = Modifier.width(4.dp))
-            SingleFieldText(
-                modifier = Modifier.weight(1f),
-                value = extendedMetadata.year,
-                name = "Year",
-                onChange = {
-                    onEditTags(
-                        tags.copy(
-                            metadata = extendedMetadata.copy(
-                                year = it
-                            )
-                        )
-                    )
-                },
+          )
+        },
+        maxLines = 1
+      )
+      Spacer(modifier = Modifier.width(4.dp))
+      SingleFieldText(
+        modifier = Modifier.weight(1f),
+        value = extendedMetadata.year,
+        name = "Year",
+        onChange = {
+          onEditTags(
+            tags.copy(
+              metadata = extendedMetadata.copy(
+                year = it
+              )
             )
-        }
+          )
+        },
+      )
     }
+  }
 }
 
 @Composable
 fun SingleFieldText(
-    modifier: Modifier,
-    value: String,
-    name: String,
-    onChange: (String) -> Unit,
-    maxLines: Int = Int.MAX_VALUE
+  modifier: Modifier,
+  value: String,
+  name: String,
+  onChange: (String) -> Unit,
+  maxLines: Int = Int.MAX_VALUE
 ) {
-    OutlinedTextField(
-        modifier = modifier,
-        value = value,
-        onValueChange = onChange,
-        placeholder = { Text(text = name) },
-        label = { Text(text = name) },
-        maxLines = maxLines
-    )
+  OutlinedTextField(
+    modifier = modifier,
+    value = value,
+    onValueChange = onChange,
+    placeholder = { Text(text = name) },
+    label = { Text(text = name) },
+    maxLines = maxLines
+  )
 }

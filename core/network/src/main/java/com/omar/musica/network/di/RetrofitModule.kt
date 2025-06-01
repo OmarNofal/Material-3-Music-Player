@@ -11,13 +11,11 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 
-
 annotation class LyricsRetrofitService
 
 @Module
 @InstallIn(SingletonComponent::class)
 object RetrofitModule {
-
 
     @Provides
     fun provideLyricsService(

@@ -15,25 +15,24 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlaylistsViewModel @Inject constructor(
-    private val playlistsRepository: PlaylistsRepository,
-    playbackManager: PlaybackManager
+  private val playlistsRepository: PlaylistsRepository,
+  playbackManager: PlaybackManager
 ): ViewModel(), PlaylistPlaybackActions by playbackManager {
 
+  val state: StateFlow<PlaylistsScreenState> =
+    playlistsRepository.playlistsWithInfoFlows
+      .map {
+        PlaylistsScreenState.Success(it)
+      }
+      .stateIn(viewModelScope, SharingStarted.Eagerly, PlaylistsScreenState.Loading)
 
-    val state: StateFlow<PlaylistsScreenState> =
-        playlistsRepository.playlistsWithInfoFlows
-            .map {
-                PlaylistsScreenState.Success(it)
-            }
-            .stateIn(viewModelScope, SharingStarted.Eagerly, PlaylistsScreenState.Loading)
 
+  fun onDelete(id: Int) {
+    playlistsRepository.deletePlaylist(id)
+  }
 
-    fun onDelete(id: Int) {
-        playlistsRepository.deletePlaylist(id)
-    }
-
-    fun onRename(id: Int, name: String) {
-        playlistsRepository.renamePlaylist(id, name)
-    }
+  fun onRename(id: Int, name: String) {
+    playlistsRepository.renamePlaylist(id, name)
+  }
 
 }

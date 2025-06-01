@@ -7,18 +7,16 @@ import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 import javax.inject.Inject
 
-
 @HiltAndroidApp
 class MusicaApplication : Application() {
 
-    @Inject
-    lateinit var widgetManager: WidgetManager
+  @Inject
+  lateinit var widgetManager: WidgetManager
 
-    override fun onCreate() {
-        super.onCreate()
-        if (BuildConfig.DEBUG) {
-            Timber.plant(Timber.DebugTree())
-        }
+  override fun onCreate() {
+    super.onCreate()
+    if (BuildConfig.DEBUG) {
+      Timber.plant(Timber.DebugTree())
     }
-
+  }
 }

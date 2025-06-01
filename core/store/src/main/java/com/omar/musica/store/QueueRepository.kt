@@ -15,48 +15,48 @@ import javax.inject.Singleton
 
 @Singleton
 class QueueRepository @Inject constructor(
-    private val queueDao: QueueDao
+  private val queueDao: QueueDao
 ) {
 
-    private val scope = CoroutineScope(Dispatchers.IO)
+  private val scope = CoroutineScope(Dispatchers.IO)
 
-    suspend fun getQueue(): List<DBQueueItem> =
-        queueDao.getQueue()
-            .map { it.toDBQueueItem() }
+  suspend fun getQueue(): List<DBQueueItem> =
+    queueDao.getQueue()
+      .map { it.toDBQueueItem() }
 
-    fun observeQueueUris(): Flow<List<String>> =
-        queueDao.getQueueFlow()
-            .map { it.map { queueItem -> queueItem.songUri } }
+  fun observeQueueUris(): Flow<List<String>> =
+    queueDao.getQueueFlow()
+      .map { it.map { queueItem -> queueItem.songUri } }
 
-    fun saveQueueFromDBQueueItems(songs: List<DBQueueItem>) {
-        scope.launch {
-            queueDao.changeQueue(songs.map { it.toQueueEntity() })
-        }
+  fun saveQueueFromDBQueueItems(songs: List<DBQueueItem>) {
+    scope.launch {
+      queueDao.changeQueue(songs.map { it.toQueueEntity() })
     }
+  }
 
-    private fun DBQueueItem.toQueueEntity() =
-        QueueEntity(
-            0,
-            songUri.toString(),
-            title,
-            artist,
-            album
-        )
+  private fun DBQueueItem.toQueueEntity() =
+    QueueEntity(
+      0,
+      songUri.toString(),
+      title,
+      artist,
+      album
+    )
 
-    private fun QueueEntity.toDBQueueItem(): DBQueueItem {
-        return DBQueueItem(
-            songUri = songUri.toUri(),
-            title = title,
-            artist = artist.orEmpty(),
-            album = albumTitle.orEmpty(),
-        )
-    }
+  private fun QueueEntity.toDBQueueItem(): DBQueueItem {
+    return DBQueueItem(
+      songUri = songUri.toUri(),
+      title = title,
+      artist = artist.orEmpty(),
+      album = albumTitle.orEmpty(),
+    )
+  }
 
 }
 
 data class DBQueueItem(
-    val songUri: Uri,
-    val title: String,
-    val artist: String,
-    val album: String
+  val songUri: Uri,
+  val title: String,
+  val artist: String,
+  val album: String
 )

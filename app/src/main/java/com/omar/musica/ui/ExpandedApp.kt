@@ -52,164 +52,164 @@ private val EXPANDED_SCREEN_NOW_PLAYING_HEIGHT = 72.dp
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ExpandedAppScaffold(
-    modifier: Modifier,
-    appState: MusicaAppState,
-    nowPlayingScreenAnchors: AnchoredDraggableState<BarState>,
-    topLevelDestinations: List<TopLevelDestination>,
-    currentDestination: NavDestination?,
-    onDestinationSelected: (TopLevelDestination) -> Unit,
-    content: @Composable (Modifier, MutableState<Modifier>) -> Unit
+  modifier: Modifier,
+  appState: MusicaAppState,
+  nowPlayingScreenAnchors: AnchoredDraggableState<BarState>,
+  topLevelDestinations: List<TopLevelDestination>,
+  currentDestination: NavDestination?,
+  onDestinationSelected: (TopLevelDestination) -> Unit,
+  content: @Composable (Modifier, MutableState<Modifier>) -> Unit
 ) {
 
-    var nowPlayingMinOffset by remember { mutableIntStateOf(0) }
-    val density = LocalDensity.current
+  var nowPlayingMinOffset by remember { mutableIntStateOf(0) }
+  val density = LocalDensity.current
 
-    // Navhost takes the whole available screen.
-    // contentModifier is added to the screens (composable) themselves to handle cases
-    // such as when NowPlayingBar is hidden or visible
-    val contentModifier = remember {
-        mutableStateOf<Modifier>(Modifier)
-    }
+  // Navhost takes the whole available screen.
+  // contentModifier is added to the screens (composable) themselves to handle cases
+  // such as when NowPlayingBar is hidden or visible
+  val contentModifier = remember {
+    mutableStateOf<Modifier>(Modifier)
+  }
 
-    val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = false)
-
-
-    val navigationBarInsets = WindowInsets.navigationBars
-
-    var screenHeightPx by remember {
-        mutableIntStateOf(0)
-    }
-
-    LaunchedEffect(shouldShowNowPlayingBar, screenHeightPx, nowPlayingMinOffset) {
-        contentModifier.value =
-            if (shouldShowNowPlayingBar)
-                Modifier
-                    .padding(bottom = with(density) { (screenHeightPx - nowPlayingMinOffset).toDp() })
-                    .consumeWindowInsets(navigationBarInsets)
-            else
-                Modifier
-        if (!shouldShowNowPlayingBar)
-            nowPlayingScreenAnchors.snapTo(BarState.COLLAPSED)
-    }
+  val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = false)
 
 
+  val navigationBarInsets = WindowInsets.navigationBars
 
-    LaunchedEffect(key1 = navigationBarInsets, key2 = screenHeightPx) {
-        nowPlayingMinOffset = nowPlayingScreenAnchors.update(
-            screenHeightPx,
-            with(density) {
-                EXPANDED_SCREEN_NOW_PLAYING_HEIGHT.toPx().toInt() + navigationBarInsets.getBottom(
-                    this
-                )
-            },
-            0
+  var screenHeightPx by remember {
+    mutableIntStateOf(0)
+  }
+
+  LaunchedEffect(shouldShowNowPlayingBar, screenHeightPx, nowPlayingMinOffset) {
+    contentModifier.value =
+      if (shouldShowNowPlayingBar)
+        Modifier
+          .padding(bottom = with(density) { (screenHeightPx - nowPlayingMinOffset).toDp() })
+          .consumeWindowInsets(navigationBarInsets)
+      else
+        Modifier
+    if (!shouldShowNowPlayingBar)
+      nowPlayingScreenAnchors.snapTo(BarState.COLLAPSED)
+  }
+
+
+
+  LaunchedEffect(key1 = navigationBarInsets, key2 = screenHeightPx) {
+    nowPlayingMinOffset = nowPlayingScreenAnchors.update(
+      screenHeightPx,
+      with(density) {
+        EXPANDED_SCREEN_NOW_PLAYING_HEIGHT.toPx().toInt() + navigationBarInsets.getBottom(
+          this
         )
-    }
+      },
+      0
+    )
+  }
 
-    Box(modifier = modifier.onGloballyPositioned { screenHeightPx = it.size.height }) {
-        Row(Modifier.fillMaxSize()) {
+  Box(modifier = modifier.onGloballyPositioned { screenHeightPx = it.size.height }) {
+    Row(Modifier.fillMaxSize()) {
 
-            MusicaNavigationRail(
-                modifier = Modifier,
-                topLevelDestinations = topLevelDestinations,
-                currentDestination = currentDestination,
-                onDestinationSelected = onDestinationSelected,
-            )
+      MusicaNavigationRail(
+        modifier = Modifier,
+        topLevelDestinations = topLevelDestinations,
+        currentDestination = currentDestination,
+        onDestinationSelected = onDestinationSelected,
+      )
 
-            content(
-                Modifier
-                    .fillMaxSize()
-                    .consumeRailInsets(LocalLayoutDirection.current, density, WindowInsets.navigationBars),
-                contentModifier,
-            )
-
-        }
-
-        val nowPlayingBarHeightPx = with(density) { EXPANDED_SCREEN_NOW_PLAYING_HEIGHT.toPx() }
-        AnimatedVisibility(
-            visible = appState.shouldShowNowPlayingScreen.collectAsState(initial = false).value,
-            enter = slideInVertically(
-                tween(500),
-                initialOffsetY = { nowPlayingBarHeightPx.roundToInt() * 2 }),
-            exit = slideOutVertically(
-                tween(500),
-                targetOffsetY = { -nowPlayingBarHeightPx.roundToInt() * 2 })
-        ) {
-            NowPlayingScreen(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .offset {
-                        IntOffset(
-                            x = 0,
-                            y = nowPlayingScreenAnchors
-                                .requireOffset()
-                                .roundToInt(),
-                        )
-                    }
-                    .onSizeChanged {
-                        /*nowPlayingMinOffset = nowPlayingScreenAnchors.update(
-                            it.height,
-                            with(density) { EXPANDED_SCREEN_NOW_PLAYING_HEIGHT.toPx() }.toInt(),
-                            0
-                        )*/
-                    }
-                    .anchoredDraggable(nowPlayingScreenAnchors, Orientation.Vertical),
-                nowPlayingBarPadding =
-                PaddingValues(
-                    end = with(density) {
-                        navigationBarInsets.getRight(this, LayoutDirection.Ltr).toDp()
-                    },
-                    start = with(density) {
-                        navigationBarInsets.getLeft(this, LayoutDirection.Ltr).toDp()
-                    }
-                ),
-                barHeight = EXPANDED_SCREEN_NOW_PLAYING_HEIGHT,
-                isExpanded = nowPlayingScreenAnchors.currentValue == BarState.EXPANDED,
-                onCollapseNowPlaying = {
-                    appState.coroutineScope.launch {
-                        nowPlayingScreenAnchors.animateTo(
-                            BarState.COLLAPSED
-                        )
-                    }
-                },
-                onExpandNowPlaying = {
-                    appState.coroutineScope.launch {
-                        nowPlayingScreenAnchors.animateTo(
-                            BarState.EXPANDED
-                        )
-                    }
-                },
-                progressProvider = { 1 - (appState.nowPlayingScreenOffset() / nowPlayingMinOffset) }
-            )
-        }
+      content(
+        Modifier
+          .fillMaxSize()
+          .consumeRailInsets(LocalLayoutDirection.current, density, WindowInsets.navigationBars),
+        contentModifier,
+      )
 
     }
+
+    val nowPlayingBarHeightPx = with(density) { EXPANDED_SCREEN_NOW_PLAYING_HEIGHT.toPx() }
+    AnimatedVisibility(
+      visible = appState.shouldShowNowPlayingScreen.collectAsState(initial = false).value,
+      enter = slideInVertically(
+        tween(500),
+        initialOffsetY = { nowPlayingBarHeightPx.roundToInt() * 2 }),
+      exit = slideOutVertically(
+        tween(500),
+        targetOffsetY = { -nowPlayingBarHeightPx.roundToInt() * 2 })
+    ) {
+      NowPlayingScreen(
+        modifier = Modifier
+          .fillMaxSize()
+          .offset {
+            IntOffset(
+              x = 0,
+              y = nowPlayingScreenAnchors
+                .requireOffset()
+                .roundToInt(),
+            )
+          }
+          .onSizeChanged {
+            /*nowPlayingMinOffset = nowPlayingScreenAnchors.update(
+                it.height,
+                with(density) { EXPANDED_SCREEN_NOW_PLAYING_HEIGHT.toPx() }.toInt(),
+                0
+            )*/
+          }
+          .anchoredDraggable(nowPlayingScreenAnchors, Orientation.Vertical),
+        nowPlayingBarPadding =
+          PaddingValues(
+            end = with(density) {
+              navigationBarInsets.getRight(this, LayoutDirection.Ltr).toDp()
+            },
+            start = with(density) {
+              navigationBarInsets.getLeft(this, LayoutDirection.Ltr).toDp()
+            }
+          ),
+        barHeight = EXPANDED_SCREEN_NOW_PLAYING_HEIGHT,
+        isExpanded = nowPlayingScreenAnchors.currentValue == BarState.EXPANDED,
+        onCollapseNowPlaying = {
+          appState.coroutineScope.launch {
+            nowPlayingScreenAnchors.animateTo(
+              BarState.COLLAPSED
+            )
+          }
+        },
+        onExpandNowPlaying = {
+          appState.coroutineScope.launch {
+            nowPlayingScreenAnchors.animateTo(
+              BarState.EXPANDED
+            )
+          }
+        },
+        progressProvider = { 1 - (appState.nowPlayingScreenOffset() / nowPlayingMinOffset) }
+      )
+    }
+
+  }
 
 }
 
 fun Modifier.consumeRailInsets(
-    layoutDirection: LayoutDirection,
-    density: Density,
-    navigationBarsInsets: WindowInsets
+  layoutDirection: LayoutDirection,
+  density: Density,
+  navigationBarsInsets: WindowInsets
 ): Modifier =
-    this.consumeWindowInsets(
-        PaddingValues(start = if (layoutDirection == LayoutDirection.Ltr)
-            with(density) {
-                navigationBarsInsets
-                    .getLeft(
-                        density,
-                        layoutDirection
-                    )
-                    .toDp()
-            }
-        else
-            with(density) {
-                navigationBarsInsets
-                    .getRight(
-                        density,
-                        layoutDirection
-                    )
-                    .toDp()
-            }
-        )
-    ) // consume the insets handled by the Rail
+  this.consumeWindowInsets(
+    PaddingValues(start = if (layoutDirection == LayoutDirection.Ltr)
+      with(density) {
+        navigationBarsInsets
+          .getLeft(
+            density,
+            layoutDirection
+          )
+          .toDp()
+      }
+    else
+      with(density) {
+        navigationBarsInsets
+          .getRight(
+            density,
+            layoutDirection
+          )
+          .toDp()
+      }
+    )
+  ) // consume the insets handled by the Rail

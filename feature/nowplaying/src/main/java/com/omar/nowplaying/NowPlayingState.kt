@@ -8,18 +8,16 @@ import com.omar.musica.store.model.song.Song
 
 @Immutable
 sealed interface NowPlayingState {
+  @Immutable
+  data object NotPlaying : NowPlayingState
 
-
-    @Immutable
-    data object NotPlaying : NowPlayingState
-
-    @Immutable
-    data class Playing(
-        val song: Song,
-        val playbackState: PlayerState,
-        val repeatMode: RepeatMode,
-        val isShuffleOn: Boolean,
-    ) : NowPlayingState
-
+  @Immutable
+  data class Playing(
+    val song: Song,
+    val isFavorite: Boolean,
+    val playbackState: PlayerState,
+    val repeatMode: RepeatMode,
+    val isShuffleOn: Boolean,
+  ) : NowPlayingState
 }
 

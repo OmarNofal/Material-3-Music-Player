@@ -28,76 +28,74 @@ import com.omar.musica.ui.topbar.OverflowMenu
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumDetailPortraitTopBar(
-    modifier: Modifier,
-    name: String,
-    collapsePercentage: Float,
-    onBarHeightChanged: (Int) -> Unit,
-    onBackClicked: () -> Unit,
-    onPlayNext: () -> Unit = {},
-    onAddToQueue: () -> Unit = {},
-    onShuffleNext: () -> Unit = {},
-    onAddToPlaylists: () -> Unit = {},
-    onOpenShortcutDialog: () -> Unit = {},
+  modifier: Modifier,
+  name: String,
+  collapsePercentage: Float,
+  onBarHeightChanged: (Int) -> Unit,
+  onBackClicked: () -> Unit,
+  onPlayNext: () -> Unit = {},
+  onAddToQueue: () -> Unit = {},
+  onShuffleNext: () -> Unit = {},
+  onAddToPlaylists: () -> Unit = {},
+  onOpenShortcutDialog: () -> Unit = {},
 ) {
+  val scrimColor = MaterialTheme.colorScheme.surfaceDim
+    .copy(alpha = 0.3f)
 
+  val scrimModifier = Modifier
+    .clip(CircleShape)
+    .drawBehind {
+      drawRect(
+        scrimColor,
+        alpha = 1 - collapsePercentage
+      )
+    }
 
-    val scrimColor = MaterialTheme.colorScheme.surfaceDim
-        .copy(alpha = 0.3f)
+  TopAppBar(
+    modifier = modifier
+      .onGloballyPositioned {
+        onBarHeightChanged(it.size.height)
+      },
 
-    val scrimModifier = Modifier
-        .clip(CircleShape)
-        .drawBehind {
-            drawRect(
-                scrimColor,
-                alpha = 1 - collapsePercentage
+    title = {
+      Text(
+        modifier = Modifier.graphicsLayer {
+          alpha = collapsePercentage
+        },
+        text = name,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+      )
+    },
+
+    navigationIcon = {
+      IconButton(
+        modifier = scrimModifier,
+        onClick = onBackClicked
+      ) {
+        Icon(
+          imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+          contentDescription = ""
+        )
+      }
+    },
+
+    actions = {
+      CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
+        Box(modifier = scrimModifier) {
+          OverflowMenu(
+            actionItems = buildSingleAlbumMenuActions(
+              onPlayNext,
+              onAddToQueue,
+              onShuffleNext,
+              onAddToPlaylists,
+              onOpenShortcutDialog
             )
+          )
         }
-
-    TopAppBar(
-        modifier = modifier
-            .onGloballyPositioned {
-                onBarHeightChanged(it.size.height)
-            },
-
-        title = {
-            Text(
-                modifier = Modifier.graphicsLayer {
-                    alpha = collapsePercentage
-                },
-                text = name,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
-
-        navigationIcon = {
-            IconButton(
-                modifier = scrimModifier,
-                onClick = onBackClicked
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = ""
-                )
-            }
-        },
-
-        actions = {
-            CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
-                Box(modifier = scrimModifier) {
-                    OverflowMenu(
-                        actionItems = buildSingleAlbumMenuActions(
-                            onPlayNext,
-                            onAddToQueue,
-                            onShuffleNext,
-                            onAddToPlaylists,
-                            onOpenShortcutDialog
-                        )
-                    )
-                }
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-    )
+      }
+    },
+    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+  )
 
 }

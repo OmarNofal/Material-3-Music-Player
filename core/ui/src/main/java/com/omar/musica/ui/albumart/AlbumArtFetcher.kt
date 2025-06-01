@@ -16,59 +16,58 @@ import java.io.ByteArrayInputStream
 
 
 class AlbumKeyer : Keyer<SongAlbumArtModel> {
-    /**
-     * Songs in the same album (should) have the same art work.
-     * So we use the albumId as the key to use the same image
-     * for all songs in the same album. If the song has no album, then use its uri as the key
-     */
-    override fun key(data: SongAlbumArtModel, options: Options): String =
-        data.albumId?.toString() ?: data.uri.toString()
+  /**
+   * Songs in the same album (should) have the same art work.
+   * So we use the albumId as the key to use the same image
+   * for all songs in the same album. If the song has no album, then use its uri as the key
+   */
+  override fun key(data: SongAlbumArtModel, options: Options): String =
+    data.albumId?.toString() ?: data.uri.toString()
 }
 
 class SongKeyer : Keyer<SongAlbumArtModel> {
 
 
-    override fun key(data: SongAlbumArtModel, options: Options): String =
-        data.uri.toString()
+  override fun key(data: SongAlbumArtModel, options: Options): String =
+    data.uri.toString()
 }
 
 class AlbumArtFetcher(
-    private val data: SongAlbumArtModel,
-    private val options: Options
+  private val data: SongAlbumArtModel,
+  private val options: Options
 ) : Fetcher {
 
-    override suspend fun fetch(): FetchResult? {
+  override suspend fun fetch(): FetchResult? {
 
 
-        Timber.d(
-            "AlbumArtFetcher request: " +
-                    "$data\n" +
-                    "${options.size}"
-        )
+    Timber.d(
+      "%snull", "AlbumArtFetcher request: " +
+        "$data\n"
+    )
 
-        val metadataRetriever = MediaMetadataRetriever()
-            .apply { setDataSource(options.context, data.uri) }
+    val metadataRetriever = MediaMetadataRetriever()
+      .apply { setDataSource(options.context, data.uri) }
 
-        val byteArr = metadataRetriever.embeddedPicture ?: return null
+    val byteArr = metadataRetriever.embeddedPicture ?: return null
 
-        val bufferedSource = ByteArrayInputStream(byteArr).source().buffer()
-        return SourceResult(
-            ImageSource(bufferedSource, options.context),
-            "image/*",
-            DataSource.MEMORY
-        )
+    val bufferedSource = ByteArrayInputStream(byteArr).source().buffer()
+    return SourceResult(
+      ImageSource(bufferedSource, options.context),
+      "image/*",
+      DataSource.MEMORY
+    )
+  }
+
+
+  class Factory : Fetcher.Factory<SongAlbumArtModel> {
+
+    override fun create(
+      data: SongAlbumArtModel,
+      options: Options,
+      imageLoader: ImageLoader
+    ): Fetcher {
+      return AlbumArtFetcher(data, options)
     }
-
-
-    class Factory : Fetcher.Factory<SongAlbumArtModel> {
-
-        override fun create(
-            data: SongAlbumArtModel,
-            options: Options,
-            imageLoader: ImageLoader
-        ): Fetcher {
-            return AlbumArtFetcher(data, options)
-        }
-    }
+  }
 
 }

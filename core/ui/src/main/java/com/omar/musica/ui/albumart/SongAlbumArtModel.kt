@@ -11,9 +11,8 @@ import com.omar.musica.store.model.song.Song
  */
 @Stable
 data class SongAlbumArtModel(
-    val albumId: Long? = null,
-    val uri: Uri
+  val albumId: Long? = null,
+  val uri: Uri
 )
 
-fun Song?.toSongAlbumArtModel() = if (this == null) SongAlbumArtModel(null, Uri.EMPTY)
-else SongAlbumArtModel(albumId, uri)
+fun Song?.toSongAlbumArtModel() = if (this == null) SongAlbumArtModel(null, Uri.EMPTY) else SongAlbumArtModel(albumId, uri)

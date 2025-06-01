@@ -19,58 +19,57 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlbumDetailsViewModel @Inject constructor(
-    albumsRepository: AlbumsRepository,
-    savedStateHandle: SavedStateHandle,
-    private val playbackManager: PlaybackManager
+  albumsRepository: AlbumsRepository,
+  savedStateHandle: SavedStateHandle,
+  private val playbackManager: PlaybackManager
 ) : ViewModel(), AlbumDetailActions {
 
-    private val albumId = savedStateHandle.get<Int>(ALBUM_ID_KEY)!!
+  private val albumId = savedStateHandle.get<Int>(ALBUM_ID_KEY)!!
 
-    val state: StateFlow<AlbumDetailsScreenState> =
-        albumsRepository.getAlbumWithSongs(albumId).map { album ->
-            if (album == null) return@map AlbumDetailsScreenState.Loading
-            val artistName = album.albumInfo.artist
+  val state: StateFlow<AlbumDetailsScreenState> =
+    albumsRepository.getAlbumWithSongs(albumId).map { album ->
+      if (album == null) return@map AlbumDetailsScreenState.Loading
+      val artistName = album.albumInfo.artist
 
-            val otherAlbums = albumsRepository.getArtistAlbums(artistName)
-                .map { it.filter { it.albumInfo.id != albumId } }.firstOrNull() ?: listOf()
-
-
-            AlbumDetailsScreenState.Loaded(album, otherAlbums)
-        }
-            .stateIn(viewModelScope, SharingStarted.Eagerly, AlbumDetailsScreenState.Loading)
+      val otherAlbums = albumsRepository.getArtistAlbums(artistName)
+        .map { it.filter { it.albumInfo.id != albumId } }.firstOrNull() ?: listOf()
 
 
-    override fun play() {
-        playbackManager.setPlaylistAndPlayAtIndex(getAlbumSongs())
+      AlbumDetailsScreenState.Loaded(album, otherAlbums)
     }
+      .stateIn(viewModelScope, SharingStarted.Eagerly, AlbumDetailsScreenState.Loading)
 
-    override fun playAtIndex(index: Int) {
-        playbackManager.setPlaylistAndPlayAtIndex(getAlbumSongs(), index)
-    }
 
-    override fun playNext() {
-        playbackManager.playNext(getAlbumSongs())
-    }
+  override fun play() {
+    playbackManager.setPlaylistAndPlayAtIndex(getAlbumSongs())
+  }
 
-    override fun shuffle() {
-        playbackManager.shuffle(getAlbumSongs())
-    }
+  override fun playAtIndex(index: Int) {
+    playbackManager.setPlaylistAndPlayAtIndex(getAlbumSongs(), index)
+  }
 
-    override fun shuffleNext() {
-        playbackManager.shuffleNext(getAlbumSongs())
-    }
+  override fun playNext() {
+    playbackManager.playNext(getAlbumSongs())
+  }
 
-    override fun addToQueue() {
-        playbackManager.addToQueue(getAlbumSongs())
-    }
+  override fun shuffle() {
+    playbackManager.shuffle(getAlbumSongs())
+  }
 
-    private fun getAlbumSongs(): List<Song> {
-        return (state.value as? AlbumDetailsScreenState.Loaded)?.albumWithSongs?.songs?.map { it.song }
-            ?: listOf()
-    }
+  override fun shuffleNext() {
+    playbackManager.shuffleNext(getAlbumSongs())
+  }
 
-    companion object {
-        const val ALBUM_ID_KEY = "ALBUM_ID"
-    }
+  override fun addToQueue() {
+    playbackManager.addToQueue(getAlbumSongs())
+  }
 
+  private fun getAlbumSongs(): List<Song> {
+    return (state.value as? AlbumDetailsScreenState.Loaded)?.albumWithSongs?.songs?.map { it.song }
+      ?: listOf()
+  }
+
+  companion object {
+    const val ALBUM_ID_KEY = "ALBUM_ID"
+  }
 }

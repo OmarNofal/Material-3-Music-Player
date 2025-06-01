@@ -21,54 +21,50 @@ import kotlinx.coroutines.flow.onEach
 
 @Composable
 fun rememberMusicaAppState(
-    navHostController: NavHostController,
-    coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    isNowPlayingExpanded: Boolean,
-    nowPlayingViewModel: NowPlayingViewModel,
-    nowPlayingScreenOffset: () -> Float
+  navHostController: NavHostController,
+  coroutineScope: CoroutineScope = rememberCoroutineScope(),
+  isNowPlayingExpanded: Boolean,
+  nowPlayingViewModel: NowPlayingViewModel,
+  nowPlayingScreenOffset: () -> Float
 ): MusicaAppState {
-    return remember(
-        navHostController,
-        coroutineScope,
-        isNowPlayingExpanded,
-        nowPlayingScreenOffset
-    ) {
-        MusicaAppState(
-            navHostController,
-            coroutineScope,
-            isNowPlayingExpanded,
-            nowPlayingViewModel,
-            nowPlayingScreenOffset
-        )
-    }
+  return remember(
+    navHostController,
+    coroutineScope,
+    isNowPlayingExpanded,
+    nowPlayingScreenOffset
+  ) {
+    MusicaAppState(
+      navHostController,
+      coroutineScope,
+      isNowPlayingExpanded,
+      nowPlayingViewModel,
+      nowPlayingScreenOffset
+    )
+  }
 }
 
 
 @Stable
 class MusicaAppState(
-    val navHostController: NavHostController,
-    val coroutineScope: CoroutineScope,
-    val isNowPlayingExpanded: Boolean,
-    val nowPlayingViewModel: NowPlayingViewModel,
-    val nowPlayingScreenOffset: () -> Float
+  val navHostController: NavHostController,
+  val coroutineScope: CoroutineScope,
+  val isNowPlayingExpanded: Boolean,
+  val nowPlayingViewModel: NowPlayingViewModel,
+  val nowPlayingScreenOffset: () -> Float
 ) {
+  /**
+   * Whether we should show the NowPlaying Screen or not.
+   */
+  val shouldShowNowPlayingScreen = nowPlayingViewModel.state.map { it is NowPlayingState.Playing }
 
-
-    /**
-     * Whether we should show the NowPlaying Screen or not.
-     */
-    val shouldShowNowPlayingScreen = nowPlayingViewModel.state.map { it is NowPlayingState.Playing }
-
-    val shouldShowBottomBar = navHostController.currentBackStackEntryFlow.onEach { delay(100) }.map {
-        val route = it.destination.route ?: return@map true
-        return@map !(
-                        route.contains(PLAYLIST_DETAILS_ROUTE) ||
-                        route.contains(SEARCH_ROUTE) ||
-                        route.contains(TAG_EDITOR_SCREEN) ||
-                        route.contains(ALBUM_DETAIL_ROUTE) ||
-                        route.contains(SETTINGS_ROUTE)
-                )
-    }
-
-
+  val shouldShowBottomBar = navHostController.currentBackStackEntryFlow.onEach { delay(100) }.map {
+    val route = it.destination.route ?: return@map true
+    return@map !(
+      route.contains(PLAYLIST_DETAILS_ROUTE) ||
+        route.contains(SEARCH_ROUTE) ||
+        route.contains(TAG_EDITOR_SCREEN) ||
+        route.contains(ALBUM_DETAIL_ROUTE) ||
+        route.contains(SETTINGS_ROUTE)
+      )
+  }
 }

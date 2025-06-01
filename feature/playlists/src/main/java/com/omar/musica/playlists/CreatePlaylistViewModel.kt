@@ -11,21 +11,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreatePlaylistViewModel @Inject constructor(
-    private val playlistsRepository: PlaylistsRepository
+  private val playlistsRepository: PlaylistsRepository
 ): ViewModel() {
+  /**
+   * The names of the available playlists
+   * Used to prevent the user from creating another list with the same name
+   */
+  val currentPlaylists: Flow<List<String>> =
+    playlistsRepository.playlistsWithInfoFlows
+      .map { it.map { playlist -> playlist.name } }
 
 
-    /**
-     * The names of the available playlists
-     * Used to prevent the user from creating another list with the same name
-     */
-    val currentPlaylists: Flow<List<String>> =
-        playlistsRepository.playlistsWithInfoFlows
-            .map { it.map { playlist -> playlist.name } }
-
-
-    fun onInsertPlaylist(name: String) {
-        playlistsRepository.createPlaylist(name)
-    }
-
+  fun onInsertPlaylist(name: String) {
+    playlistsRepository.createPlaylist(name)
+  }
 }

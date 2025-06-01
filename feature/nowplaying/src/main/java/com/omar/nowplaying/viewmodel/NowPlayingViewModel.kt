@@ -14,59 +14,61 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NowPlayingViewModel @Inject constructor(
-    private val playbackManager: PlaybackManager,
+  private val playbackManager: PlaybackManager,
 ) : ViewModel(), INowPlayingViewModel {
 
-
-    private val _state: StateFlow<NowPlayingState> =
-        playbackManager.state
-            .map { mediaPlayerState ->
-                val song = mediaPlayerState.currentPlayingSong
-                    ?: return@map NowPlayingState.NotPlaying
-                NowPlayingState.Playing(
-                    song,
-                    mediaPlayerState.playbackState.playerState,
-                    repeatMode = mediaPlayerState.playbackState.repeatMode,
-                    isShuffleOn = mediaPlayerState.playbackState.isShuffleOn
-                )
-            }.stateIn(viewModelScope, SharingStarted.Eagerly, NowPlayingState.NotPlaying)
-
-
-    val state: StateFlow<NowPlayingState>
-        get() = _state
-
-    override fun currentSongProgress() = playbackManager.currentSongProgress
-
-    override fun togglePlayback() {
-        playbackManager.togglePlayback()
+  private val _state: StateFlow<NowPlayingState> =
+    playbackManager.state.map {
+      mediaPlayerState ->
+      val song = mediaPlayerState.core.currentPlayingSong?: return@map NowPlayingState.NotPlaying
+      NowPlayingState.Playing(
+        song,
+        mediaPlayerState.isSongFavorite,
+        mediaPlayerState.core.playbackState.playerState,
+        repeatMode = mediaPlayerState.core.playbackState.repeatMode,
+        isShuffleOn = mediaPlayerState.core.playbackState.isShuffleOn
+      )
     }
+    .stateIn(viewModelScope, SharingStarted.Eagerly, NowPlayingState.NotPlaying)
 
-    override fun nextSong() {
-        playbackManager.playNextSong()
-    }
+  val state: StateFlow<NowPlayingState>
+    get() = _state
 
-    override fun jumpForward() {
-        playbackManager.forward()
-    }
+  override fun currentSongProgress() = playbackManager.currentSongProgress
 
-    override fun jumpBackward() {
-        playbackManager.backward()
-    }
+  override fun toggleFavorite() {
+    playbackManager.toggleFavorite()
+  }
 
-    override fun onUserSeek(progress: Float) {
-        playbackManager.seekToPosition(progress)
-    }
+  override fun togglePlayback() {
+    playbackManager.togglePlayback()
+  }
 
-    override fun previousSong() {
-        playbackManager.playPreviousSong()
-    }
+  override fun nextSong() {
+    playbackManager.playNextSong()
+  }
 
-    override fun toggleRepeatMode() {
-        playbackManager.toggleRepeatMode()
-    }
+  override fun jumpForward() {
+    playbackManager.forward()
+  }
 
-    override fun toggleShuffleMode() {
-        playbackManager.toggleShuffleMode()
-    }
+  override fun jumpBackward() {
+    playbackManager.backward()
+  }
 
+  override fun onUserSeek(progress: Float) {
+    playbackManager.seekToPosition(progress)
+  }
+
+  override fun previousSong() {
+    playbackManager.playPreviousSong()
+  }
+
+  override fun toggleRepeatMode() {
+    playbackManager.toggleRepeatMode()
+  }
+
+  override fun toggleShuffleMode() {
+    playbackManager.toggleShuffleMode()
+  }
 }
