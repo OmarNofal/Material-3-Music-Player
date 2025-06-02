@@ -11,3 +11,7 @@ enum class AlbumsSortOption {
 enum class ArtistsSortOption {
     NAME, NUMBER_OF_SONGS
 }
+
+enum class FoldersSortOption {
+    NAME, NUMBER_OF_SONGS
+}

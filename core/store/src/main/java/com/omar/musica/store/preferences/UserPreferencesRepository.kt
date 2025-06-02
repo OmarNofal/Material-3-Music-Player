@@ -12,6 +12,7 @@ import com.omar.musica.database.dao.BlacklistedFoldersDao
 import com.omar.musica.database.entities.prefs.BlacklistedFolderEntity
 import com.omar.musica.model.AlbumsSortOption
 import com.omar.musica.model.ArtistsSortOption
+import com.omar.musica.model.FoldersSortOption
 import com.omar.musica.model.SongSortOption
 import com.omar.musica.model.prefs.AppTheme
 import com.omar.musica.model.prefs.DEFAULT_ACCENT_COLOR
@@ -92,6 +93,12 @@ class UserPreferencesRepository @Inject constructor(
     }
   }
 
+  suspend fun changeFoldersSortOrder(order: FoldersSortOption, isAscending: Boolean) {
+    context.datastore.edit {
+      it[FOLDERS_SORT_ORDER_KEY] = "${order}:$isAscending"
+    }
+  }
+
   suspend fun changeAlbumsGridSize(size: Int) {
     context.datastore.edit {
       it[ALBUMS_GRID_SIZE_KEY] = size
@@ -101,6 +108,12 @@ class UserPreferencesRepository @Inject constructor(
   suspend fun changeArtistsGridSize(size: Int) {
     context.datastore.edit {
       it[ARTISTS_GRID_SIZE_KEY] = size
+    }
+  }
+
+  suspend fun changeFoldersGridSize(size: Int) {
+    context.datastore.edit {
+      it[FOLDERS_GRID_SIZE_KEY] = size
     }
   }
 
@@ -166,7 +179,6 @@ class UserPreferencesRepository @Inject constructor(
     }
   }
 
-
   private fun Preferences.getPlayerSettings(): PlayerSettings {
     val jumpDuration = this[JUMP_DURATION_KEY] ?: DEFAULT_JUMP_DURATION_MILLIS
     val pauseOnVolumeZero = this[PAUSE_IF_VOLUME_ZERO] ?: false
@@ -200,9 +212,11 @@ class UserPreferencesRepository @Inject constructor(
     val songSortOptionsParts = this[SONGS_SORT_ORDER_KEY]?.split(":")
     val albumsSortOptionsParts = this[ALBUMS_SORT_ORDER_KEY]?.split(":")
     val artistsSortOptionsParts = this[ARTISTS_SORT_ORDER_KEY]?.split(":")
+    val foldersSortOptionsParts = this[FOLDERS_SORT_ORDER_KEY]?.split(":")
 
     val albumsGridSize = this[ALBUMS_GRID_SIZE_KEY] ?: 2
     val artistsGridSize = this[ARTISTS_GRID_SIZE_KEY] ?: 2
+    val foldersGridSize = this[FOLDERS_GRID_SIZE_KEY] ?: 2
 
     val songsSortOrder = if (songSortOptionsParts == null)
       SongSortOption.TITLE to true else SongSortOption.valueOf(songSortOptionsParts[0]) to songSortOptionsParts[1].toBoolean()
@@ -213,11 +227,14 @@ class UserPreferencesRepository @Inject constructor(
     val artistsSortOrder = if (artistsSortOptionsParts == null)
       ArtistsSortOption.NAME to true else ArtistsSortOption.valueOf(artistsSortOptionsParts[0]) to artistsSortOptionsParts[1].toBoolean()
 
+    val foldersSortOrder = if (foldersSortOptionsParts == null)
+      FoldersSortOption.NAME to true else FoldersSortOption.valueOf(foldersSortOptionsParts[0]) to foldersSortOptionsParts[1].toBoolean()
+
 
     val cacheAlbumCoverArt = this[CACHE_ALBUM_COVER_ART_KEY] != false
 
     return LibrarySettings(
-      songsSortOrder, albumsSortOrder, artistsSortOrder, albumsGridSize, artistsGridSize, cacheAlbumCoverArt, excludedFolders
+      songsSortOrder, albumsSortOrder, artistsSortOrder, foldersSortOrder, albumsGridSize, artistsGridSize, foldersGridSize, cacheAlbumCoverArt, excludedFolders
     )
   }
 
@@ -234,6 +251,8 @@ class UserPreferencesRepository @Inject constructor(
     val SONGS_SORT_ORDER_KEY = stringPreferencesKey("SONGS_SORT")
     val ALBUMS_SORT_ORDER_KEY = stringPreferencesKey("ALBUMS_SORT")
     val ARTISTS_SORT_ORDER_KEY = stringPreferencesKey("ARTISTS_SORT")
+    val FOLDERS_SORT_ORDER_KEY = stringPreferencesKey("FOLDERS_SORT")
+
     val THEME_KEY = stringPreferencesKey("THEME")
     val DYNAMIC_COLOR_KEY = booleanPreferencesKey("DYNAMIC_COLOR")
     val PLAYER_THEME_KEY = stringPreferencesKey("PLAYER_THEME")
@@ -247,8 +266,10 @@ class UserPreferencesRepository @Inject constructor(
     val RESUME_IF_VOLUME_INCREASED = booleanPreferencesKey("RESUME_IF_VOLUME_INCREASED")
     val ACCENT_COLOR_KEY = intPreferencesKey("ACCENT_COLOR")
     val MINI_PLAYER_EXTRA_CONTROLS = booleanPreferencesKey("MINI_PLAYER_EXTRA_CONTROLS")
+
     val ALBUMS_GRID_SIZE_KEY = intPreferencesKey("ALBUMS_GRID_SIZE")
     val ARTISTS_GRID_SIZE_KEY = intPreferencesKey("ARTISTS_GRID_SIZE")
+    val FOLDERS_GRID_SIZE_KEY = intPreferencesKey("FOLDERS_GRID_SIZE")
   }
 
 }

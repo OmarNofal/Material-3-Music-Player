@@ -42,146 +42,144 @@ import sh.calvin.reorderable.ReorderableItemScope
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun QueueSongRow(
-    modifier: Modifier,
-    songUi: Song,
-    swipeToDeleteDelay: Int,
-    reorderScope: ReorderableItemScope,
-    onDragStarted: () -> Unit,
-    onDragStopped: () -> Unit,
-    onRemoveFromQueue: () -> Unit,
+  modifier: Modifier,
+  songUi: Song,
+  swipeToDeleteDelay: Int,
+  reorderScope: ReorderableItemScope,
+  onDragStarted: () -> Unit,
+  onDragStopped: () -> Unit,
+  onRemoveFromQueue: () -> Unit,
 ) {
 
-    val density = LocalDensity.current
-    val anchorState = remember {
-        AnchoredDraggableState(
-            SwipeToDeleteState.IDLE,
-            anchors = DraggableAnchors {
-                SwipeToDeleteState.LEFT at -100.0f
-                SwipeToDeleteState.IDLE at 0.0f
-                SwipeToDeleteState.RIGHT at 100.0f
-            },
-            positionalThreshold = { totalDistance: Float -> .5f * totalDistance },
-            velocityThreshold = { with(density) { 50.dp.toPx() } },
-            animationSpec = tween()
-        )
-    }
+  val density = LocalDensity.current
+  val anchorState = remember {
+    AnchoredDraggableState(
+      SwipeToDeleteState.IDLE,
+      anchors = DraggableAnchors {
+        SwipeToDeleteState.LEFT at -100.0f
+        SwipeToDeleteState.IDLE at 0.0f
+        SwipeToDeleteState.RIGHT at 100.0f
+      },
+      positionalThreshold = { totalDistance: Float -> .5f * totalDistance },
+      velocityThreshold = { with(density) { 50.dp.toPx() } },
+      animationSpec = tween()
+    )
+  }
 
-    var rowWidth by remember {
-        mutableStateOf(0)
-    }
+  var rowWidth by remember {
+    mutableStateOf(0)
+  }
 
-    LaunchedEffect(key1 = anchorState.currentValue) {
-        if (anchorState.currentValue != SwipeToDeleteState.IDLE) {
-            delay(swipeToDeleteDelay.toLong())
-            onRemoveFromQueue()
+  LaunchedEffect(key1 = anchorState.currentValue) {
+    if (anchorState.currentValue != SwipeToDeleteState.IDLE) {
+      delay(swipeToDeleteDelay.toLong())
+      onRemoveFromQueue()
+    }
+  }
+
+  Box(modifier = modifier
+    .height(IntrinsicSize.Max)
+    .onSizeChanged {
+      val width = it.width
+      rowWidth = width
+      anchorState.updateAnchors(
+        DraggableAnchors {
+          SwipeToDeleteState.LEFT at -width.toFloat()
+          SwipeToDeleteState.IDLE at 0.0f
+          SwipeToDeleteState.RIGHT at width.toFloat()
+        },
+        SwipeToDeleteState.IDLE
+      )
+    }) {
+
+    DeleteBackground(
+      modifier = Modifier.fillMaxSize(),
+      swipeProgress = { anchorState.requireOffset() / rowWidth })
+
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp, vertical = 8.dp)
+        .offset {
+          IntOffset(
+            anchorState
+              .requireOffset()
+              .roundToInt(), 0
+          )
         }
-    }
-
-    Box(modifier = modifier
-        .height(IntrinsicSize.Max)
-        .onSizeChanged {
-            val width = it.width
-            rowWidth = width
-            anchorState.updateAnchors(
-                DraggableAnchors {
-                    SwipeToDeleteState.LEFT at -width.toFloat()
-                    SwipeToDeleteState.IDLE at 0.0f
-                    SwipeToDeleteState.RIGHT at width.toFloat()
-                },
-                SwipeToDeleteState.IDLE
-            )
+        .anchoredDraggable(anchorState, Orientation.Horizontal),
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      SongInfoRow(
+        modifier = Modifier.weight(1f),
+        song = songUi,
+        efficientThumbnailLoading = LocalUserPreferences.current.librarySettings.cacheAlbumCoverArt
+      )
+      IconButton(
+        onClick = {},
+        modifier = with(reorderScope) {
+          Modifier.draggableHandle(
+            onDragStarted = { onDragStarted() },
+            onDragStopped = { onDragStopped() }
+          )
         }) {
-
-        DeleteBackground(
-            modifier = Modifier.fillMaxSize(),
-            swipeProgress = { anchorState.requireOffset() / rowWidth })
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .offset {
-                    IntOffset(
-                        anchorState
-                            .requireOffset()
-                            .roundToInt(), 0
-                    )
-                }
-                .anchoredDraggable(anchorState, Orientation.Horizontal),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            SongInfoRow(
-                modifier = Modifier.weight(1f),
-                song = songUi,
-                efficientThumbnailLoading = LocalUserPreferences.current.librarySettings.cacheAlbumCoverArt
-            )
-            IconButton(
-                onClick = {},
-                modifier = with(reorderScope) {
-                    Modifier.draggableHandle(
-                        onDragStarted = { onDragStarted() },
-                        onDragStopped = { onDragStopped() }
-                    )
-                }) {
-                Icon(imageVector = Icons.Rounded.DragHandle, contentDescription = "Drag to Reorder")
-            }
-        }
+        Icon(imageVector = Icons.Rounded.DragHandle, contentDescription = "Drag to Reorder")
+      }
     }
+  }
 
 }
 
 @Composable
 fun DeleteBackground(
-    modifier: Modifier,
-    swipeProgress: () -> Float, // -1 to 1
+  modifier: Modifier,
+  swipeProgress: () -> Float, // -1 to 1
 ) {
 
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
+  Row(
+    modifier = modifier,
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.SpaceBetween
+  ) {
 
-        Icon(
-            modifier = Modifier
-                .padding(start = 32.dp)
-                .graphicsLayer {
-                    val leftIconScale =
-                        if (swipeProgress() > 0.0f)
-                            (2.0f * abs(swipeProgress()) + 0.5f).coerceAtMost(1.0f)
-                        else 0.0f
-                    alpha = leftIconScale
-                    scaleX = leftIconScale
-                    scaleY = leftIconScale
-                },
-            imageVector = Icons.Rounded.Delete,
-            contentDescription = null
-        )
+    Icon(
+      modifier = Modifier
+        .padding(start = 32.dp)
+        .graphicsLayer {
+          val leftIconScale =
+            if (swipeProgress() > 0.0f)
+              (2.0f * abs(swipeProgress()) + 0.5f).coerceAtMost(1.0f)
+            else 0.0f
+          alpha = leftIconScale
+          scaleX = leftIconScale
+          scaleY = leftIconScale
+        },
+      imageVector = Icons.Rounded.Delete,
+      contentDescription = null
+    )
 
-        Icon(
-            modifier = Modifier
-                .padding(end = 32.dp)
-                .graphicsLayer {
-                    val rightIconScale =
-                        if (swipeProgress() < 0.0f)
-                            (2.0f * abs(swipeProgress()) + 0.5f).coerceAtMost(1.0f)
-                        else 0.0f
-                    alpha = rightIconScale
-                    scaleX = rightIconScale
-                    scaleY = rightIconScale
-                },
-            imageVector = Icons.Rounded.Delete,
-            contentDescription = null
-        )
-    }
+    Icon(
+      modifier = Modifier
+        .padding(end = 32.dp)
+        .graphicsLayer {
+          val rightIconScale =
+            if (swipeProgress() < 0.0f)
+              (2.0f * abs(swipeProgress()) + 0.5f).coerceAtMost(1.0f)
+            else 0.0f
+          alpha = rightIconScale
+          scaleX = rightIconScale
+          scaleY = rightIconScale
+        },
+      imageVector = Icons.Rounded.Delete,
+      contentDescription = null
+    )
+  }
 
 }
 
 enum class SwipeToDeleteState {
-    LEFT, IDLE, RIGHT
+  LEFT, IDLE, RIGHT
 }
