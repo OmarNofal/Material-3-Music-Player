@@ -10,10 +10,10 @@ import com.omar.musica.database.entities.PLAYLIST_NAME_COLUMN
 
 @Entity(tableName = PLAYLIST_ENTITY)
 data class PlaylistEntity(
-    @ColumnInfo(name = PLAYLIST_ID_COLUMN)
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+  @ColumnInfo(name = PLAYLIST_ID_COLUMN)
+  @PrimaryKey(autoGenerate = true)
+  val id: Int = 0,
 
-    @ColumnInfo(name = PLAYLIST_NAME_COLUMN)
-    val name: String,
+  @ColumnInfo(name = PLAYLIST_NAME_COLUMN)
+  val name: String,
 )

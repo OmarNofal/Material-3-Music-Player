@@ -20,10 +20,13 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface PlaylistDao {
 
-  @Query(
-    "SELECT P.*, S.song_uri, S.playlist_song_add_time FROM $PLAYLIST_ENTITY P LEFT OUTER JOIN $PLAYLIST_SONG_ENTITY S " +
-      "ON P.${PLAYLIST_ID_COLUMN} = S.${PLAYLIST_ID_COLUMN} WHERE P.$PLAYLIST_ID_COLUMN = :playlistId"
-  )
+//  @Transaction
+//  @Query(
+//    "SELECT P.*, S.song_uri, S.playlist_song_add_time FROM $PLAYLIST_ENTITY P LEFT OUTER JOIN $PLAYLIST_SONG_ENTITY S " +
+//      "ON P.${PLAYLIST_ID_COLUMN} = S.${PLAYLIST_ID_COLUMN} WHERE P.$PLAYLIST_ID_COLUMN = :playlistId"
+//  )
+  @Transaction // 对于返回包含 @Relation 字段的类型，@Transaction 非常重要
+  @Query("SELECT * FROM $PLAYLIST_ENTITY WHERE $PLAYLIST_ID_COLUMN = :playlistId")
   fun getPlaylistWithSongsFlow(playlistId: Int): Flow<PlaylistWithSongsUri>
 
   @Query(

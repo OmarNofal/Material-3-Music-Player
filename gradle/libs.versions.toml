@@ -1,7 +1,7 @@
 [versions]
 activity-compose = "1.7.2"
 accompanist = "0.34.0"
-agp = "8.1.0"
+agp = "8.10.1"
 androidDesugarJdkLibs = "2.0.3"
 androidx-test-ext-junit = "1.1.5"
 androidxComposeBom = "2024.02.01"
