@@ -35,6 +35,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.omar.musica.albums.navigation.albumsGraph
 import com.omar.musica.albums.navigation.navigateToAlbumDetail
 import com.omar.musica.artists.navigation.artistsGraph
+import com.omar.musica.audiosearch.navigation.audioSearchGraph
 import com.omar.musica.folders.navigation.foldersGraph
 import com.omar.musica.navigation.TopLevelDestination
 import com.omar.musica.navigation.navigateToTopLevelDestination
@@ -42,6 +43,7 @@ import com.omar.musica.playback.PlaybackService
 import com.omar.musica.playlists.navigation.playlistsGraph
 import com.omar.musica.settings.navigation.settingsGraph
 import com.omar.musica.songs.navigation.SONGS_NAVIGATION_GRAPH
+import com.omar.musica.songs.navigation.navigateToSearchWithQuery
 import com.omar.musica.songs.navigation.songsGraph
 import com.omar.musica.state.rememberMusicaAppState
 import com.omar.musica.tageditor.navigation.tagEditorGraph
@@ -159,6 +161,13 @@ fun MusicaApp2(
           exitAnimationFactory = ::getExitAnimationForRoute,
           popEnterAnimationFactory = ::getPopEnterAnimationForRoute,
           popExitAnimationFactory = ::getPopExitAnimationForRoute
+        )
+        audioSearchGraph(
+          contentModifier = contentModifier,
+          navController = navController,
+          onNavigateToSearch = { query ->
+            navController.navigateToSearchWithQuery(query)
+          }
         )
       }
     }

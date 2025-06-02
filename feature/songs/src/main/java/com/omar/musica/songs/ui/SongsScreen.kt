@@ -16,9 +16,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Sort
+import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -63,7 +63,8 @@ fun SongsScreen(
   modifier: Modifier = Modifier,
   viewModel: SongsViewModel = hiltViewModel(),
   onSearchClicked: () -> Unit,
-  onSettingsClicked: () -> Unit
+  onSettingsClicked: () -> Unit,
+  onAudioSearchClicked: () -> Unit = {}
 ) {
   val songsUiState by viewModel.state.collectAsState()
   SongsScreen(
@@ -72,9 +73,11 @@ fun SongsScreen(
     viewModel::onSongClicked,
     onSearchClicked,
     onSettingsClicked,
+    onAudioSearchClicked,
     viewModel::onSortOptionChanged
   )
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,6 +87,7 @@ internal fun SongsScreen(
   onSongClicked: (Song, Int) -> Unit,
   onSearchClicked: () -> Unit,
   onSettingsClicked: () -> Unit,
+  onAudioSearchClicked: () -> Unit,
   onSortOptionChanged: (SongSortOption, isAscending: Boolean) -> Unit
 ) {
 
@@ -132,6 +136,9 @@ internal fun SongsScreen(
           modifier = Modifier.fillMaxWidth(),
           title = { Text(text = "Songs", fontWeight = FontWeight.SemiBold) },
           actions = {
+            IconButton(onAudioSearchClicked) {
+              Icon(Icons.Rounded.Mic, contentDescription = "Audio Search")
+            }
             IconButton(onSearchClicked) {
               Icon(Icons.Rounded.Search, contentDescription = null)
             }
@@ -239,6 +246,3 @@ internal fun SongsScreen(
     }
   }
 }
-
-
-

@@ -34,7 +34,7 @@ android {
 
     debug {
       applicationIdSuffix = ".debug"
-      resValue("string", "app_name", "MP debug")
+      resValue("string", "app_name", "Muse debug")
     }
   }
 
@@ -57,6 +57,7 @@ dependencies {
   implementation(project(":feature:albums"))
   implementation(project(":feature:artists"))
   implementation(project(":feature:folders"))
+  implementation(project(":feature:audiosearch"))
   implementation(project(mapOf("path" to ":core:ui")))
   implementation(project(mapOf("path" to ":core:store")))
   implementation(project(mapOf("path" to ":core:model")))

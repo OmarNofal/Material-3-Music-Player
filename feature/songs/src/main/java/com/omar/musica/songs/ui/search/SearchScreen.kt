@@ -66,279 +66,286 @@ import com.omar.musica.ui.songs.selectableSongsList
 
 @Composable
 fun SearchScreen(
-    modifier: Modifier,
-    searchViewModel: SearchViewModel = hiltViewModel(),
-    onBackPressed: () -> Unit,
-    onNavigateToAlbum: (BasicAlbum) -> Unit,
-    enableBackPress: Boolean = true,
+  modifier: Modifier,
+  searchViewModel: SearchViewModel = hiltViewModel(),
+  onBackPressed: () -> Unit,
+  onNavigateToAlbum: (BasicAlbum) -> Unit,
+  enableBackPress: Boolean = true,
+  initialQuery: String = "",
 ) {
-    val state by searchViewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.STARTED)
+  val state by searchViewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.STARTED)
 
-    val searchFocusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
+  val searchFocusRequester = remember { FocusRequester() }
+  val focusManager = LocalFocusManager.current
 
-    SearchScreen(
-        modifier = modifier,
-        state = state,
-        enableBackPress = enableBackPress,
-        onSongClicked = searchViewModel::onSongClicked,
-        onSearchQueryChanged = searchViewModel::onSearchQueryChanged,
-        searchFocusRequester = searchFocusRequester,
-        onBackPressed = { focusManager.clearFocus(); onBackPressed() },
-        onAlbumClicked = onNavigateToAlbum
-    )
+  LaunchedEffect(initialQuery) {
+    if (initialQuery.isNotBlank()) {
+      searchViewModel.onSearchQueryChanged(initialQuery)
+    }
+  }
+
+  SearchScreen(
+    modifier = modifier,
+    state = state,
+    enableBackPress = enableBackPress,
+    onSongClicked = searchViewModel::onSongClicked,
+    onSearchQueryChanged = searchViewModel::onSearchQueryChanged,
+    searchFocusRequester = searchFocusRequester,
+    onBackPressed = { focusManager.clearFocus(); onBackPressed() },
+    onAlbumClicked = onNavigateToAlbum
+  )
 
 }
 
 
 @Composable
 internal fun SearchScreen(
-    modifier: Modifier,
-    state: SearchScreenUiState,
-    enableBackPress: Boolean = true,
-    onSongClicked: (Song, Int) -> Unit,
-    onSearchQueryChanged: (String) -> Unit,
-    searchFocusRequester: FocusRequester,
-    onBackPressed: () -> Unit,
-    onAlbumClicked: (BasicAlbum) -> Unit
+  modifier: Modifier,
+  state: SearchScreenUiState,
+  enableBackPress: Boolean = true,
+  onSongClicked: (Song, Int) -> Unit,
+  onSearchQueryChanged: (String) -> Unit,
+  searchFocusRequester: FocusRequester,
+  onBackPressed: () -> Unit,
+  onAlbumClicked: (BasicAlbum) -> Unit
 ) {
 
-    LaunchedEffect(key1 = Unit) {
-        searchFocusRequester.requestFocus()
-    }
+  LaunchedEffect(key1 = Unit) {
+    searchFocusRequester.requestFocus()
+  }
 
-    BackHandler(enableBackPress) {
-        onBackPressed()
-    }
+  BackHandler(enableBackPress) {
+    onBackPressed()
+  }
 
-    val multiSelectState = remember { MultiSelectState<Song>() }
+  val multiSelectState = remember { MultiSelectState<Song>() }
 
-    val multiSelectEnabled by remember {
-        derivedStateOf { multiSelectState.selected.size > 0 }
-    }
+  val multiSelectEnabled by remember {
+    derivedStateOf { multiSelectState.selected.size > 0 }
+  }
 
-    BackHandler(multiSelectEnabled && enableBackPress) {
-        multiSelectState.clear()
-    }
+  BackHandler(multiSelectEnabled && enableBackPress) {
+    multiSelectState.clear()
+  }
 
-    val commonSongsActions = LocalCommonSongsAction.current
+  val commonSongsActions = LocalCommonSongsAction.current
 
-    Surface(modifier = Modifier.fillMaxSize(), tonalElevation = 2.dp) {
+  Surface(modifier = Modifier.fillMaxSize(), tonalElevation = 2.dp) {
 
-        Scaffold(
-            modifier.fillMaxSize(),
-            topBar = {
-                SearchTopBar(
-                    searchQuery = state.searchQuery,
-                    multiSelectState = multiSelectState,
-                    multiSelectEnabled = multiSelectEnabled,
-                    commonSongsActions = commonSongsActions,
-                    searchFocusRequester = searchFocusRequester,
-                    onBackPressed = onBackPressed,
-                    onSearchQueryChanged = onSearchQueryChanged
-                )
-            }
-        ) { paddingValues ->
+    Scaffold(
+      modifier.fillMaxSize(),
+      topBar = {
+        SearchTopBar(
+          searchQuery = state.searchQuery,
+          multiSelectState = multiSelectState,
+          multiSelectEnabled = multiSelectEnabled,
+          commonSongsActions = commonSongsActions,
+          searchFocusRequester = searchFocusRequester,
+          onBackPressed = onBackPressed,
+          onSearchQueryChanged = onSearchQueryChanged
+        )
+      }
+    ) { paddingValues ->
 
-            AnimatedContent(
-                targetState = state.searchQuery.isBlank() to (state.songs.isEmpty()),
-                label = ""
-            ) {
+      AnimatedContent(
+        targetState = state.searchQuery.isBlank() to (state.songs.isEmpty()),
+        label = ""
+      ) {
 
 
-                if (it.first) EmptyQueryScreen(modifier = Modifier.fillMaxSize())
-                else if (it.second) NoResultsScreen(modifier = Modifier.fillMaxSize())
-                else SearchScreenContent(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = paddingValues.calculateTopPadding()),
-                    songs = state.songs,
-                    albums = state.albums,
-                    commonSongsActions = commonSongsActions,
-                    multiSelectState = multiSelectState,
-                    multiSelectEnabled = multiSelectEnabled,
-                    onAlbumClicked = onAlbumClicked,
-                    onSongClicked = onSongClicked
-                )
-            }
-
-        }
+        if (it.first) EmptyQueryScreen(modifier = Modifier.fillMaxSize())
+        else if (it.second) NoResultsScreen(modifier = Modifier.fillMaxSize())
+        else SearchScreenContent(
+          modifier = Modifier
+            .fillMaxSize()
+            .padding(top = paddingValues.calculateTopPadding()),
+          songs = state.songs,
+          albums = state.albums,
+          commonSongsActions = commonSongsActions,
+          multiSelectState = multiSelectState,
+          multiSelectEnabled = multiSelectEnabled,
+          onAlbumClicked = onAlbumClicked,
+          onSongClicked = onSongClicked
+        )
+      }
 
     }
+
+  }
 }
 
 
 @Composable
 fun SearchScreenContent(
-    modifier: Modifier,
-    songs: List<Song>,
-    albums: List<BasicAlbum>,
-    commonSongsActions: CommonSongsActions,
-    multiSelectState: MultiSelectState<Song>,
-    multiSelectEnabled: Boolean,
-    onAlbumClicked: (BasicAlbum) -> Unit,
-    onSongClicked: (Song, Int) -> Unit
+  modifier: Modifier,
+  songs: List<Song>,
+  albums: List<BasicAlbum>,
+  commonSongsActions: CommonSongsActions,
+  multiSelectState: MultiSelectState<Song>,
+  multiSelectEnabled: Boolean,
+  onAlbumClicked: (BasicAlbum) -> Unit,
+  onSongClicked: (Song, Int) -> Unit
 ) {
 
-    val context = LocalContext.current
+  val context = LocalContext.current
 
-    LazyColumn(
-        modifier = modifier
-    ) {
+  LazyColumn(
+    modifier = modifier
+  ) {
 
-        if (albums.isNotEmpty())
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Header(text = "Albums")
-            }
+    if (albums.isNotEmpty())
+      item {
+        Spacer(modifier = Modifier.height(16.dp))
+        Header(text = "Albums")
+      }
 
-        if (albums.isNotEmpty())
-            item {
-                AlbumsRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    albums = albums,
-                    onAlbumClicked = onAlbumClicked
-                )
-            }
-
-        if (songs.isNotEmpty())
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Header(text = "Songs")
-            }
-
-        selectableSongsList(
-            songs,
-            multiSelectState,
-            multiSelectEnabled,
-            animateItemPlacement = false, // for some reason if it is true, the application will crash, i have no idea why
-            menuActionsBuilder = { song: Song ->
-                with(commonSongsActions) {
-                    buildCommonSongActions(
-                        song = song,
-                        context = context,
-                        songPlaybackActions = this.playbackActions,
-                        songInfoDialog = this.songInfoDialog,
-                        addToPlaylistDialog = this.addToPlaylistDialog,
-                        shareAction = this.shareAction,
-                        setAsRingtoneAction = this.setRingtoneAction,
-                        songDeleteAction = this.deleteAction,
-                        tagEditorAction = this.openTagEditorAction,
-                        goToAlbumAction = this.goToAlbumAction
-                    )
-                }
-            },
-            onSongClicked = onSongClicked
+    if (albums.isNotEmpty())
+      item {
+        AlbumsRow(
+          modifier = Modifier.fillMaxWidth(),
+          albums = albums,
+          onAlbumClicked = onAlbumClicked
         )
+      }
 
-    }
+    if (songs.isNotEmpty())
+      item {
+        Spacer(modifier = Modifier.height(16.dp))
+        Header(text = "Songs")
+      }
+
+    selectableSongsList(
+      songs,
+      multiSelectState,
+      multiSelectEnabled,
+      animateItemPlacement = false, // for some reason if it is true, the application will crash, i have no idea why
+      menuActionsBuilder = { song: Song ->
+        with(commonSongsActions) {
+          buildCommonSongActions(
+            song = song,
+            context = context,
+            songPlaybackActions = this.playbackActions,
+            songInfoDialog = this.songInfoDialog,
+            addToPlaylistDialog = this.addToPlaylistDialog,
+            shareAction = this.shareAction,
+            setAsRingtoneAction = this.setRingtoneAction,
+            songDeleteAction = this.deleteAction,
+            tagEditorAction = this.openTagEditorAction,
+            goToAlbumAction = this.goToAlbumAction
+          )
+        }
+      },
+      onSongClicked = onSongClicked
+    )
+
+  }
 }
 
 
 @Composable
 private fun AlbumsRow(
-    modifier: Modifier,
-    albums: List<BasicAlbum>,
-    onAlbumClicked: (BasicAlbum) -> Unit
+  modifier: Modifier,
+  albums: List<BasicAlbum>,
+  onAlbumClicked: (BasicAlbum) -> Unit
 ) {
-    LazyRow(modifier) {
-        item { Spacer(modifier = Modifier.width(6.dp)) }
-        items(albums) { album ->
-            Album(modifier = Modifier
-                .width(IntrinsicSize.Min)
-                .clip(RoundedCornerShape(6.dp))
-                .clickable { onAlbumClicked(album) }
-                .padding(6.dp), basicAlbum = album)
-        }
+  LazyRow(modifier) {
+    item { Spacer(modifier = Modifier.width(6.dp)) }
+    items(albums) { album ->
+      Album(modifier = Modifier
+        .width(IntrinsicSize.Min)
+        .clip(RoundedCornerShape(6.dp))
+        .clickable { onAlbumClicked(album) }
+        .padding(6.dp), basicAlbum = album)
     }
+  }
 }
 
 @Composable
 private fun Album(
-    modifier: Modifier,
-    basicAlbum: BasicAlbum
+  modifier: Modifier,
+  basicAlbum: BasicAlbum
 ) {
-    Column(
-        modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+  Column(
+    modifier,
+    horizontalAlignment = Alignment.CenterHorizontally
+  ) {
 
-        AsyncImage(
-            modifier = Modifier
-                .width(72.dp)
-                .aspectRatio(1.0f)
-                .clip(CircleShape),
-            model = basicAlbum.firstSong.toSongAlbumArtModel(),
-            contentDescription = "Album Art",
-            error = painterResource(id = R.drawable.placeholder),
-            imageLoader = LocalInefficientThumbnailImageLoader.current,
-            contentScale = ContentScale.Crop
-        )
+    AsyncImage(
+      modifier = Modifier
+        .width(72.dp)
+        .aspectRatio(1.0f)
+        .clip(CircleShape),
+      model = basicAlbum.firstSong.toSongAlbumArtModel(),
+      contentDescription = "Album Art",
+      error = painterResource(id = R.drawable.placeholder),
+      imageLoader = LocalInefficientThumbnailImageLoader.current,
+      contentScale = ContentScale.Crop
+    )
 
-        Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = basicAlbum.albumInfo.name,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
+    Text(
+      modifier = Modifier.fillMaxWidth(),
+      text = basicAlbum.albumInfo.name,
+      style = MaterialTheme.typography.bodyMedium,
+      maxLines = 2,
+      overflow = TextOverflow.Ellipsis
+    )
 
-    }
+  }
 }
 
 @Composable
 private fun Header(text: String) {
-    Text(
-        modifier = Modifier.padding(start = 16.dp),
-        text = text,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 12.sp
-    )
+  Text(
+    modifier = Modifier.padding(start = 16.dp),
+    text = text,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 12.sp
+  )
 }
 
 @Composable
 private fun EmptyQueryScreen(
-    modifier: Modifier
+  modifier: Modifier
 ) {
-    IconWithTextScreen(
-        modifier = modifier,
-        iconVector = Icons.AutoMirrored.Rounded.ManageSearch,
-        text = "Search all songs on this device"
-    )
+  IconWithTextScreen(
+    modifier = modifier,
+    iconVector = Icons.AutoMirrored.Rounded.ManageSearch,
+    text = "Search all songs on this device"
+  )
 }
 
 
 @Composable
 private fun NoResultsScreen(
-    modifier: Modifier
+  modifier: Modifier
 ) {
-    IconWithTextScreen(
-        modifier = modifier,
-        iconVector = Icons.Rounded.SearchOff,
-        text = "No songs matching the query"
-    )
+  IconWithTextScreen(
+    modifier = modifier,
+    iconVector = Icons.Rounded.SearchOff,
+    text = "No songs matching the query"
+  )
 }
 
 
 @Composable
 private fun IconWithTextScreen(
-    modifier: Modifier,
-    iconVector: ImageVector,
-    text: String
+  modifier: Modifier,
+  iconVector: ImageVector,
+  text: String
 ) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Column(
-            modifier = Modifier.padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                imageVector = iconVector,
-                contentDescription = "",
-                modifier = Modifier.size(72.dp)
-            )
-            Text(text = text, fontWeight = FontWeight.Light, fontSize = 16.sp)
-        }
+  Box(modifier = modifier, contentAlignment = Alignment.Center) {
+    Column(
+      modifier = Modifier.padding(32.dp),
+      horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+      Icon(
+        imageVector = iconVector,
+        contentDescription = "",
+        modifier = Modifier.size(72.dp)
+      )
+      Text(text = text, fontWeight = FontWeight.Light, fontSize = 16.sp)
     }
+  }
 }

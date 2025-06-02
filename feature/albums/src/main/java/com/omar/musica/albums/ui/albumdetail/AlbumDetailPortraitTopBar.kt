@@ -50,13 +50,11 @@ fun AlbumDetailPortraitTopBar(
         alpha = 1 - collapsePercentage
       )
     }
-
   TopAppBar(
     modifier = modifier
       .onGloballyPositioned {
         onBarHeightChanged(it.size.height)
       },
-
     title = {
       Text(
         modifier = Modifier.graphicsLayer {
@@ -67,7 +65,6 @@ fun AlbumDetailPortraitTopBar(
         overflow = TextOverflow.Ellipsis
       )
     },
-
     navigationIcon = {
       IconButton(
         modifier = scrimModifier,
@@ -79,7 +76,6 @@ fun AlbumDetailPortraitTopBar(
         )
       }
     },
-
     actions = {
       CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
         Box(modifier = scrimModifier) {
@@ -97,5 +93,4 @@ fun AlbumDetailPortraitTopBar(
     },
     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
   )
-
 }
