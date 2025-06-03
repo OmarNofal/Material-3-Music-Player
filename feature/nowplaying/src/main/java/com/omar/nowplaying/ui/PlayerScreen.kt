@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -69,7 +70,6 @@ fun PlayingScreen2(
   nowPlayingActions: INowPlayingViewModel,
   onOpenQueue: () -> Unit = {},
 ) {
-
   when (screenSize) {
     NowPlayingScreenSize.COMPACT -> {
       CompactPlayerScreen(
@@ -265,7 +265,7 @@ fun PortraitPlayerScreen(
       mutableStateOf(false)
     }
     AnimatedContent(
-      modifier = Modifier.weight(1f),
+      modifier = Modifier.weight(12f),
       targetState = isShowingLyrics, label = ""
     ) {
       if (it) {
@@ -305,7 +305,7 @@ fun PortraitPlayerScreen(
     }
     val contentColor = nowPlayingScreenTint(songAlbumArtModel = song.toSongAlbumArtModel())
     Column(
-      modifier = Modifier.weight(1f),
+      modifier = Modifier.weight(5f),
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.SpaceEvenly
     ) {

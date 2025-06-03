@@ -30,79 +30,71 @@ import kotlin.math.roundToInt
 
 @Composable
 fun SleepTimerDialog(
-    onSetTimer: (minutes: Int, finishLastSong: Boolean) -> Unit,
-    onDeleteTimer: () -> Unit,
-    onDismissRequest: () -> Unit
+  onSetTimer: (minutes: Int, finishLastSong: Boolean) -> Unit,
+  onDeleteTimer: () -> Unit,
+  onDismissRequest: () -> Unit
 ) {
-
-    var minutes by remember {
-        mutableStateOf(0.0f)
-    }
-    var finishLastSong by remember {
-        mutableStateOf(false)
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text(text = "Sleep Timer") },
-        confirmButton = {
-            TextButton(onClick = { onSetTimer(minutes.roundToInt(), finishLastSong); onDismissRequest() }) {
-                Text("OK")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = { onDeleteTimer(); onDismissRequest() }) {
-                Text(text = "Delete Timer")
-            }
-        },
-        text = {
-            Column {
-
-                Row(verticalAlignment = Alignment.CenterVertically){
-                    Slider(
-                        modifier = Modifier.weight(1f),
-                        value = minutes,
-                        valueRange = 0.0f..120.0f,
-                        onValueChange = { minutes = it }
-                    )
-                    Text(text = "${minutes.roundToInt()} mins")
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(checked = finishLastSong, onCheckedChange = { finishLastSong = it } )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "Finish last song", style = MaterialTheme.typography.bodyLarge)
-                }
-            }
+  var minutes by remember {
+    mutableStateOf(0.0f)
+  }
+  var finishLastSong by remember {
+    mutableStateOf(false)
+  }
+  AlertDialog(
+    onDismissRequest = onDismissRequest,
+    title = { Text(text = "Sleep Timer") },
+    confirmButton = {
+      TextButton(onClick = { onSetTimer(minutes.roundToInt(), finishLastSong); onDismissRequest() }) {
+        Text("OK")
+      }
+    },
+    dismissButton = {
+      TextButton(onClick = { onDeleteTimer(); onDismissRequest() }) {
+        Text(text = "Delete Timer")
+      }
+    },
+    text = {
+      Column {
+        Row(verticalAlignment = Alignment.CenterVertically){
+          Slider(
+            modifier = Modifier.weight(1f),
+            value = minutes,
+            valueRange = 0.0f..120.0f,
+            onValueChange = { minutes = it }
+          )
+          Text(text = "${minutes.roundToInt()} mins")
         }
-    )
 
-
+        Row(
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Checkbox(checked = finishLastSong, onCheckedChange = { finishLastSong = it } )
+          Spacer(modifier = Modifier.width(6.dp))
+          Text(text = "Finish last song", style = MaterialTheme.typography.bodyLarge)
+        }
+      }
+    }
+  )
 }
 
 @Composable
 fun rememberSleepTimerDialog(
-    onSetTimer: (minutes: Int, finishLastSong: Boolean) -> Unit,
-    onDeleteTimer: () -> Unit
+  onSetTimer: (minutes: Int, finishLastSong: Boolean) -> Unit,
+  onDeleteTimer: () -> Unit
 ): SleepTimerDialog {
-
-    var isShown by remember { mutableStateOf(false) }
-
-    if (isShown) {
-        SleepTimerDialog(onSetTimer = onSetTimer, onDeleteTimer = onDeleteTimer) { isShown = false }
+  var isShown by remember { mutableStateOf(false) }
+  if (isShown) {
+    SleepTimerDialog(onSetTimer = onSetTimer, onDeleteTimer = onDeleteTimer) { isShown = false }
+  }
+  return remember {
+    object : SleepTimerDialog {
+      override fun launch() {
+        isShown = true
+      }
     }
-
-    return remember {
-        object : SleepTimerDialog {
-            override fun launch() {
-                isShown = true
-            }
-        }
-    }
+  }
 }
 
 interface SleepTimerDialog {
-    fun launch()
+  fun launch()
 }

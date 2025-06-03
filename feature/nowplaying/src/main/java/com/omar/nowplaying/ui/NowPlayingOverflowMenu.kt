@@ -26,103 +26,95 @@ import com.omar.nowplaying.timer.rememberSleepTimerDialog
 
 
 interface NowPlayingOptions {
-    fun addToPlaylist()
-    fun sleepTimer()
-    fun playbackSpeed()
-    fun setAsRingtone()
-    fun share()
-    fun editTags()
-    fun songInfo()
-    fun equalizer()
-    fun deleteFromDevice()
+  fun addToPlaylist()
+  fun sleepTimer()
+  fun playbackSpeed()
+  fun setAsRingtone()
+  fun share()
+  fun editTags()
+  fun songInfo()
+  fun equalizer()
+  fun deleteFromDevice()
 }
 
 
 @Composable
 fun NowPlayingOverflowMenu(
-    options: NowPlayingOptions
+  options: NowPlayingOptions
 ) {
-
-    val sleepTimerViewModel: SleepTimerViewModel = hiltViewModel()
-
-    val context = LocalContext.current
-    val sleepTimerDialog = rememberSleepTimerDialog(
-        onSetTimer = { minutes, finishLastSong ->
-            sleepTimerViewModel.schedule(minutes, finishLastSong)
-            context.showShortToast("Sleep timer set")
-        },
-        onDeleteTimer = {
-            sleepTimerViewModel.deleteTimer()
-            context.showShortToast("Sleep timer deleted")
-        }
-    )
-
-
-    val playbackSpeedDialog = rememberPlaybackSpeedDialog(viewModel = hiltViewModel())
-
-    OverflowMenu(
-        contentPaddingValues = PaddingValues(start = 16.dp, end = 36.dp, top = 4.dp, bottom = 4.dp),
-        actionItems = mutableListOf<MenuActionItem>().apply {
-            sleepTimer { sleepTimerDialog.launch() }
-            addToPlaylists(options::addToPlaylist)
-            playbackSpeed { playbackSpeedDialog.launch() }
-            setAsRingtone(options::setAsRingtone)
-            share(options::share)
-            tagEditor(options::editTags)
-            equalizer(options::equalizer)
-            songInfo(options::songInfo)
-            delete(options::deleteFromDevice)
-        }
-
-    )
-
+  val sleepTimerViewModel: SleepTimerViewModel = hiltViewModel()
+  val context = LocalContext.current
+  val sleepTimerDialog = rememberSleepTimerDialog(
+    onSetTimer = { minutes, finishLastSong ->
+      sleepTimerViewModel.schedule(minutes, finishLastSong)
+      context.showShortToast("Sleep timer set")
+    },
+    onDeleteTimer = {
+      sleepTimerViewModel.deleteTimer()
+      context.showShortToast("Sleep timer deleted")
+    }
+  )
+  val playbackSpeedDialog = rememberPlaybackSpeedDialog(viewModel = hiltViewModel())
+  OverflowMenu(
+    contentPaddingValues = PaddingValues(start = 16.dp, end = 36.dp, top = 4.dp, bottom = 4.dp),
+    actionItems = mutableListOf<MenuActionItem>().apply {
+      sleepTimer { sleepTimerDialog.launch() }
+      addToPlaylists(options::addToPlaylist)
+      playbackSpeed { playbackSpeedDialog.launch() }
+      setAsRingtone(options::setAsRingtone)
+      share(options::share)
+      tagEditor(options::editTags)
+      equalizer(options::equalizer)
+      songInfo(options::songInfo)
+      delete(options::deleteFromDevice)
+    }
+  )
 }
 
 @Composable
 fun rememberNowPlayingOptions(
-    songUi: Song
+  songUi: Song
 ): NowPlayingOptions {
 
-    val commonSongsActions = LocalCommonSongsAction.current
-    val context = LocalContext.current
+  val commonSongsActions = LocalCommonSongsAction.current
+  val context = LocalContext.current
+  return remember(songUi) {
+    object : NowPlayingOptions {
+      override fun addToPlaylist() {
+        commonSongsActions.addToPlaylistDialog.launch(listOf(songUi))
+      }
 
-    return remember(songUi) {
-        object : NowPlayingOptions {
-            override fun addToPlaylist() {
-                commonSongsActions.addToPlaylistDialog.launch(listOf(songUi))
-            }
+      override fun sleepTimer() {
 
-            override fun sleepTimer() {
+      }
 
-            }
+      override fun editTags() {
+        commonSongsActions.openTagEditorAction.open(songUi.uri)
+      }
 
-            override fun editTags() {
-                commonSongsActions.openTagEditorAction.open(songUi.uri)
-            }
+      override fun playbackSpeed() {
+        TODO("Not yet implemented")
+      }
 
-            override fun playbackSpeed() {
-                TODO("Not yet implemented")
-            }
+      override fun setAsRingtone() {
+        commonSongsActions.setRingtoneAction.setRingtone(songUi.uri)
+      }
 
-            override fun setAsRingtone() {
-                commonSongsActions.setRingtoneAction.setRingtone(songUi.uri)
-            }
+      override fun share() {
+        commonSongsActions.shareAction.share(context, listOf(songUi))
+      }
 
-            override fun share() {
-                commonSongsActions.shareAction.share(context, listOf(songUi))
-            }
+      override fun songInfo() {
+        commonSongsActions.songInfoDialog.open(songUi)
+      }
 
-            override fun songInfo() {
-                commonSongsActions.songInfoDialog.open(songUi)
-            }
+      override fun equalizer() {
+        commonSongsActions.openEqualizer.open()
+      }
 
-            override fun equalizer() {
-                commonSongsActions.openEqualizer.open()
-            }
-
-            override fun deleteFromDevice() {
-                commonSongsActions.deleteAction.deleteSongs(listOf(songUi))
-            }
-        }
+      override fun deleteFromDevice() {
+        commonSongsActions.deleteAction.deleteSongs(listOf(songUi))
+      }
     }
+  }
 }

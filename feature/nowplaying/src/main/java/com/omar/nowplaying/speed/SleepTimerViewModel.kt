@@ -8,14 +8,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlaybackSpeedViewModel @Inject constructor(
-    private val playbackManager: PlaybackManager
+  private val playbackManager: PlaybackManager
 ): ViewModel() {
 
-    val playbackParameters: Pair<Float, Float>
-        get() = playbackManager.playbackParameters
+  val playbackParameters: Pair<Float, Float>
+    get() = playbackManager.playbackParameters
 
-    fun setParameters(speed: Float, pitch: Float) {
-        playbackManager.setPlaybackParameters(speed, pitch)
-    }
-
+  fun setParameters(speed: Float, pitch: Float) {
+    playbackManager.setPlaybackParameters(speed, pitch)
+  }
 }

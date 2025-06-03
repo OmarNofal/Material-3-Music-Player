@@ -88,9 +88,11 @@ class LyricsRepository @Inject constructor(
 
     // finally check from the API
     return@withContext try {
-      val lyricsNetwork =
-        lyricsDataSource.getSongLyrics(artist, title, album, durationSeconds)
+      val lyricsNetwork = lyricsDataSource.getSongLyrics(artist, title, album, durationSeconds)
       val syncedLyrics = SynchronizedLyrics.fromString(lyricsNetwork.syncedLyrics)
+      if (syncedLyrics == null) {
+        return@withContext LyricsResult.NotFound
+      }
       lyricsDao.saveSongLyrics(
         LyricsEntity(
           0,

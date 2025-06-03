@@ -217,7 +217,6 @@ internal fun SongsScreen(
           }
         }
       }
-
       selectableSongsList(
         songs,
         multiSelectState,

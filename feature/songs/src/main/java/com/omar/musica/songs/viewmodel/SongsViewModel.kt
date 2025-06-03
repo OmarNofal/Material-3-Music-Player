@@ -1,5 +1,7 @@
 package com.omar.musica.songs.viewmodel
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.omar.musica.model.SongSortOption
@@ -74,6 +76,7 @@ class SongsViewModel @Inject constructor(
    * Mainly, in Android R and above, we will have to send an intent to delete a media item and the system will ask the user for permission.
    * So they are implemented as part of the UI in Jetpack Compose
    */
+  @RequiresApi(Build.VERSION_CODES.Q)
   fun onDelete(songs: List<Song>) {
     mediaRepository.deleteSong(songs[0])
   }

@@ -35,7 +35,6 @@ data class MenuActionItem(
     val callback: () -> Unit
 )
 
-
 fun MutableList<MenuActionItem>.delete(callback: () -> Unit) =
     add(MenuActionItem(Icons.Rounded.Delete, "Delete", callback))
 

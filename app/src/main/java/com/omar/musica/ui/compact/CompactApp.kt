@@ -131,14 +131,12 @@ fun CompactAppScaffold(
           }
           .onSizeChanged { layoutSize ->
             layoutHeightPx = layoutSize.height
-            nowPlayingBarMinOffset = nowPlayingScreenAnchors
-              .update(
+            nowPlayingBarMinOffset = nowPlayingScreenAnchors.update(
                 layoutHeightPx,
                 nowPlayingBarHeightPx.toInt(),
                 bottomNavBarHeightPx.toInt()
               )
-          }
-          .anchoredDraggable(nowPlayingScreenAnchors, Orientation.Vertical),
+          }.anchoredDraggable(nowPlayingScreenAnchors, Orientation.Vertical),
         onCollapseNowPlaying = {
           appState.coroutineScope.launch {
             nowPlayingScreenAnchors.animateTo(BarState.COLLAPSED)
@@ -154,7 +152,6 @@ fun CompactAppScaffold(
         viewModel = appState.nowPlayingViewModel
       )
     }
-
     MusicaBottomNavBar(
       modifier = Modifier
         .fillMaxWidth()

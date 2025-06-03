@@ -211,11 +211,10 @@ class MediaRepository @Inject constructor(
       Timber.e("Attempting to delete song in R or Higher. Use Activity Contracts instead")
       return
     }
-
     try {
       val file = File(song.filePath)
-      file.delete()
       context.contentResolver.delete(song.uri, null, null)
+      file.delete()
     } catch (e: Exception) {
       Timber.e(e)
     }

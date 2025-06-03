@@ -351,8 +351,7 @@ class PlaybackManager @Inject constructor(
   }
 
   private fun initMediaController(context: Context) {
-    val sessionToken =
-      SessionToken(context, ComponentName(context, PlaybackService::class.java))
+    val sessionToken = SessionToken(context, ComponentName(context, PlaybackService::class.java))
     val mediaControllerFuture = MediaController.Builder(context, sessionToken)
       .setApplicationLooper(context.mainLooper)
       .buildAsync()

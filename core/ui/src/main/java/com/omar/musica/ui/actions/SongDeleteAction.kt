@@ -53,10 +53,10 @@ class AndroidQBelowDeleter(
   private val mediaRepository: MediaRepository
 ) : SongDeleteAction {
 
+  @RequiresApi(Build.VERSION_CODES.Q)
   override fun deleteSongs(songs: List<Song>) {
     songs.forEach { mediaRepository.deleteSong(it) }
   }
-
 }
 
 @Composable

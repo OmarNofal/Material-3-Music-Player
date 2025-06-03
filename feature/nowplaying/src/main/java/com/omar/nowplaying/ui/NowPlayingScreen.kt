@@ -89,7 +89,6 @@ import com.omar.nowplaying.queue.QueueScreen
 import com.omar.nowplaying.viewmodel.INowPlayingViewModel
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
 
-
 @Composable
 fun NowPlayingScreen(
   modifier: Modifier,
@@ -101,22 +100,18 @@ fun NowPlayingScreen(
   progressProvider: () -> Float,
   viewModel: NowPlayingViewModel = hiltViewModel()
 ) {
-
   val focusManager = LocalFocusManager.current
   LaunchedEffect(key1 = isExpanded) {
     if (isExpanded) {
       focusManager.clearFocus(true)
     }
   }
-
   if (isExpanded) {
     BackHandler(true) {
       onCollapseNowPlaying()
     }
   }
-
   val uiState by viewModel.state.collectAsState()
-
   if (uiState is NowPlayingState.Playing)
     NowPlayingScreen(
       modifier = modifier.clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
@@ -153,7 +148,6 @@ internal fun NowPlayingScreen(
   // we need to make the status bar icons lighter
   if (isExpanded && (isDarkTheme || playerTheme == PlayerThemeUi.BLUR))
     DarkStatusBarEffect()
-
   Surface(
     modifier = modifier, //if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 3.dp,
     tonalElevation = 3.dp
@@ -164,8 +158,7 @@ internal fun NowPlayingScreen(
       }
       NowPlayingMaterialTheme(playerThemeUi = playerTheme) {
         FullScreenNowPlaying(
-          Modifier
-            .fillMaxSize()
+          Modifier.fillMaxSize()
             .graphicsLayer {
               alpha = ((progressProvider() - 0.15f) * 2.0f).coerceIn(0.0f, 1.0f)
             },
