@@ -42,6 +42,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.omar.musica.model.playback.PlayerState
 import com.omar.musica.ui.albumart.toSongAlbumArtModel
+import com.omar.musica.ui.theme.ManropeFontFamily
+import com.omar.musica.ui.theme.font
 import com.omar.nowplaying.NowPlayingState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -65,7 +67,7 @@ fun MiniPlayer(
     }
 
     val state = (nowPlayingState as NowPlayingState.Playing)
-    val song = state.song
+    val song = state.queue[state.songIndex]
 
     Column(modifier = modifier) {
 
@@ -81,7 +83,7 @@ fun MiniPlayer(
                 modifier = Modifier
                     .fillMaxHeight()
                     .aspectRatio(1.0f)
-                    .scale(0.8f)
+                    .scale(0.7f)
                     .shadow(2.dp, shape = RoundedCornerShape(4.dp))
                     .clip(RoundedCornerShape(8.dp)),
                 containerModifier = Modifier.padding(start = 4.dp),
@@ -99,20 +101,22 @@ fun MiniPlayer(
                 Text(
                     modifier = Modifier.basicMarquee(Int.MAX_VALUE),
                     text = song.metadata.title,
-                    fontWeight = FontWeight.Medium,
-                    style = MaterialTheme.typography.bodyLarge
+                    fontWeight = FontWeight.Normal,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontFamily = ManropeFontFamily
                 )
-                Spacer(modifier = Modifier.height(3.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     modifier = Modifier,
                     text = song.metadata.artistName.orEmpty(),
                     style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Normal,
-                    maxLines = 1
+                    fontWeight = FontWeight.Light,
+                    maxLines = 1,
+                    fontFamily = ManropeFontFamily
                 )
             }
 
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(3.dp))
 
             Row {
                 AnimatedVisibility(visible = showExtraControls) {
@@ -132,10 +136,6 @@ fun MiniPlayer(
                             if (state.playbackState == PlayerState.PLAYING) Icons.TwoTone.Pause else Icons.TwoTone.PlayArrow
                         Icon(imageVector = icon, contentDescription = null)
                     }
-                    /*SongCircularProgressIndicator(
-                        modifier = Modifier.padding(end = 4.dp),
-                        songProgressProvider = songProgressProvider
-                    )*/
                 }
                 AnimatedVisibility(visible = showExtraControls) {
                     IconButton(onClick = onNext, enabled = enabled) {
@@ -150,7 +150,7 @@ fun MiniPlayer(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp)
-                .height(1.dp),
+                .height(3.dp),
             songProgressProvider
         )
     }

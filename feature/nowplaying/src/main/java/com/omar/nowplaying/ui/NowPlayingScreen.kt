@@ -90,6 +90,7 @@ import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.PlayerThemeUi
 import com.omar.nowplaying.NowPlayingState
 import com.omar.nowplaying.queue.QueueScreen
+import com.omar.nowplaying.song
 import com.omar.nowplaying.viewmodel.INowPlayingViewModel
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
 
@@ -161,7 +162,7 @@ internal fun NowPlayingScreen(
 
     Surface(
         modifier = modifier, //if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 3.dp,
-        tonalElevation = 3.dp
+
         ) {
 
         Box(modifier = Modifier.fillMaxSize()) {
@@ -223,9 +224,7 @@ fun FullScreenNowPlaying(
     nowPlayingActions: INowPlayingViewModel,
 ) {
 
-    val song = remember(uiState.song) {
-        uiState.song
-    }
+    val song = uiState.song
 
     Box(
         modifier = modifier,
@@ -252,7 +251,7 @@ fun FullScreenNowPlaying(
                     },
                     colorFilter = remember {
                         ColorFilter.tint(
-                            Color(0xFFCCCCCC),
+                            Color(0xFFEEEEEE),
                             BlendMode.Multiply
                         )
                     }
@@ -290,7 +289,7 @@ fun FullScreenNowPlaying(
             if (screenSize == NowPlayingScreenSize.LANDSCAPE)
                 Modifier.padding(16.dp)
             else
-                Modifier.padding(start = 16.dp, end = 16.dp, top = 32.dp)
+                Modifier.padding(top = 32.dp)
 
         }
 
@@ -325,6 +324,8 @@ fun FullScreenNowPlaying(
 
                 PlayingScreen2(
                     modifier = playerScreenModifier.navigationBarsPadding(),
+                    songs = uiState.queue,
+                    songIndex = uiState.songIndex,
                     song = song,
                     playbackState = uiState.playbackState,
                     repeatMode = uiState.repeatMode,

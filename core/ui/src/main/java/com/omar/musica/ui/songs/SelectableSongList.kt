@@ -56,13 +56,13 @@ fun LazyListScope.selectableSongsList(
             menuOptions = menuActions,
             rowState
         )
-        if (song != songs.last()) {
-            Divider(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(start = (12 + 54 + 8).dp)
-            )
-        }
+//        if (song != songs.last()) {
+//            Divider(
+//                Modifier
+//                    .fillMaxWidth()
+//                    .padding(start = (12 + 54 + 8).dp)
+//            )
+//        }
 
     }
 }

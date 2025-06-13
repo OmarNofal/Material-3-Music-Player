@@ -5,11 +5,12 @@ import com.omar.musica.store.model.song.Song
 
 data class MediaPlayerState(
     val currentPlayingSong: Song?,
+    val songIndex: Int,
     val playbackState: PlaybackState
 ) {
 
     companion object {
-        val empty = MediaPlayerState(null, PlaybackState.emptyState)
+        val empty = MediaPlayerState(null, -1, PlaybackState.emptyState)
     }
 
 }

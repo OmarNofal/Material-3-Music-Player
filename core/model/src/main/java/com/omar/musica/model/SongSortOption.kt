@@ -1,7 +1,7 @@
 package com.omar.musica.model
 
-enum class SongSortOption {
-    TITLE, ALBUM, ARTIST, FileSize, Duration
+enum class SongSortOption(val title: String) {
+    TITLE("Title"), ALBUM("Album"), ARTIST("Artist"), FileSize("File size"), Duration("Duration")
 }
 
 enum class AlbumsSortOption {

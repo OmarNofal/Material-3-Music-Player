@@ -7,6 +7,7 @@ import com.omar.nowplaying.NowPlayingState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -19,17 +20,18 @@ class NowPlayingViewModel @Inject constructor(
 
 
     private val _state: StateFlow<NowPlayingState> =
-        playbackManager.state
-            .map { mediaPlayerState ->
-                val song = mediaPlayerState.currentPlayingSong
-                    ?: return@map NowPlayingState.NotPlaying
-                NowPlayingState.Playing(
-                    song,
-                    mediaPlayerState.playbackState.playerState,
-                    repeatMode = mediaPlayerState.playbackState.repeatMode,
-                    isShuffleOn = mediaPlayerState.playbackState.isShuffleOn
-                )
-            }.stateIn(viewModelScope, SharingStarted.Eagerly, NowPlayingState.NotPlaying)
+        playbackManager.state.combine(playbackManager.queue) {
+            mediaPlayerState, queue ->
+            val song = mediaPlayerState.currentPlayingSong
+                ?: return@combine NowPlayingState.NotPlaying
+            NowPlayingState.Playing(
+                queue = queue.items.map { it.song },
+                songIndex = mediaPlayerState.songIndex,
+                mediaPlayerState.playbackState.playerState,
+                repeatMode = mediaPlayerState.playbackState.repeatMode,
+                isShuffleOn = mediaPlayerState.playbackState.isShuffleOn
+            )
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, NowPlayingState.NotPlaying)
 
 
     val state: StateFlow<NowPlayingState>
@@ -51,6 +53,10 @@ class NowPlayingViewModel @Inject constructor(
 
     override fun jumpBackward() {
         playbackManager.backward()
+    }
+
+    override fun playSongAtIndex(index: Int) {
+        playbackManager.playSongAtIndex(index)
     }
 
     override fun onUserSeek(progress: Float) {

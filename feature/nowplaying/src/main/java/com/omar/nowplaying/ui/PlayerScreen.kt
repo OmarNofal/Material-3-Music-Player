@@ -60,6 +60,8 @@ import com.omar.nowplaying.viewmodel.INowPlayingViewModel
 @Composable
 fun PlayingScreen2(
     modifier: Modifier,
+    songs: List<Song>,
+    songIndex: Int,
     song: Song,
     repeatMode: RepeatMode,
     isShuffleOn: Boolean,
@@ -83,7 +85,8 @@ fun PlayingScreen2(
         NowPlayingScreenSize.PORTRAIT -> {
             PortraitPlayerScreen(
                 modifier,
-                song,
+                songs,
+                songIndex,
                 playbackState,
                 repeatMode,
                 isShuffleOn,
@@ -179,7 +182,7 @@ fun nowPlayingScreenTint(songAlbumArtModel: SongAlbumArtModel): Color {
         )
 
         val bitmap = result.drawable?.toBitmap()
-        if (bitmap == null) {1
+        if (bitmap == null) {
             color.animateTo(defaultColor)
             return@LaunchedEffect
         }
@@ -248,13 +251,17 @@ fun invertColor(color: Color): Color =
 @Composable
 fun PortraitPlayerScreen(
     modifier: Modifier,
-    song: Song,
+    songs: List<Song>,
+    songIndex: Int,
     playbackState: PlayerState,
     repeatMode: RepeatMode,
     isShuffleOn: Boolean,
     nowPlayingActions: INowPlayingViewModel,
     onOpenQueue: () -> Unit
 ) {
+
+    val song = remember(songs, songIndex) { songs[songIndex] }
+
     Column(
         modifier,
         verticalArrangement = Arrangement.SpaceBetween,
@@ -287,21 +294,17 @@ fun PortraitPlayerScreen(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
                         .fadingEdge(fadeBrush)
-                        .padding(horizontal = 8.dp, vertical = 2.dp),
+                        .padding(horizontal = 16.dp, vertical = 2.dp),
                 )
                 BackHandler {
                     isShowingLyrics = false
                 }
             } else {
-                CrossFadingAlbumArt(
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .shadow(4.dp, shape = RoundedCornerShape(10.dp), clip = true)
-                        .clip(RoundedCornerShape(10.dp)),
-                    containerModifier = Modifier,
-                    songAlbumArtModel = song.toSongAlbumArtModel(),
-                    errorPainterType = ErrorPainterType.PLACEHOLDER
-                )
+                AlbumArtPager(
+                    modifier = Modifier.fillMaxWidth().aspectRatio(1.0f),
+                    songs = songs,
+                    currentSongIndex = songIndex,
+                ) { nowPlayingActions.playSongAtIndex(it) }
             }
         }
 
@@ -309,7 +312,7 @@ fun PortraitPlayerScreen(
         val contentColor = nowPlayingScreenTint(songAlbumArtModel = song.toSongAlbumArtModel())
 
         Column(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).padding(start = 16.dp, end = 16.dp, top = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly
         ) {

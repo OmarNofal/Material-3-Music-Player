@@ -7,6 +7,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.LocalTonalElevationEnabled
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -19,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.google.android.material.color.utilities.Scheme
@@ -32,11 +34,7 @@ import com.omar.musica.ui.common.LocalUserPreferences
 import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.UserPreferencesUi
 
-val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
+
 
 @SuppressLint("RestrictedApi")
 @Composable
@@ -111,7 +109,8 @@ fun MusicaTheme(
     CompositionLocalProvider(
         LocalEfficientThumbnailImageLoader provides efficientImageLoader,
         LocalInefficientThumbnailImageLoader provides inefficientImageLoader,
-        LocalAppColorScheme provides appThemeColorScheme
+        LocalAppColorScheme provides appThemeColorScheme,
+        LocalTonalElevationEnabled provides false
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

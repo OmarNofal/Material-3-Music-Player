@@ -29,13 +29,14 @@ fun FloatingMiniPlayer(
     onPrevious: () -> Unit,
 ) {
     if (nowPlayingState !is NowPlayingState.Playing) return
+    val song = nowPlayingState.queue[nowPlayingState.songIndex]
     Box(modifier, contentAlignment = Alignment.Center) {
 
         // show background
 
         SongBlurredBackground(
             modifier = Modifier.fillMaxSize(),
-            songAlbumArtModel = nowPlayingState.song.toSongAlbumArtModel()
+            songAlbumArtModel = song.toSongAlbumArtModel()
         )
 
         // draw content

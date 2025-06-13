@@ -29,7 +29,7 @@ class AnalyticsRepository @Inject constructor(
     }
 
     private fun ListeningSession.toDBEntity() =
-        ListeningSessionEntity(0, startTime.time, durationSeconds)
+        ListeningSessionEntity(0, "", "", "", startTime.time, durationSeconds)
 
     private fun ListeningSessionEntity.toModel() =
         ListeningSession(Date(startTimeEpoch), durationSeconds)

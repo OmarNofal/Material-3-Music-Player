@@ -298,6 +298,7 @@ class PlaybackManager @Inject constructor(
     }
 
     private fun updateState() {
+        updateQueue()
         val currentMediaItem = mediaController.currentMediaItem ?: return updateToEmptyState()
         val songUri = currentMediaItem.requestMetadata.mediaUri ?: return updateToEmptyState()
         val song = mediaRepository.songsFlow.value.getSongByUri(songUri.toString())
@@ -307,7 +308,8 @@ class PlaybackManager @Inject constructor(
             mediaController.shuffleModeEnabled,
             getRepeatModeFromPlayer(mediaController.repeatMode)
         )
-        _state.value = MediaPlayerState(song, playbackState)
+        val songIndex = mediaController.currentMediaItemIndex
+        _state.value = MediaPlayerState(song, songIndex, playbackState)
     }
 
     private fun updateToEmptyState() {

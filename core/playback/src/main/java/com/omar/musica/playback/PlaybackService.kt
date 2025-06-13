@@ -6,6 +6,7 @@ import android.media.AudioManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC
 import androidx.media3.common.C.USAGE_MEDIA
@@ -13,7 +14,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.ShuffleOrder
 import androidx.media3.exoplayer.source.ShuffleOrder.UnshuffledShuffleOrder
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
@@ -65,10 +65,12 @@ class PlaybackService :
     lateinit var queueRepository: QueueRepository
 
     @Inject
-    lateinit var listeningAnalytics: ListeningAnalytics
+    lateinit var listeningAnalyticsFactory: ListeningAnalytics.Factory
+    private lateinit var listeningAnalytics: ListeningAnalytics
+
 
     private lateinit var player: ExoPlayer
-    private lateinit var mediaSession: MediaSession
+    private var mediaSession: MediaSession? = null
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -88,8 +90,11 @@ class PlaybackService :
     override fun onCreate() {
         super.onCreate()
 
+        Timber.d("PlaybackService started")
+        Log.d("PlaybackService", "PlaybackService started")
+
         player = buildPlayer().apply { addListener(this@PlaybackService) }
-        attachAnalyticsListener()
+        createAnalyticsService()
 
         mediaSession = buildMediaSession()
 
@@ -125,8 +130,8 @@ class PlaybackService :
 
 
 
-    private fun attachAnalyticsListener() {
-        player.addListener(listeningAnalytics)
+    private fun createAnalyticsService() {
+        listeningAnalytics = listeningAnalyticsFactory.create(player)
     }
 
     private fun buildPendingIntent(): PendingIntent {
@@ -161,7 +166,9 @@ class PlaybackService :
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession {
         Timber.i(TAG, "Controller request: ${controllerInfo.packageName}")
-        return mediaSession
+
+        Log.d("PlaybackService", "Controller request: ${controllerInfo.packageName}")
+        return mediaSession!!
     }
 
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
@@ -363,7 +370,9 @@ class PlaybackService :
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        return START_STICKY
+        Timber.d("PlaybackService started: %s", intent.toString())
+        Log.d("PlaybackService", "PlaybackService started: %s" + intent.toString())
+        return START_NOT_STICKY
     }
 
     override fun onSleepTimerFinished() {
@@ -371,13 +380,15 @@ class PlaybackService :
     }
 
     override fun onDestroy() {
+        Timber.d("onDestroy called")
         scope.cancel()
         runBlocking {
             saveCurrentPosition()
         }
-        mediaSession.run {
+        mediaSession?.run {
             player.release()
             release()
+            mediaSession = null
         }
         volumeObserver.unregister()
         super.onDestroy()
@@ -385,6 +396,8 @@ class PlaybackService :
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
+        Timber.d("onTaskRemoved called")
+        Log.d("PlaybackService", "onTaskRemoved Called")
         if (!player.playWhenReady) {
             stopSelf()
         }

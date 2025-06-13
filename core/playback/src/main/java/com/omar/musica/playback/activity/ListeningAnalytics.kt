@@ -1,20 +1,30 @@
 package com.omar.musica.playback.activity
 
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import com.omar.musica.model.activity.ListeningSession
 import com.omar.musica.store.AnalyticsRepository
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import java.util.Date
-import javax.inject.Inject
 
 
-class ListeningAnalytics @Inject constructor(
-    private val analyticsRepository: AnalyticsRepository
-): Player.Listener {
+class ListeningAnalytics @AssistedInject constructor(
+    private val analyticsRepository: AnalyticsRepository,
+    @Assisted private val player: Player,
+) : Player.Listener {
+
+
+    init {
+        player.addListener(this)
+    }
 
     private var currentListeningSessionInfo: CurrentListeningSessionInfo? = null
 
     private val currentTimeSeconds: Long
         get() = System.currentTimeMillis() / 1000
+
 
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
         if (playWhenReady) {
@@ -23,6 +33,10 @@ class ListeningAnalytics @Inject constructor(
             val l = currentListeningSessionInfo ?: return
             flushSession(l)
         }
+    }
+
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+
     }
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -42,8 +56,13 @@ class ListeningAnalytics @Inject constructor(
 
     private val Date.timeSeconds get() = (this.time / 1000)
 
-    data class CurrentListeningSessionInfo(
-        val startDate: Date
+    private data class CurrentListeningSessionInfo(
+        val startDate: Date,
     )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(player: Player): ListeningAnalytics
+    }
 
 }

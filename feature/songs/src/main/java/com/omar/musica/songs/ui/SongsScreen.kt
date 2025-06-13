@@ -2,7 +2,11 @@ package com.omar.musica.songs.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,31 +16,44 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Sort
+import androidx.compose.material.icons.rounded.ArrowDownward
+import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.omar.musica.model.SongSortOption
@@ -50,8 +67,10 @@ import com.omar.musica.ui.menu.buildCommonMultipleSongsActions
 import com.omar.musica.ui.menu.buildCommonSongActions
 import com.omar.musica.ui.songs.SongsSummary
 import com.omar.musica.ui.songs.selectableSongsList
+import com.omar.musica.ui.theme.ManropeFontFamily
 import com.omar.musica.ui.topbar.OverflowMenu
 import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -134,9 +153,12 @@ internal fun SongsScreen(
                                     Icons.Rounded.Settings,
                                     "Settings"
                                 ) {
-                                onSettingsClicked()
+                                    onSettingsClicked()
                                 }),
-                            contentPaddingValues = PaddingValues(vertical = 16.dp, horizontal = 16.dp)
+                            contentPaddingValues = PaddingValues(
+                                vertical = 16.dp,
+                                horizontal = 16.dp
+                            )
                         )
                     },
                     scrollBehavior = scrollBehavior
@@ -154,15 +176,13 @@ internal fun SongsScreen(
                 )
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
         ) {
-            item {
-                HorizontalDivider()
-            }
+
             item {
                 AnimatedVisibility(visible = !multiSelectEnabled) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp),
+                            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -172,7 +192,7 @@ internal fun SongsScreen(
                             songs.sumOf { it.metadata.durationMillis }
                         )
                         Spacer(Modifier.width(16.dp))
-                        SortChip(
+                        SortButtonText(
                             modifier = Modifier,
                             songSortOptions = SongSortOption.entries,
                             onSortOptionSelected = onSortOptionChanged,
@@ -214,7 +234,139 @@ internal fun SongsScreen(
         }
     }
 
+
+}
+
+@Composable
+fun SortButtonText(
+    modifier: Modifier,
+    songSortOptions: List<SongSortOption>,
+    onSortOptionSelected: (SongSortOption, Boolean) -> Unit,
+    currentSongSortOption: SongSortOption,
+    isAscending: Boolean
+) {
+
+    var bottomSheetVisible by remember { mutableStateOf(false) }
+
+    TextButton(
+        modifier = modifier,
+        onClick = { bottomSheetVisible = true }
+    ) {
+        Text(currentSongSortOption.title)
+        Spacer(Modifier.width(6.dp))
+
+        val iconRotation by animateFloatAsState(if (isAscending) 0f else 180f)
+        Icon(
+            imageVector = Icons.Rounded.ArrowUpward,
+            contentDescription = null,
+            modifier = Modifier.graphicsLayer { rotationZ = iconRotation })
+    }
+
+    SortBottomSheet(
+        sortOptions = songSortOptions,
+        selectedSortOption = currentSongSortOption,
+        isAscending = isAscending,
+        visible = bottomSheetVisible,
+        onSortOptionChanged = onSortOptionSelected,
+        onDismissRequest = { bottomSheetVisible = false })
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SortBottomSheet(
+    sortOptions: List<SongSortOption>,
+    selectedSortOption: SongSortOption,
+    isAscending: Boolean,
+    visible: Boolean,
+    onSortOptionChanged: (SongSortOption, Boolean) -> Unit,
+    onDismissRequest: () -> Unit,
+) {
 
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+
+    val hide: () -> Unit = {
+        scope.launch { sheetState.hide() }
+            .invokeOnCompletion { if (!sheetState.isVisible) onDismissRequest() }
+    }
+
+    if (visible)
+        ModalBottomSheet(onDismissRequest = hide, sheetState = sheetState) {
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
+            ) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    imageVector = Icons.AutoMirrored.Rounded.Sort,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Column(
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                ) {
+                    Text(
+                        "Sort by",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontFamily = ManropeFontFamily,
+                        maxLines = 1,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        "Select option again to change sort order",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Normal
+                    )
+                }
+            }
+            HorizontalDivider(thickness = 3.dp)
+            sortOptions.forEach {
+                val selected = it == selectedSortOption
+                val onClick: () -> Unit = {
+                    if (selected) onSortOptionChanged(it, !isAscending)
+                    else onSortOptionChanged(it, isAscending)
+                    hide()
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onClick)
+                        .then(
+                            if (selected) Modifier.background(
+                                MaterialTheme.colorScheme.primaryContainer
+                            ) else Modifier
+                        )
+                        .padding(vertical = 12.dp, horizontal = 12.dp)
+                ) {
+                    Text(
+                        it.title,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Start,
+                        maxLines = 1,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontFamily = ManropeFontFamily,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                    )
+                    if (selected) {
+                        val icon =
+                            if (isAscending) Icons.Rounded.ArrowUpward else Icons.Rounded.ArrowDownward
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                if (it != sortOptions.last()) {
+                    Spacer(Modifier.height(2.dp))
+                }
+            }
+        }
+
+    LaunchedEffect(visible) {
+        if (visible)
+            sheetState.show()
+    }
+}

@@ -24,7 +24,7 @@ import com.omar.musica.database.entities.queue.QueueEntity
         ListeningSessionEntity::class,
         LyricsEntity::class
     ],
-    version = 4, exportSchema = false
+    version = 5, exportSchema = false
 )
 abstract class MusicaDatabase : RoomDatabase() {
 

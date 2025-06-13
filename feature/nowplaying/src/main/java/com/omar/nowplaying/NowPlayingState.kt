@@ -3,6 +3,7 @@ package com.omar.nowplaying
 import androidx.compose.runtime.Immutable
 import com.omar.musica.model.playback.PlayerState
 import com.omar.musica.model.playback.RepeatMode
+import com.omar.musica.store.model.queue.QueueItem
 import com.omar.musica.store.model.song.Song
 
 
@@ -15,7 +16,8 @@ sealed interface NowPlayingState {
 
     @Immutable
     data class Playing(
-        val song: Song,
+        val queue: List<Song>,
+        val songIndex: Int,
         val playbackState: PlayerState,
         val repeatMode: RepeatMode,
         val isShuffleOn: Boolean,
@@ -23,3 +25,5 @@ sealed interface NowPlayingState {
 
 }
 
+val NowPlayingState.Playing.song: Song
+    get() = queue[songIndex]
