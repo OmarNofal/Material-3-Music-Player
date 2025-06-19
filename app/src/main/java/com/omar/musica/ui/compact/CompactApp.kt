@@ -1,6 +1,7 @@
 package com.omar.musica.ui.compact
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -64,7 +65,7 @@ fun CompactAppScaffold(
     val density = LocalDensity.current
     val shouldShowNowPlayingBar by appState.shouldShowNowPlayingScreen.collectAsState(initial = false)
     val nowPlayingBarHeightPx = with(density) { COMPACT_NOW_PLAYING_BAR_HEIGHT.toPx() }
-    val shouldShowBottomBar by appState.shouldShowBottomBar.collectAsState(initial = false)
+    val shouldShowBottomBar by appState.shouldShowBottomBar.collectAsState(initial = true)
 
     var layoutHeightPx = remember { 0 }
     val bottomNavBarHeightPx =

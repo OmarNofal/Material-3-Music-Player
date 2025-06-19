@@ -2,7 +2,11 @@ package com.omar.musica.songs.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +49,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -167,71 +172,89 @@ internal fun SongsScreen(
         },
     ) { paddingValues ->
         val layoutDirection = LocalLayoutDirection.current
-        LazyColumn(
-            modifier = Modifier
-                .padding(
-                    top = paddingValues.calculateTopPadding(),
-                    end = paddingValues.calculateEndPadding(layoutDirection),
-                    start = paddingValues.calculateStartPadding(layoutDirection)
-                )
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-        ) {
 
-            item {
-                AnimatedVisibility(visible = !multiSelectEnabled) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        SongsSummary(
-                            modifier = Modifier,
-                            songs.count(),
-                            songs.sumOf { it.metadata.durationMillis }
-                        )
-                        Spacer(Modifier.width(16.dp))
-                        SortButtonText(
-                            modifier = Modifier,
-                            songSortOptions = SongSortOption.entries,
-                            onSortOptionSelected = onSortOptionChanged,
-                            currentSongSortOption = uiState.songSortOption,
-                            isAscending = uiState.isSortedAscendingly
-                        )
+        var hasShownAnimation by rememberSaveable { mutableStateOf(false) }
+
+        AnimatedVisibility(
+            visible = hasShownAnimation,
+            enter = fadeIn(
+                animationSpec = tween(durationMillis = 400, easing = LinearOutSlowInEasing)
+            ) + expandVertically(
+                animationSpec = tween(durationMillis = 400, easing = LinearOutSlowInEasing),
+                expandFrom = Alignment.Top
+            )
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(
+                        top = paddingValues.calculateTopPadding(),
+                        end = paddingValues.calculateEndPadding(layoutDirection),
+                        start = paddingValues.calculateStartPadding(layoutDirection)
+                    )
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+            ) {
+
+                item {
+                    AnimatedVisibility(visible = !multiSelectEnabled) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            SongsSummary(
+                                modifier = Modifier,
+                                songs.count(),
+                                songs.sumOf { it.metadata.durationMillis }
+                            )
+                            Spacer(Modifier.width(16.dp))
+                            SortButtonText(
+                                modifier = Modifier,
+                                songSortOptions = SongSortOption.entries,
+                                onSortOptionSelected = onSortOptionChanged,
+                                currentSongSortOption = uiState.songSortOption,
+                                isAscending = uiState.isSortedAscendingly
+                            )
+                        }
                     }
                 }
-            }
 
 
 
-            selectableSongsList(
-                songs,
-                multiSelectState,
-                multiSelectEnabled,
-                menuActionsBuilder = { song: Song ->
-                    with(commonSongActions) {
-                        buildCommonSongActions(
-                            song = song,
-                            context = context,
-                            songPlaybackActions = this.playbackActions,
-                            songInfoDialog = this.songInfoDialog,
-                            addToPlaylistDialog = this.addToPlaylistDialog,
-                            shareAction = this.shareAction,
-                            setAsRingtoneAction = this.setRingtoneAction,
-                            songDeleteAction = this.deleteAction,
-                            tagEditorAction = this.openTagEditorAction,
-                            goToAlbumAction = this.goToAlbumAction
-                        )
-                    }
-                },
-                onSongClicked = onSongClicked
-            )
+                selectableSongsList(
+                    songs,
+                    multiSelectState,
+                    multiSelectEnabled,
+                    menuActionsBuilder = { song: Song ->
+                        with(commonSongActions) {
+                            buildCommonSongActions(
+                                song = song,
+                                context = context,
+                                songPlaybackActions = this.playbackActions,
+                                songInfoDialog = this.songInfoDialog,
+                                addToPlaylistDialog = this.addToPlaylistDialog,
+                                shareAction = this.shareAction,
+                                setAsRingtoneAction = this.setRingtoneAction,
+                                songDeleteAction = this.deleteAction,
+                                tagEditorAction = this.openTagEditorAction,
+                                goToAlbumAction = this.goToAlbumAction
+                            )
+                        }
+                    },
+                    onSongClicked = onSongClicked
+                )
 
-            item {
-                Spacer(modifier = Modifier.navigationBarsPadding())
+                item {
+                    Spacer(modifier = Modifier.navigationBarsPadding())
+                }
             }
         }
+
+        LaunchedEffect(Unit) {
+            hasShownAnimation = true
+        }
+
     }
 
 
