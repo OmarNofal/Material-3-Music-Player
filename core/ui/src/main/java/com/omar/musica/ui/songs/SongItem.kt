@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.MoreVert
@@ -50,7 +49,9 @@ import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
 import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
 import com.omar.musica.ui.albumart.toSongAlbumArtModel
 import com.omar.musica.ui.common.LocalUserPreferences
+import com.omar.musica.ui.menu.BottomSheetMenuLayout
 import com.omar.musica.ui.menu.MenuActionItem
+import com.omar.musica.ui.menu.SongBottomSheetMenu
 import com.omar.musica.ui.menu.SongDropdownMenu
 import com.omar.musica.ui.millisToTime
 import timber.log.Timber
@@ -95,7 +96,7 @@ fun SongRow(
                     enter = EnterTransition.None,
                     exit = ExitTransition.None
                 ) {
-                    SongOverflowMenu(menuOptions = menuOptions)
+                    SongOverflowMenu(song = song, menuOptions = menuOptions)
                 }
             }
 
@@ -203,4 +204,18 @@ fun SongOverflowMenu(menuOptions: List<MenuActionItem>) {
         onDismissRequest = { expanded = false },
         actions = menuOptions
     )
+}
+
+@Composable
+fun SongOverflowMenu(song: Song, menuOptions: List<MenuActionItem>) {
+    var expanded by remember { mutableStateOf(false) }
+    IconButton(onClick = { expanded = true }) {
+        Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = null)
+    }
+    val dividers = remember { listOf(2, 3, 5) }
+    SongBottomSheetMenu(
+        song,
+        remember { BottomSheetMenuLayout(menuOptions, dividers) },
+        expanded,
+        { expanded = false })
 }

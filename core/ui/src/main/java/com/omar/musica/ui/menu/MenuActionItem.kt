@@ -2,15 +2,18 @@ package com.omar.musica.ui.menu
 
 import android.content.Context
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.AddToPhotos
 import androidx.compose.material.icons.rounded.Alarm
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.AppShortcut
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Equalizer
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.PlaylistRemove
 import androidx.compose.material.icons.rounded.RingVolume
 import androidx.compose.material.icons.rounded.Share
@@ -61,7 +64,7 @@ fun MutableList<MenuActionItem>.rename(callback: () -> Unit) =
     add(MenuActionItem(Icons.Rounded.TextFormat, "Rename", callback))
 
 fun MutableList<MenuActionItem>.addToPlaylists(callback: () -> Unit) =
-    add(MenuActionItem(Icons.Rounded.AddToPhotos, "Add to Playlists", callback))
+    add(MenuActionItem(Icons.AutoMirrored.Rounded.PlaylistAdd, "Add to Playlists", callback))
 
 fun MutableList<MenuActionItem>.share(callback: () -> Unit) =
     add(MenuActionItem(Icons.Rounded.Share, "Share", callback))
