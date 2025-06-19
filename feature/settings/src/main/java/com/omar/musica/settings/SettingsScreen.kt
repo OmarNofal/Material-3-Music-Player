@@ -26,7 +26,6 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.BlurCircular
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Replay
@@ -523,13 +522,18 @@ fun AppThemeDialog(
                             onThemeSelected(options[index])
                         }
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { onSelected() }) {
                         RadioButton(
                             selected = selectedOptionIndex == index,
                             onClick = { onSelected() }
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = option, modifier = Modifier.clickable { onSelected() })
+                        Text(text = option)
+                        Spacer(Modifier.weight(1f))
                     }
                 }
             }
@@ -568,13 +572,18 @@ fun PlayerThemeDialog(
                             onThemeSelected(options[index])
                         }
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically, modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { onSelected() }
+                    ) {
                         RadioButton(
                             selected = selectedOptionIndex == index,
-                            onClick = { onSelected() }
+                            onClick = { }
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = option, modifier = Modifier.clickable { onSelected() })
+                        Text(text = option)
+                        Spacer(Modifier.weight(1f))
                     }
                 }
             }
