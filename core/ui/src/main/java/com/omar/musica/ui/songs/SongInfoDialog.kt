@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -24,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,6 +35,7 @@ import coil.compose.AsyncImage
 import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.R
 import com.omar.musica.ui.albumart.LocalEfficientThumbnailImageLoader
+import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
 import com.omar.musica.ui.albumart.toSongAlbumArtModel
 import com.omar.musica.ui.millisToTime
 import java.io.File
@@ -70,18 +74,19 @@ fun rememberSongDialog(): SongInfoDialog {
                         ) {
                             AsyncImage(
                                 modifier = Modifier
-                                    .size(64.dp),
+                                    .size(64.dp)
+                                    .clip(RoundedCornerShape(8.dp)),
                                 model = safeSong.toSongAlbumArtModel(),
                                 error = painterResource(R.drawable.placeholder),
                                 placeholder = painterResource(R.drawable.placeholder),
                                 contentDescription = null,
-                                imageLoader = LocalEfficientThumbnailImageLoader.current
+                                imageLoader = LocalInefficientThumbnailImageLoader.current
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             SongMetadataRow(
                                 modifier = rowModifier,
                                 title = "Title",
-                                value = safeSong.metadata.title
+                                value = safeSong.metadata.title,
                             )
                         }
                         Divider(
@@ -151,7 +156,12 @@ fun SongMetadataRow(
 ) {
 
     Column(modifier) {
-        Text(text = title, fontWeight = FontWeight.SemiBold, fontSize = 10.sp)
+        Text(
+            text = title,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.primary
+        )
         Text(text = value, fontWeight = FontWeight.Normal, fontSize = 14.sp)
     }
 

@@ -30,6 +30,8 @@ val ManropeFontFamily = FontFamily(
 val font = ManropeFontFamily//FontFamily.Default
 
 // Set of Material typography styles to start with
+private val defaultTypography = Typography()
+
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = font,
@@ -62,5 +64,16 @@ val Typography = Typography(
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp,
         platformStyle = PlatformTextStyle(true)
+    ),
+    displayLarge = defaultTypography.displayLarge.copy(fontFamily = font),
+    displayMedium = defaultTypography.displayMedium.copy(fontFamily = font),
+    displaySmall = defaultTypography.displaySmall.copy(fontFamily = font),
+    headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = font),
+    headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = font),
+    headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = font),
+    titleMedium = defaultTypography.titleMedium.copy(fontFamily = font),
+    titleSmall = defaultTypography.titleSmall.copy(fontFamily = font),
+    labelLarge = defaultTypography.labelLarge.copy(fontFamily = font),
+    labelMedium = defaultTypography.labelMedium.copy(fontFamily = font),
+
     )
-)
