@@ -20,7 +20,6 @@ import com.omar.musica.playback.extensions.EXTRA_SONG_ORIGINAL_INDEX
 import com.omar.musica.playback.state.MediaPlayerState
 import com.omar.musica.store.MediaRepository
 import com.omar.musica.store.PlaylistsRepository
-import com.omar.musica.store.QueueRepository
 import com.omar.musica.store.model.queue.Queue
 import com.omar.musica.store.model.queue.QueueItem
 import com.omar.musica.store.model.song.Song
@@ -81,15 +80,7 @@ class PlaybackManager @Inject constructor(
 
     private val playbackState: PlayerState
         get() {
-            return when (mediaController.playbackState) {
-                Player.STATE_READY -> {
-                    if (mediaController.playWhenReady) PlayerState.PLAYING
-                    else PlayerState.PAUSED
-                }
-
-                Player.STATE_BUFFERING -> PlayerState.BUFFERING
-                else -> PlayerState.PAUSED
-            }
+            return if (mediaController.playWhenReady) PlayerState.PLAYING else PlayerState.PAUSED
         }
 
 

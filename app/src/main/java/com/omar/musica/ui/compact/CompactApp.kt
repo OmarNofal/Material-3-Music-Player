@@ -5,7 +5,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -41,6 +38,7 @@ import com.omar.musica.navigation.MusicaBottomNavBar
 import com.omar.musica.navigation.TopLevelDestination
 import com.omar.musica.state.MusicaAppState
 import com.omar.musica.ui.ViewNowPlayingScreenListenerEffect
+import com.omar.musica.ui.border.topBorder
 import com.omar.musica.ui.calculateBottomPaddingForContent
 import com.omar.musica.ui.update
 import com.omar.nowplaying.ui.BarState
@@ -150,7 +148,10 @@ fun CompactAppScaffold(
                             )
                     }
                     .anchoredDraggable(nowPlayingScreenAnchors, Orientation.Vertical)
-                    .border(Dp.Hairline, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), shape = RoundedCornerShape(4.dp))
+                    .topBorder(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        height = 1.dp
+                    )
                     .graphicsLayer {
                         shadowElevation = 64f
                     },
@@ -182,22 +183,6 @@ fun CompactAppScaffold(
             currentDestination = currentDestination,
             onDestinationSelected = onDestinationSelected
         )
-
-        /*val nowPlayingViewModel = hiltViewModel<NowPlayingViewModel>()
-        FloatingMiniPlayer(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = 128.dp, end = 16.dp)
-                .fillMaxWidth(0.6f)
-                .height(58.dp)
-                .clip(RoundedCornerShape(12.dp)),
-            nowPlayingState = nowPlayingViewModel.state.collectAsState().value,
-            showExtraControls = true,
-            songProgressProvider = { 0.5f },
-            enabled = true,
-            onTogglePlayback = { *//*TODO*//* },
-            onNext = { *//*TODO*//* }) {
-        }*/
 
         ViewNowPlayingScreenListenerEffect(
             navController = appState.navHostController,

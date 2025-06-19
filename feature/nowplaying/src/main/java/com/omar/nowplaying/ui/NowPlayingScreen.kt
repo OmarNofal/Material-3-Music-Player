@@ -1,14 +1,15 @@
 package com.omar.nowplaying.ui
 
 import android.app.Activity
-import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,38 +25,24 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FastForward
-import androidx.compose.material.icons.outlined.FastRewind
 import androidx.compose.material.icons.outlined.Replay
-import androidx.compose.material.icons.outlined.RotateLeft
-import androidx.compose.material.icons.outlined.RotateRight
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
-import androidx.compose.material.icons.rounded.FastForward
-import androidx.compose.material.icons.rounded.FastRewind
-import androidx.compose.material.icons.rounded.PauseCircle
-import androidx.compose.material.icons.rounded.PlayCircle
-import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material.icons.sharp.FastForward
-import androidx.compose.material.icons.sharp.FastRewind
 import androidx.compose.material.icons.sharp.PauseCircle
 import androidx.compose.material.icons.sharp.PlayCircle
-import androidx.compose.material.icons.sharp.SkipNext
-import androidx.compose.material.icons.sharp.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -65,26 +51,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.LinearGradient
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.LookaheadScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.omar.musica.ui.albumart.BlurTransformation
-import com.omar.musica.ui.albumart.toSongAlbumArtModel
 import com.omar.musica.ui.common.LocalUserPreferences
 import com.omar.musica.ui.model.AppThemeUi
 import com.omar.musica.ui.model.PlayerThemeUi
@@ -93,6 +70,7 @@ import com.omar.nowplaying.queue.QueueScreen
 import com.omar.nowplaying.song
 import com.omar.nowplaying.viewmodel.INowPlayingViewModel
 import com.omar.nowplaying.viewmodel.NowPlayingViewModel
+import kotlin.math.abs
 
 
 @Composable
@@ -163,7 +141,7 @@ internal fun NowPlayingScreen(
     Surface(
         modifier = modifier, //if (MaterialTheme.colorScheme.background == Color.Black) 0.dp else 3.dp,
 
-        ) {
+    ) {
 
         Box(modifier = Modifier.fillMaxSize()) {
 
@@ -212,7 +190,7 @@ internal fun NowPlayingScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun FullScreenNowPlaying(
     modifier: Modifier,
@@ -225,6 +203,17 @@ fun FullScreenNowPlaying(
 ) {
 
     val song = uiState.song
+
+    val pagerState = rememberPagerState(uiState.songIndex) { uiState.queue.size }
+
+    val currentSongIndex = uiState.songIndex
+    LaunchedEffect(currentSongIndex) {
+        if (currentSongIndex != pagerState.settledPage)
+            if (abs(currentSongIndex - pagerState.settledPage) == 1)
+                pagerState.animateScrollToPage(currentSongIndex, animationSpec = tween(400))
+            else
+                pagerState.scrollToPage(currentSongIndex)
+    }
 
     Box(
         modifier = modifier,
@@ -239,30 +228,24 @@ fun FullScreenNowPlaying(
 
             Box(modifier = Modifier.matchParentSize()) {
 
-                CrossFadingAlbumArt(
+                MorphingBlurredAlbumArtBackground(
                     modifier = Modifier.fillMaxSize(),
-                    songAlbumArtModel = song.toSongAlbumArtModel(),
-                    errorPainterType = ErrorPainterType.SOLID_COLOR,
-                    blurTransformation = remember {
-                        BlurTransformation(
-                            radius = 25,
-                            scale = 0.2f
-                        )
-                    },
-                    colorFilter = remember {
-                        ColorFilter.tint(
-                            Color(0xFFEEEEEE),
-                            BlendMode.Multiply
-                        )
-                    }
+                    songs = uiState.queue,
+                    currentIndex = pagerState.currentPage,
+                    swipeOffsetProvider = { pagerState.currentPageOffsetFraction }
                 )
+
                 val screenHeight = LocalContext.current.resources.displayMetrics.heightPixels
                 Box(
                     modifier = Modifier
                         .matchParentSize()
                         .background(
                             Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(0.7f), Color.Black.copy(alpha = 1.0f)),
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.Black.copy(0.7f),
+                                    Color.Black.copy(alpha = 1.0f)
+                                ),
                                 startY = screenHeight * 0.2f,
                                 endY = Float.POSITIVE_INFINITY
                             )
@@ -322,18 +305,22 @@ fun FullScreenNowPlaying(
                 )
             } else {
 
-                PlayingScreen2(
-                    modifier = playerScreenModifier.navigationBarsPadding(),
-                    songs = uiState.queue,
-                    songIndex = uiState.songIndex,
-                    song = song,
-                    playbackState = uiState.playbackState,
-                    repeatMode = uiState.repeatMode,
-                    isShuffleOn = uiState.isShuffleOn,
-                    screenSize = screenSize,
-                    nowPlayingActions = nowPlayingActions,
-                    onOpenQueue = onOpenQueue
-                )
+                CompositionLocalProvider(
+                    LocalPagerState provides pagerState
+                ) {
+                    PlayingScreen2(
+                        modifier = playerScreenModifier.navigationBarsPadding(),
+                        songs = uiState.queue,
+                        songIndex = uiState.songIndex,
+                        song = song,
+                        playbackState = uiState.playbackState,
+                        repeatMode = uiState.repeatMode,
+                        isShuffleOn = uiState.isShuffleOn,
+                        screenSize = screenSize,
+                        nowPlayingActions = nowPlayingActions,
+                        onOpenQueue = onOpenQueue
+                    )
+                }
             }
         }
 

@@ -36,14 +36,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.omar.musica.model.playback.PlayerState
 import com.omar.musica.ui.albumart.toSongAlbumArtModel
 import com.omar.musica.ui.theme.ManropeFontFamily
-import com.omar.musica.ui.theme.font
 import com.omar.nowplaying.NowPlayingState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -200,8 +199,7 @@ fun SongLinearProgressIndicator(
         progress = { progress.value },
         modifier = modifier,
         strokeCap = StrokeCap.Square,
-        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-
+        trackColor = Color.Transparent,
     )
 }
 
