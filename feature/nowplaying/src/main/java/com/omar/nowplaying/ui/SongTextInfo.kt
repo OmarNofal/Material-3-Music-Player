@@ -1,5 +1,10 @@
 package com.omar.nowplaying.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
@@ -11,7 +16,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -31,26 +35,31 @@ fun SongTextInfo(
 
     Column(modifier = modifier) {
 
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .then(
-                    if (marqueeEffect)
-                        Modifier.basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            delayMillis = 1000,
-                            animationMode = MarqueeAnimationMode.Immediately
-                        )
-                    else Modifier
-                ),
-            text = song.metadata.title,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyMedium,
-            fontSize = 22.sp,
-            maxLines = 1
-        )
-
+        AnimatedContent(
+            modifier = Modifier.fillMaxWidth(),
+            targetState = song.metadata.title,
+            transitionSpec = { fadeIn(tween(delayMillis = 150)) togetherWith fadeOut(tween(durationMillis = 150)) }
+        ) { title ->
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (marqueeEffect)
+                            Modifier.basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                delayMillis = 1000,
+                                animationMode = MarqueeAnimationMode.Immediately
+                            )
+                        else Modifier
+                    ),
+                text = title,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium,
+                fontSize = 22.sp,
+                maxLines = 1
+            )
+        }
         if (showArtist) {
             Spacer(modifier = Modifier.height(4.dp))
             Text(
