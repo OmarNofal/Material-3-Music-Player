@@ -10,12 +10,15 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -23,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.ArrowDownward
@@ -67,6 +71,7 @@ import com.omar.musica.songs.viewmodel.SongsViewModel
 import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.common.LocalCommonSongsAction
 import com.omar.musica.ui.common.MultiSelectState
+import com.omar.musica.ui.drag.ListDraggableHandle
 import com.omar.musica.ui.menu.MenuActionItem
 import com.omar.musica.ui.menu.buildCommonMultipleSongsActions
 import com.omar.musica.ui.menu.buildCommonSongActions
@@ -75,6 +80,8 @@ import com.omar.musica.ui.songs.selectableSongsList
 import com.omar.musica.ui.theme.ManropeFontFamily
 import com.omar.musica.ui.topbar.OverflowMenu
 import com.omar.musica.ui.topbar.SelectionTopAppBarScaffold
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 
@@ -184,69 +191,126 @@ internal fun SongsScreen(
                 expandFrom = Alignment.Top
             )
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(
-                        top = paddingValues.calculateTopPadding(),
-                        end = paddingValues.calculateEndPadding(layoutDirection),
-                        start = paddingValues.calculateStartPadding(layoutDirection)
-                    )
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
-            ) {
 
-                item {
-                    AnimatedVisibility(visible = !multiSelectEnabled) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            SongsSummary(
-                                modifier = Modifier,
-                                songs.count(),
-                                songs.sumOf { it.metadata.durationMillis }
-                            )
-                            Spacer(Modifier.width(16.dp))
-                            SortButtonText(
-                                modifier = Modifier,
-                                songSortOptions = SongSortOption.entries,
-                                onSortOptionSelected = onSortOptionChanged,
-                                currentSongSortOption = uiState.songSortOption,
-                                isAscending = uiState.isSortedAscendingly
-                            )
+            val listState = rememberLazyListState()
+
+            Box(Modifier.fillMaxSize()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(
+                            top = paddingValues.calculateTopPadding(),
+                            end = paddingValues.calculateEndPadding(layoutDirection),
+                            start = paddingValues.calculateStartPadding(layoutDirection)
+                        )
+                        .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    state = listState
+                ) {
+
+                    item {
+                        AnimatedVisibility(visible = !multiSelectEnabled) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                SongsSummary(
+                                    modifier = Modifier,
+                                    songs.count(),
+                                    songs.sumOf { it.metadata.durationMillis }
+                                )
+                                Spacer(Modifier.width(16.dp))
+                                SortButtonText(
+                                    modifier = Modifier,
+                                    songSortOptions = SongSortOption.entries,
+                                    onSortOptionSelected = onSortOptionChanged,
+                                    currentSongSortOption = uiState.songSortOption,
+                                    isAscending = uiState.isSortedAscendingly
+                                )
+                            }
                         }
+                    }
+
+
+
+                    selectableSongsList(
+                        songs,
+                        multiSelectState,
+                        multiSelectEnabled,
+                        menuActionsBuilder = { song: Song ->
+                            with(commonSongActions) {
+                                buildCommonSongActions(
+                                    song = song,
+                                    context = context,
+                                    songPlaybackActions = this.playbackActions,
+                                    songInfoDialog = this.songInfoDialog,
+                                    addToPlaylistDialog = this.addToPlaylistDialog,
+                                    shareAction = this.shareAction,
+                                    setAsRingtoneAction = this.setRingtoneAction,
+                                    songDeleteAction = this.deleteAction,
+                                    tagEditorAction = this.openTagEditorAction,
+                                    goToAlbumAction = this.goToAlbumAction
+                                )
+                            }
+                        },
+                        onSongClicked = onSongClicked
+                    )
+
+                    item {
+                        Spacer(modifier = Modifier.navigationBarsPadding())
                     }
                 }
 
+                val totalItemsCount by remember { derivedStateOf { listState.layoutInfo.totalItemsCount - 2 } }
+                val currentItemIndex by remember { derivedStateOf { listState.firstVisibleItemIndex } }
+                var isDragHandleVisible by remember { mutableStateOf(false) }
+                val scope = rememberCoroutineScope()
 
+                val isSortedAlphabetically = remember(uiState.songSortOption) {
+                    uiState.songSortOption in listOf(
+                        SongSortOption.ALBUM,
+                        SongSortOption.TITLE,
+                        SongSortOption.ARTIST
+                    )
+                }
 
-                selectableSongsList(
+                val currentLetter = remember(
                     songs,
-                    multiSelectState,
-                    multiSelectEnabled,
-                    menuActionsBuilder = { song: Song ->
-                        with(commonSongActions) {
-                            buildCommonSongActions(
-                                song = song,
-                                context = context,
-                                songPlaybackActions = this.playbackActions,
-                                songInfoDialog = this.songInfoDialog,
-                                addToPlaylistDialog = this.addToPlaylistDialog,
-                                shareAction = this.shareAction,
-                                setAsRingtoneAction = this.setRingtoneAction,
-                                songDeleteAction = this.deleteAction,
-                                tagEditorAction = this.openTagEditorAction,
-                                goToAlbumAction = this.goToAlbumAction
-                            )
-                        }
-                    },
-                    onSongClicked = onSongClicked
-                )
+                    currentItemIndex,
+                    uiState.songSortOption
+                ) {
+                    val song = songs.getOrNull(currentItemIndex - 1) ?: return@remember ""
+                    val string = when (uiState.songSortOption) {
+                        SongSortOption.TITLE -> song.metadata.title
+                        SongSortOption.ALBUM -> song.metadata.albumName.orEmpty()
+                        SongSortOption.ARTIST -> song.metadata.artistName.orEmpty()
+                        else -> song.metadata.title
+                    }
+                    string.substring(0, 1)
+                }
 
-                item {
-                    Spacer(modifier = Modifier.navigationBarsPadding())
+                ListDraggableHandle(
+                    Modifier
+                        .fillMaxHeight()
+                        .padding(top = paddingValues.calculateTopPadding())
+                        .align(Alignment.CenterEnd),
+                    visible = isDragHandleVisible,
+                    isSortedAlphabetically = isSortedAlphabetically,
+                    currentLetter = currentLetter,
+                    numberOfItems = totalItemsCount,
+                    currentItem = currentItemIndex,
+                ) { index ->
+                    scope.launch {
+                        listState.scrollToItem(index + 1)
+                    }
+                }
+
+                LaunchedEffect(currentItemIndex) {
+                    isDragHandleVisible = true
+                    delay(1000)
+                    if (isActive)
+                        isDragHandleVisible = false
                 }
             }
         }
