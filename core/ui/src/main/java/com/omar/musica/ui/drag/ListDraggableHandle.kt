@@ -14,7 +14,6 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.offset
@@ -22,8 +21,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material.icons.outlined.ArrowDropUp
+import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.ArrowDropUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -160,30 +159,29 @@ fun ListDraggableHandle(
                             sweepAngle = 180f,
                             useCenter = true,
                             topLeft = Offset.Zero,
-                            size = size,
+                            size = size
                         )
                     }
 
                     // Icons
-                    Column(
+                    Box(
                         modifier = Modifier.offset(16.dp, 0.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(0.dp)
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.ArrowDropUp,
+                            imageVector = Icons.Rounded.ArrowDropUp,
                             contentDescription = null,
                             modifier = Modifier
-                                .size(22.dp)
-                                .padding(0.dp),
+                                .size(36.dp)
+                                .padding(bottom = 8.dp),
                             tint = colorScheme.onSecondaryContainer
                         )
                         Icon(
-                            imageVector = Icons.Outlined.ArrowDropDown,
+                            imageVector = Icons.Rounded.ArrowDropDown,
                             contentDescription = null,
                             modifier = Modifier
-                                .size(22.dp)
-                                .padding(0.dp),
+                                .size(36.dp)
+                                .padding(top = 8.dp),
                             tint = colorScheme.onSecondaryContainer
                         )
                     }

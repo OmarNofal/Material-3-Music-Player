@@ -77,7 +77,7 @@ fun SongBottomSheetMenu(
             onDismissRequest = { hide({}) },
             sheetState = sheetState,
             dragHandle = null,
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -91,7 +91,6 @@ fun SongBottomSheetMenu(
                         .height(imageSize)
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(8.dp)),
-
                     )
                 Column(
                     modifier = Modifier.padding(horizontal = 12.dp)

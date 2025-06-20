@@ -212,7 +212,7 @@ fun SongOverflowMenu(song: Song, menuOptions: List<MenuActionItem>) {
     IconButton(onClick = { expanded = true }) {
         Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = null)
     }
-    val dividers = remember { listOf(2, 3, 5) }
+    val dividers = remember { listOf(2, 4) }
     SongBottomSheetMenu(
         song,
         remember { BottomSheetMenuLayout(menuOptions, dividers) },

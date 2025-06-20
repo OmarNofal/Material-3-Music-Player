@@ -117,8 +117,8 @@ fun buildCommonSongActions(
         if (song.albumId != null && goToAlbumAction != null)
             goToAlbum { goToAlbumAction.open(song) }
 
-        share { shareAction.share(context, songList) }
         tagEditor { tagEditorAction.open(song.uri) }
+        share { shareAction.share(context, songList) }
         setAsRingtone { setAsRingtoneAction.setRingtone(song.uri) }
         songInfo { songInfoDialog.open(song) }
         delete { songDeleteAction.deleteSongs(songList) }

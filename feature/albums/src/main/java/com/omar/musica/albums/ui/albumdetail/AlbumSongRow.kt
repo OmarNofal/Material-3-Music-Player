@@ -6,10 +6,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -18,8 +23,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.omar.musica.store.model.album.AlbumSong
 import com.omar.musica.ui.common.LocalCommonSongsAction
+import com.omar.musica.ui.menu.BottomSheetMenuLayout
+import com.omar.musica.ui.menu.SongBottomSheetMenu
 import com.omar.musica.ui.menu.buildCommonSongActions
-import com.omar.musica.ui.topbar.OverflowMenu
 
 
 @Composable
@@ -72,7 +78,20 @@ fun AlbumSongRow(
             }
         }
 
-        OverflowMenu(actionItems = actions, icon = Icons.Rounded.MoreHoriz, showIcons = false)
+        val bottomSheetLayout = remember(actions) {
+            BottomSheetMenuLayout(actions, listOf(2, 3))
+        }
+
+        var isBottomSheetVisible by remember { mutableStateOf(false) }
+
+        SongBottomSheetMenu(
+            song.song,
+            bottomSheetLayout,
+            isBottomSheetVisible
+        ) { isBottomSheetVisible = false }
+        IconButton(onClick = { isBottomSheetVisible = true }) {
+            Icon(imageVector = Icons.Rounded.MoreHoriz, contentDescription = null)
+        }
     }
 
 }

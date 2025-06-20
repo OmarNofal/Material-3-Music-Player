@@ -84,7 +84,7 @@ class SongsViewModel @Inject constructor(
             SongSortOption.TITLE -> this.sortedBy { it.metadata.title.lowercase() }
             SongSortOption.ARTIST -> this.sortedBy { it.metadata.artistName?.lowercase() }
             SongSortOption.FileSize -> this.sortedBy { it.metadata.sizeBytes }
-            SongSortOption.ALBUM -> this.sortedBy { it.metadata.albumName }
+            SongSortOption.ALBUM -> this.sortedBy { it.metadata.albumName?.lowercase() }
             SongSortOption.Duration -> this.sortedBy { it.metadata.durationMillis }
         }
 
@@ -94,7 +94,7 @@ class SongsViewModel @Inject constructor(
             SongSortOption.TITLE -> this.sortedByDescending { it.metadata.title.lowercase() }
             SongSortOption.ARTIST -> this.sortedByDescending { it.metadata.artistName?.lowercase() }
             SongSortOption.FileSize -> this.sortedByDescending { it.metadata.sizeBytes }
-            SongSortOption.ALBUM -> this.sortedByDescending { it.metadata.albumName }
+            SongSortOption.ALBUM -> this.sortedByDescending { it.metadata.albumName?.lowercase() }
             SongSortOption.Duration -> this.sortedByDescending { it.metadata.durationMillis }
         }
 
