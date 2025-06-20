@@ -11,7 +11,9 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -26,7 +28,7 @@ import kotlin.math.abs
 
 
 @OptIn(ExperimentalFoundationApi::class)
-val LocalPagerState = staticCompositionLocalOf<PagerState> { throw IllegalStateException() }
+val LocalPagerState = compositionLocalOf<PagerState> { throw IllegalStateException() }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -37,7 +39,7 @@ fun AlbumArtPager(
     onSongSwitched: (Int) -> Unit
 ) {
     val pagerState = LocalPagerState.current
-    var lastReportedPage by remember { mutableStateOf(pagerState.targetPage) }
+    var lastReportedPage by remember { mutableIntStateOf(pagerState.targetPage) }
 
     var isDragging by remember { mutableStateOf(false) }
 
@@ -70,18 +72,17 @@ fun AlbumArtPager(
         modifier = modifier,
         key = { songs[it].uri }, // optional, improves performance
         contentPadding = PaddingValues(horizontal = 0.dp),
-        beyondBoundsPageCount = 1
+        beyondBoundsPageCount = 2
     ) { index ->
         val song = songs[index]
-        CrossFadingAlbumArt(
+        NowPlayingSquareAlbumArt(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(horizontal = 18.dp)
                 .aspectRatio(1f)
                 .shadow(4.dp, shape = RoundedCornerShape(10.dp), clip = true)
                 .clip(RoundedCornerShape(10.dp)),
-            containerModifier = Modifier.padding(horizontal = 14.dp),
-            songAlbumArtModel = song.toSongAlbumArtModel(),
-            errorPainterType = ErrorPainterType.PLACEHOLDER
+            song = song.toSongAlbumArtModel()
         )
     }
 }

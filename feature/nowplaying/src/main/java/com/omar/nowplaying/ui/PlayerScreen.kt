@@ -304,7 +304,10 @@ fun PortraitPlayerScreen(
                     modifier = Modifier.fillMaxWidth().aspectRatio(1.0f),
                     songs = songs,
                     currentSongIndex = songIndex,
-                ) { nowPlayingActions.playSongAtIndex(it) }
+                ) { newIndex ->
+                    if (newIndex != songIndex)
+                        nowPlayingActions.playSongAtIndex(newIndex)
+                }
             }
         }
 

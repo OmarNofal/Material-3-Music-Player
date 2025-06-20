@@ -120,7 +120,6 @@ class PlaybackManager @Inject constructor(
      * Jumps to the next song in the queue
      */
     fun playNextSong() {
-        mediaController.prepare()
         mediaController.seekToNext()
     }
 
@@ -128,7 +127,6 @@ class PlaybackManager @Inject constructor(
      * Jumps to the previous song in the queue
      */
     fun playPreviousSong() {
-        mediaController.prepare()
         mediaController.seekToPrevious()
     }
 

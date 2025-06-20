@@ -1,6 +1,8 @@
 package com.omar.nowplaying.ui
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -62,6 +64,7 @@ fun NowPlayingOverflowMenu(
     val playbackSpeedDialog = rememberPlaybackSpeedDialog(viewModel = hiltViewModel())
 
     OverflowMenu(
+        icon = Icons.Rounded.MoreHoriz,
         contentPaddingValues = PaddingValues(start = 16.dp, end = 36.dp, top = 4.dp, bottom = 4.dp),
         actionItems = mutableListOf<MenuActionItem>().apply {
             sleepTimer { sleepTimerDialog.launch() }

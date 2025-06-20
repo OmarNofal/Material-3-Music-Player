@@ -208,11 +208,12 @@ fun FullScreenNowPlaying(
 
     val currentSongIndex = uiState.songIndex
     LaunchedEffect(currentSongIndex) {
-        if (currentSongIndex != pagerState.settledPage)
-            if (abs(currentSongIndex - pagerState.settledPage) == 1)
-                pagerState.animateScrollToPage(currentSongIndex, animationSpec = tween(400))
-            else
-                pagerState.scrollToPage(currentSongIndex)
+        if (currentSongIndex == pagerState.currentPage || currentSongIndex == pagerState.targetPage) return@LaunchedEffect
+
+        if (abs(currentSongIndex - pagerState.targetPage) == 1)
+            pagerState.animateScrollToPage(currentSongIndex, animationSpec = tween(250))
+        else
+            pagerState.scrollToPage(currentSongIndex)
     }
 
     Box(

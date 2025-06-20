@@ -24,11 +24,13 @@ import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
+import coil.size.SizeResolver
 import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.R
 import com.omar.musica.ui.albumart.BlurTransformation
 import com.omar.musica.ui.albumart.LocalInefficientThumbnailImageLoader
 import com.omar.musica.ui.albumart.SongAlbumArtModel
+import com.omar.musica.ui.albumart.inefficientAlbumArtImageLoader
 import com.omar.musica.ui.albumart.toSongAlbumArtModel
 import kotlin.math.abs
 import kotlin.math.max
@@ -37,6 +39,35 @@ import kotlin.math.min
 
 enum class ErrorPainterType {
     PLACEHOLDER, SOLID_COLOR
+}
+
+@Composable
+fun NowPlayingSquareAlbumArt(
+    modifier: Modifier,
+    song: SongAlbumArtModel,
+    colorFilter: ColorFilter? = null,
+    contentScale: ContentScale = ContentScale.Crop
+) {
+
+    val context = LocalContext.current
+
+    val imageRequest = remember(song) {
+        ImageRequest.Builder(context)
+            .data(song)
+            .crossfade(false)
+            .build()
+    }
+
+    AsyncImage(
+        modifier = modifier,
+        contentDescription = null,
+        contentScale = contentScale,
+        colorFilter = colorFilter,
+        error = painterResource(R.drawable.placeholder),
+        placeholder = painterResource(R.drawable.placeholder),
+        model = imageRequest,
+        imageLoader = LocalInefficientThumbnailImageLoader.current
+    )
 }
 
 @Composable
@@ -169,8 +200,8 @@ fun BlurredAlbumArt(modifier: Modifier, song: SongAlbumArtModel?) {
     val imageRequest = remember(song?.uri.toString()) {
         ImageRequest.Builder(context)
             .data(song)
-            .apply { this.transformations(BlurTransformation(25, 0.2f)) }
-            .size(Size.ORIGINAL).build()
+            .apply { this.transformations(BlurTransformation(25, 0.1f)) }
+            .build()
     }
 
     AsyncImage(
