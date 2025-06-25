@@ -204,14 +204,14 @@ fun FullScreenNowPlaying(
 
     val song = uiState.song
 
-    val pagerState = rememberPagerState(uiState.songIndex) { uiState.queue.size }
+    val pagerState = rememberPagerState(remember { uiState.songIndex }) { uiState.queue.size }
 
     val currentSongIndex = uiState.songIndex
     LaunchedEffect(currentSongIndex) {
-        if (currentSongIndex == pagerState.currentPage || currentSongIndex == pagerState.targetPage) return@LaunchedEffect
+        if (currentSongIndex == pagerState.targetPage || currentSongIndex == pagerState.currentPage) return@LaunchedEffect
 
         if (abs(currentSongIndex - pagerState.targetPage) == 1)
-            pagerState.animateScrollToPage(currentSongIndex, animationSpec = tween(250))
+            pagerState.animateScrollToPage(currentSongIndex, animationSpec = tween(300))
         else
             pagerState.scrollToPage(currentSongIndex)
     }

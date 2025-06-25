@@ -1,6 +1,7 @@
 package com.omar.nowplaying.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.snapping.SnapFlingBehavior
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
@@ -17,6 +18,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +26,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import com.omar.musica.store.model.song.Song
 import com.omar.musica.ui.albumart.toSongAlbumArtModel
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.math.abs
 
 
@@ -61,18 +64,30 @@ fun AlbumArtPager(
 
     // 🔄 Respond immediately to swipe changes (while dragging)
     LaunchedEffect(pagerState.targetPage, isDragging) {
-        if (lastReportedPage != pagerState.targetPage && !isDragging) {
+        if (lastReportedPage != pagerState.targetPage) {
             lastReportedPage = pagerState.targetPage
-            onSongSwitched(pagerState.targetPage)
+            if (!isDragging)
+                onSongSwitched(pagerState.targetPage)
         }
     }
+//    LaunchedEffect(pagerState) {
+//        snapshotFlow { pagerState.targetPage }
+//            .distinctUntilChanged()
+//            .collect { page ->
+//                if (lastReportedPage != page) {
+//                    lastReportedPage = page
+//                    if (!isDragging)
+//                        onSongSwitched(page)
+//                }
+//            }
+//    }
 
     HorizontalPager(
         state = pagerState,
         modifier = modifier,
         key = { songs[it].uri }, // optional, improves performance
         contentPadding = PaddingValues(horizontal = 0.dp),
-        beyondBoundsPageCount = 2
+        beyondBoundsPageCount = 1,
     ) { index ->
         val song = songs[index]
         NowPlayingSquareAlbumArt(
